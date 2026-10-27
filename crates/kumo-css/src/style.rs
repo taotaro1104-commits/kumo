@@ -172,6 +172,8 @@ pub struct ComputedStyle {
     pub row_gap: LengthPct,
     pub column_gap: LengthPct,
     pub order: i32,
+    /// `None` は `auto`
+    pub z_index: Option<i32>,
     pub grid: Box<GridStyle>,
     // ---- 表 ----
     pub border_collapse: BorderCollapse,
@@ -243,6 +245,7 @@ impl ComputedStyle {
             row_gap: LengthPct::ZERO,
             column_gap: LengthPct::ZERO,
             order: 0,
+            z_index: None,
             grid: Box::default(),
             border_collapse: BorderCollapse::Separate,
             border_spacing: 0.0,
@@ -294,6 +297,19 @@ impl ComputedStyle {
             BorderStyle::None | BorderStyle::Hidden => 0.0,
             _ => *self.border_width.get(side),
         }
+    }
+
+    /// 位置指定されているか（`position` が static 以外）。
+    pub fn is_positioned(&self) -> bool {
+        self.position != Position::Static
+    }
+
+    /// 自身がスタッキングコンテキストを作るか（CSS 2.1 §9.9.1 と CSS Color の opacity）。
+    /// ルート要素は呼び出し側で別扱いにする。
+    pub fn creates_stacking_context(&self) -> bool {
+        (self.is_positioned() && self.z_index.is_some())
+            || matches!(self.position, Position::Fixed | Position::Sticky)
+            || self.opacity < 1.0
     }
 
     pub fn line_height_px(&self) -> f32 {

@@ -50,6 +50,8 @@ pub fn apply_plan(layout: &mut kumo_text::Layout<u32>, plan: &BreakPlan) {
 /// 各行をフロートの隙間に流し込み、行の配置枠を記録する。
 ///
 /// - 隙間が狭くて1語も収まらない行は取り消し、フロートの下の次の隙間でやり直す（CSS 2.1 §9.5）。
+/// - 行の高さが分かったら、行が縦に重なる範囲のフロートをすべて避けられているか確かめ、
+///   途中から始まるフロートに食い込むなら最も狭い枠で組み直す。
 /// - 段落内のフロートに出会ったら、その行の位置でブロック整形コンテキストへ配置する。
 pub fn break_around_floats(
     tree: &mut BoxTree,
@@ -69,11 +71,16 @@ pub fn break_around_floats(
         // 狭すぎて諦めた区間の下端。次の行はここから探す
         let mut min_y: Option<f32> = None;
         let mut push_downs = 0;
+        // 行の高さを考慮して狭めた枠（同じ上端でやり直すときに使う）
+        let mut forced: Option<(f32, f32)> = None;
+        let mut refits = 0;
         loop {
             let y = min_y.unwrap_or(0.0).max(breaker.committed_y() as f32);
             let slot = ctx.find_content_slot(y, Clear::None, None);
-            let x = slot.x.clamp(0.0, width);
-            let line_width = slot.width.min(width - x).max(0.0);
+            let (x, line_width) = forced.take().unwrap_or_else(|| {
+                let x = slot.x.clamp(0.0, width);
+                (x, slot.width.min(width - x).max(0.0))
+            });
             let top = slot.y.max(y);
             let state = breaker.state_mut();
             state.set_line_y(f64::from(top));
@@ -92,6 +99,18 @@ pub fn break_around_floats(
                         .append_inline_box_to_line(data.advance, 0.0, 0.0);
                 }
                 Some(YieldData::LineBreak(data)) => {
+                    let bottom = data.line_y_end.max(data.line_y_start) as f32;
+                    let (fit_x, fit_width) = narrowest_slot(ctx, top, bottom, width);
+                    let encroaches = fit_x > x + OVERFLOW_EPSILON
+                        || fit_x + fit_width + OVERFLOW_EPSILON < x + line_width;
+                    if encroaches && refits < MAX_PUSH_DOWN && breaker.revert() {
+                        forced = Some((
+                            fit_x.max(x),
+                            (fit_x + fit_width).min(x + line_width) - fit_x.max(x),
+                        ));
+                        refits += 1;
+                        continue;
+                    }
                     let narrowed =
                         line_width + OVERFLOW_EPSILON < width && slot.segment_id.is_some();
                     let content_width = data.metrics.advance - data.metrics.hanging_advance;
@@ -108,6 +127,7 @@ pub fn break_around_floats(
                     });
                     min_y = None;
                     push_downs = 0;
+                    refits = 0;
                 }
                 Some(YieldData::MaxHeightExceeded(_)) => {}
             }
@@ -119,6 +139,26 @@ pub fn break_around_floats(
         width: Some(width),
         lines,
     }
+}
+
+/// `[top, bottom)` に縦に重なるすべてのフロート区間を避けられる、最も狭い枠 `(x, 幅)`。
+fn narrowest_slot(ctx: &BlockContext<'_>, top: f32, bottom: f32, width: f32) -> (f32, f32) {
+    let (mut left, mut right) = (0.0f32, width);
+    let mut y = top;
+    for _ in 0..MAX_PUSH_DOWN {
+        let slot = ctx.find_content_slot(y, Clear::None, None);
+        left = left.max(slot.x.clamp(0.0, width));
+        right = right.min((slot.x + slot.width).clamp(0.0, width));
+        let Some(segment) = slot.segment_id else {
+            break;
+        };
+        let end = segment_end(ctx, y, Some(segment));
+        if end >= bottom || end <= y {
+            break;
+        }
+        y = end;
+    }
+    (left, (right - left).max(0.0))
 }
 
 /// `y` を含むフロート区間の下端を求める（BlockContext は区間を公開しないため二分探索する）。

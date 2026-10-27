@@ -76,6 +76,7 @@ pub fn apply_decl(style: &mut ComputedStyle, decl: &Decl, ctx: &ResolveContext<'
         Decl::RowGap(v) => style.row_gap = len(*v),
         Decl::ColumnGap(v) => style.column_gap = len(*v),
         Decl::Order(v) => style.order = *v,
+        Decl::ZIndex(v) => style.z_index = *v,
         Decl::Grid(prop, v) => apply_grid(style, *prop, v.clone()),
         Decl::BorderCollapse(v) => style.border_collapse = *v,
         Decl::BorderSpacing(v) => style.border_spacing = len(*v).px,
@@ -240,6 +241,7 @@ fn copy_property(dst: &mut ComputedStyle, src: &ComputedStyle, name: &str) {
         "list-style-type" => copy_fields!(dst, src, list_style_type),
         "visibility" => copy_fields!(dst, src, visibility),
         "vertical-align" => copy_fields!(dst, src, vertical_align),
+        "z-index" => copy_fields!(dst, src, z_index),
         "overflow" => copy_fields!(dst, src, overflow_x, overflow_y),
         _ => {}
     }

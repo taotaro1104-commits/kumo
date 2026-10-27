@@ -91,6 +91,15 @@ fn parse_declaration<'i>(
         "flex-grow" => parse_non_negative_number(input).map(|n| out.push(Decl::FlexGrow(n))),
         "flex-shrink" => parse_non_negative_number(input).map(|n| out.push(Decl::FlexShrink(n))),
         "flex-basis" => parse_flex_basis(input).map(|l| out.push(Decl::FlexBasis(l))),
+        "z-index" => {
+            let value = if input.try_parse(|i| i.expect_ident_matching("auto")).is_ok() {
+                None
+            } else {
+                Some(input.expect_integer()?)
+            };
+            out.push(Decl::ZIndex(value));
+            Ok(())
+        }
         "order" => {
             out.push(Decl::Order(input.expect_integer()?));
             Ok(())

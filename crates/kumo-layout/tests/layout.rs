@@ -319,3 +319,24 @@ fn pushed_lines_count_toward_paragraph_height_and_left_floats_offset_once() {
         "左フロートの右から1回だけずれて始まる"
     );
 }
+
+#[test]
+fn tall_line_avoids_float_that_starts_mid_line() {
+    // 行の高さ 60px。2本目のフロートは y=30 から始まり、1行目の途中に食い込む
+    let css = "body { margin: 0; font-size: 16px; line-height: 60px } p { margin: 0 } \
+               #a { float: right; width: 10px; height: 30px } \
+               #b { float: right; clear: right; width: 400px; height: 100px }";
+    let laid = lay(
+        "<div id=a></div><div id=b></div><p id=p>short words only here</p>",
+        css,
+    );
+    let (_, by, _, _) = rect(&laid, "b");
+    assert_eq!(by, 30.0);
+    let plan = inline_of(&laid, "p").final_breaks.clone().unwrap();
+    let first = plan.lines[0];
+    assert_eq!(first.y, 0.0);
+    assert!(
+        first.width <= W - 400.0 + 0.5,
+        "行全体の高さで重なるフロートを避ける: {first:?}"
+    );
+}

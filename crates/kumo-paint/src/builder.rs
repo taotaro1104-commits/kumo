@@ -1,12 +1,13 @@
 //! ボックスツリーからディスプレイリストを作る。
 
-use kumo_css::keywords::{BorderStyle, Overflow, Visibility};
+use kumo_css::keywords::BorderStyle;
 use kumo_css::values::Rgba;
 use kumo_css::{ComputedStyle, Side};
 use kumo_layout::{BoxKind, BoxTree, InlineContent, LayoutBox};
 use kumo_text::PositionedLayoutItem;
 
 use crate::display_list::{DisplayItem, DisplayList, GlyphRunItem, PlacedGlyph, RectF};
+use crate::stacking::{Placed, paint_layer};
 
 /// ボックスツリー全体をディスプレイリストに変換する。
 pub fn build_display_list(tree: &BoxTree) -> DisplayList {
@@ -16,7 +17,18 @@ pub fn build_display_list(tree: &BoxTree) -> DisplayList {
         background: canvas_background(tree),
         ..DisplayList::default()
     };
-    paint_box(tree, 0, 0.0, 0.0, None, &mut list);
+    let root = tree.boxes[0].layout();
+    let placed = Placed {
+        index: 0,
+        rect: RectF::new(
+            root.location.x,
+            root.location.y,
+            root.size.width,
+            root.size.height,
+        ),
+        clip: None,
+    };
+    paint_layer(tree, placed, &mut list);
     list
 }
 
@@ -34,67 +46,38 @@ fn canvas_background(tree: &BoxTree) -> Option<Rgba> {
         .find(|c| !c.is_transparent())
 }
 
-fn paint_box(
+/// ボックス自身の内容（リストマーカー・インラインのテキスト・置換要素の画像）を描く。
+pub(crate) fn paint_content(
     tree: &BoxTree,
     index: usize,
-    ox: f32,
-    oy: f32,
+    rect: RectF,
     clip: Option<RectF>,
     list: &mut DisplayList,
 ) {
     let b = &tree.boxes[index];
-    let l = b.layout();
-    let rect = RectF::new(
-        ox + l.location.x,
-        oy + l.location.y,
-        l.size.width,
-        l.size.height,
-    );
-    let style = &b.computed;
-    let visible = style.visibility == Visibility::Visible;
-    // ルート要素の背景はキャンバスに伝播済み
-    let is_root_element = index != 0 && tree.boxes[0].children.first() == Some(&index);
-    if visible && b.dom.is_some() && !is_root_element {
-        paint_background_and_borders(style, rect, clip, list);
+    if let Some(marker) = &b.marker {
+        paint_marker(b, marker, rect, clip, list);
     }
-    if visible {
-        if let Some(marker) = &b.marker {
-            paint_marker(b, marker, rect, clip, list);
-        }
-        match &b.kind {
-            BoxKind::Inline(content) => paint_inline(content, rect.x, rect.y, clip, list),
-            BoxKind::Replaced(replaced) => {
-                if let Some(src) = &replaced.src {
-                    let content = content_box(style, rect);
-                    list.push(
-                        DisplayItem::Image {
-                            rect: content,
-                            src: src.clone(),
-                        },
-                        content,
-                        clip,
-                    );
-                }
+    match &b.kind {
+        BoxKind::Inline(content) => paint_inline(content, rect.x, rect.y, clip, list),
+        BoxKind::Replaced(replaced) => {
+            if let Some(src) = &replaced.src {
+                let content = content_box(&b.computed, rect);
+                list.push(
+                    DisplayItem::Image {
+                        rect: content,
+                        src: src.clone(),
+                    },
+                    content,
+                    clip,
+                );
             }
-            BoxKind::Container => {}
         }
-    }
-    let child_clip =
-        if style.overflow_x != Overflow::Visible || style.overflow_y != Overflow::Visible {
-            let padding_box = inset(rect, |s| style.used_border_width(s));
-            Some(clip.map_or(padding_box, |c| c.intersect(&padding_box)))
-        } else {
-            clip
-        };
-    let is_float = |c: &usize| tree.boxes[*c].computed.float != kumo_css::keywords::Float::None;
-    let in_flow = b.children.iter().filter(|c| !is_float(c));
-    let floats = b.children.iter().filter(|c| is_float(c));
-    for &child in in_flow.chain(floats) {
-        paint_box(tree, child, rect.x, rect.y, child_clip, list);
+        BoxKind::Container => {}
     }
 }
 
-fn inset(rect: RectF, mut f: impl FnMut(Side) -> f32) -> RectF {
+pub(crate) fn inset(rect: RectF, mut f: impl FnMut(Side) -> f32) -> RectF {
     let (t, r, bo, l) = (f(Side::Top), f(Side::Right), f(Side::Bottom), f(Side::Left));
     RectF::new(
         rect.x + l,
@@ -109,7 +92,7 @@ fn content_box(style: &ComputedStyle, rect: RectF) -> RectF {
     inset(border, |s| style.padding.get(s).resolve(rect.w))
 }
 
-fn paint_background_and_borders(
+pub(crate) fn paint_background_and_borders(
     style: &ComputedStyle,
     rect: RectF,
     clip: Option<RectF>,

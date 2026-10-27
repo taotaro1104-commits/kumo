@@ -60,6 +60,8 @@ impl Viewer {
         }
     }
 
+    /// サーフェスだけを合わせ、再レイアウトは次の描画まで遅らせる。
+    /// 起動直後の一時的なサイズや、ドラッグ中の連続したリサイズをまとめて1回にするため。
     fn resize(&mut self, width: u32, height: u32) {
         let (Some(w), Some(h)) = (NonZeroU32::new(width), NonZeroU32::new(height)) else {
             return;
@@ -70,20 +72,39 @@ impl Viewer {
             eprintln!("[window] サーフェスの再確保に失敗: {e}");
             return;
         }
-        if self.page.viewport() != (width as f32, height as f32) {
-            self.page.relayout(width as f32, height as f32);
-            self.renderer.invalidate();
-            self.scroll_by(0.0);
+        self.request_redraw();
+    }
+
+    /// ビューポートが変わっていれば再レイアウトする。
+    fn sync_layout(&mut self, width: u32, height: u32) {
+        if self.page.viewport() == (width as f32, height as f32) {
+            return;
         }
+        let started = std::time::Instant::now();
+        let before = self.page.viewport();
+        self.page.relayout(width as f32, height as f32);
+        eprintln!(
+            "[layout] {:.0}x{:.0} -> {width}x{height} を {:.0}ms で再レイアウト",
+            before.0,
+            before.1,
+            started.elapsed().as_secs_f64() * 1000.0
+        );
+        self.renderer.invalidate();
+        let (_, vh) = self.page.viewport();
+        let max = (self.page.document_height() - vh).max(0.0);
+        self.scroll_y = self.scroll_y.clamp(0.0, max).round();
     }
 
     fn redraw(&mut self) {
-        let Some(s) = &mut self.surface else { return };
-        let size = s.window.inner_size();
+        let Some(size) = self.surface.as_ref().map(|s| s.window.inner_size()) else {
+            return;
+        };
         let (w, h) = (size.width as usize, size.height as usize);
         if w == 0 || h == 0 {
             return;
         }
+        self.sync_layout(size.width, size.height);
+        let Some(s) = &mut self.surface else { return };
         let mut buffer = match s.surface.buffer_mut() {
             Ok(b) => b,
             Err(e) => {

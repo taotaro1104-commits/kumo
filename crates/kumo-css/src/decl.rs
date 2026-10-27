@@ -104,6 +104,8 @@ pub enum Decl {
     RowGap(Length),
     ColumnGap(Length),
     Order(i32),
+    /// `None` は `auto`
+    ZIndex(Option<i32>),
     Grid(GridProp, Option<Arc<str>>),
     BorderCollapse(BorderCollapse),
     BorderSpacing(Length),

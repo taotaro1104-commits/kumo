@@ -184,3 +184,59 @@ fn floats_paint_above_following_block_backgrounds() {
     );
     assert_eq!(pixel(&pm, 10, 25), (255, 0, 0));
 }
+
+/// (x, y) の色を 1 点だけ描いて返す。
+fn color_at(list: &kumo_paint::DisplayList, x: f32, y: f32) -> (u8, u8, u8) {
+    let mut raster = CpuRasterizer::default();
+    let pm = render_region(
+        list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(x, y, 1.0, 1.0),
+    )
+    .unwrap();
+    pixel(&pm, 0, 0)
+}
+
+#[test]
+fn z_index_orders_positioned_boxes() {
+    // 後に書かれた #b が通常なら上に来るが、z-index で #a を上にする
+    let css = "body { margin: 0 } div { position: absolute; top: 0; left: 0; width: 50px; height: 50px } \
+               #a { background: red; z-index: 2 } #b { background: blue; z-index: 1 } \
+               #c { background: lime; left: 100px; z-index: -1 } #d { position: static; width: 300px; height: 300px; background: yellow }";
+    let list = display_list(
+        "<div id=a></div><div id=b></div><div id=c></div><div id=d></div>",
+        css,
+    );
+    assert_eq!(
+        color_at(&list, 10.0, 10.0),
+        (255, 0, 0),
+        "z-index の大きい方が上"
+    );
+    // 負の z-index は通常フローのブロック背景（黄）より奥
+    assert_eq!(color_at(&list, 110.0, 10.0), (255, 255, 0));
+}
+
+#[test]
+fn positioned_boxes_paint_above_in_flow_content_and_floats() {
+    let css = "body { margin: 0 } #f { float: left; width: 100px; height: 100px; background: lime } \
+               #r { position: relative; top: 0; width: 50px; height: 50px; background: blue } \
+               p { margin: 0; height: 100px; background: red }";
+    let list = display_list("<p></p><div id=f></div><div id=r></div>", css);
+    // 相対配置のボックスは、後から描くフロートよりさらに上に描く
+    assert_eq!(color_at(&list, 10.0, 110.0), (0, 0, 255));
+    assert_eq!(color_at(&list, 80.0, 150.0), (0, 255, 0));
+}
+
+#[test]
+fn hidden_visibility_skips_box_but_not_visible_children() {
+    let css = "body { margin: 0 } #h { visibility: hidden; height: 100px; background: red } \
+               #v { visibility: visible; height: 50px; background: blue }";
+    let list = display_list("<div id=h><div id=v></div></div>", css);
+    assert_eq!(color_at(&list, 10.0, 10.0), (0, 0, 255));
+    assert_eq!(
+        color_at(&list, 10.0, 80.0),
+        (255, 255, 255),
+        "親の背景は描かない"
+    );
+}

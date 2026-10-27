@@ -227,3 +227,21 @@ fn custom_properties_resolve_in_dependency_order() {
     assert_eq!(q.color, BLUE);
     assert!(!q.custom.contains_key(&kumo_dom::LocalName::from("--x")));
 }
+
+#[test]
+fn z_index_and_stacking_contexts() {
+    let css = "#a { position: relative; z-index: 3 } #b { position: absolute } \
+               #c { z-index: 5 } #d { opacity: 0.5 } #e { position: relative; z-index: auto }";
+    let html = "<div id=a></div><div id=b></div><div id=c></div><div id=d></div><div id=e></div>";
+    let (doc, map) = style(html, css);
+    let get = |id| computed(&doc, &map, id);
+    assert_eq!(get("a").z_index, Some(3));
+    assert!(get("a").creates_stacking_context());
+    assert!(get("b").is_positioned() && !get("b").creates_stacking_context());
+    assert!(
+        !get("c").creates_stacking_context(),
+        "非位置指定の z-index は効かない"
+    );
+    assert!(get("d").creates_stacking_context());
+    assert_eq!(get("e").z_index, None);
+}

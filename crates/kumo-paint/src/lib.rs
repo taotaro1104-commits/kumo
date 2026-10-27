@@ -5,6 +5,7 @@ mod builder;
 mod display_list;
 mod raster;
 mod scroll;
+mod stacking;
 mod tiles;
 
 pub use builder::build_display_list;
