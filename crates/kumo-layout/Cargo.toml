@@ -1,0 +1,18 @@
+[package]
+name = "kumo-layout"
+description = "Layout for Kumo (Taffy + Parley inline)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kumo-dom.workspace = true
+kumo-css.workspace = true
+kumo-text.workspace = true
+taffy.workspace = true
+
+[dev-dependencies]
+kumo-html.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,13 @@
+[package]
+name = "kumo-html"
+description = "HTML parsing into Kumo's arena DOM"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kumo-dom.workspace = true
+html5ever.workspace = true
+
+[lints]
+workspace = true

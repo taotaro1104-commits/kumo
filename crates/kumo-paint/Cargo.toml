@@ -1,0 +1,18 @@
+[package]
+name = "kumo-paint"
+description = "Display list and tile rasterization for Kumo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kumo-css.workspace = true
+kumo-layout.workspace = true
+kumo-text.workspace = true
+tiny-skia.workspace = true
+
+[dev-dependencies]
+kumo-html.workspace = true
+
+[lints]
+workspace = true

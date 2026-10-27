@@ -1,0 +1,18 @@
+[package]
+name = "kumo-css"
+description = "Minimal CSS cascade for Kumo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kumo-dom.workspace = true
+cssparser.workspace = true
+selectors.workspace = true
+precomputed-hash = "0.1"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+kumo-html.workspace = true

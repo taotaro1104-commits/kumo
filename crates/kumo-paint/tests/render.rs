@@ -1,0 +1,186 @@
+use kumo_css::{CascadeEngine, Device, StyleEngine, Stylesheet};
+use kumo_layout::{NoImages, build_box_tree, layout};
+use kumo_paint::{
+    CpuRasterizer, DisplayItem, NoImageProvider, RectF, TileCache, build_display_list,
+    render_region,
+};
+use kumo_text::TextSystem;
+
+const W: f32 = 400.0;
+const H: f32 = 300.0;
+
+fn display_list(html: &str, css: &str) -> kumo_paint::DisplayList {
+    let doc = kumo_html::parse_html(html);
+    let engine = CascadeEngine::new(vec![Stylesheet::parse(css)]);
+    let styles = engine.compute(
+        &doc,
+        &Device {
+            width: W,
+            height: H,
+        },
+    );
+    let mut tree = build_box_tree(&doc, &styles, TextSystem::new(), &NoImages);
+    layout(&mut tree, W, H);
+    build_display_list(&tree)
+}
+
+fn pixel(p: &tiny_skia::Pixmap, x: u32, y: u32) -> (u8, u8, u8) {
+    let c = p.pixel(x, y).unwrap();
+    (c.red(), c.green(), c.blue())
+}
+
+#[test]
+fn backgrounds_borders_and_canvas() {
+    let css = "body { margin: 0; background: #eee } #a { margin: 10px; width: 50px; height: 40px; \
+               background: red; border: 5px solid blue }";
+    let list = display_list("<div id=a></div>", css);
+    let mut raster = CpuRasterizer::default();
+    let pm = render_region(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 0.0, W, H),
+    )
+    .unwrap();
+    assert_eq!(
+        pixel(&pm, 2, 2),
+        (0xee, 0xee, 0xee),
+        "body 背景がキャンバスへ伝播"
+    );
+    assert_eq!(pixel(&pm, 12, 12), (0, 0, 255), "枠線");
+    assert_eq!(pixel(&pm, 30, 30), (255, 0, 0), "背景");
+}
+
+#[test]
+fn text_produces_glyphs_and_ink() {
+    let css = "body { margin: 0; font-size: 40px; color: black }";
+    let list = display_list("<p style='margin:0'>Kumo <u>rocks</u></p>", css);
+    let glyph_runs = list
+        .entries
+        .iter()
+        .filter(|e| matches!(e.item, DisplayItem::Glyphs(_)))
+        .count();
+    assert!(glyph_runs >= 1);
+    let mut raster = CpuRasterizer::default();
+    let pm = render_region(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 0.0, W, 60.0),
+    )
+    .unwrap();
+    let dark = pm.pixels().iter().filter(|p| p.red() < 100).count();
+    assert!(dark > 100, "文字のインクが描かれている: {dark}");
+    assert!(raster.glyphs.bytes() > 0);
+}
+
+#[test]
+fn overflow_hidden_clips_children() {
+    let css = "body { margin: 0 } #c { width: 20px; height: 20px; overflow: hidden } \
+               #k { width: 100px; height: 100px; background: lime }";
+    let list = display_list("<div id=c><div id=k></div></div>", css);
+    let mut raster = CpuRasterizer::default();
+    let pm = render_region(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 0.0, W, H),
+    )
+    .unwrap();
+    assert_eq!(pixel(&pm, 10, 10), (0, 255, 0));
+    assert_eq!(
+        pixel(&pm, 50, 50),
+        (255, 255, 255),
+        "クリップ外は描かれない"
+    );
+}
+
+#[test]
+fn tile_cache_composes_scrolled_viewport() {
+    let css = "body { margin: 0 } #a { height: 1000px } #b { height: 50px; background: red }";
+    let list = display_list("<div id=a></div><div id=b></div>", css);
+    let mut raster = CpuRasterizer::default();
+    let mut tiles = TileCache::default();
+    let (vw, vh) = (400usize, 300usize);
+    let mut out = vec![0u32; vw * vh];
+    tiles.compose(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 900.0, vw as f32, vh as f32),
+        &mut out,
+    );
+    assert_eq!(out[10 * vw + 10], 0x00ff_ffff, "y=910 は白");
+    assert_eq!(out[120 * vw + 10], 0x00ff_0000, "y=1020 は赤");
+    assert!(tiles.bytes() <= kumo_paint::TILE_BUDGET);
+}
+
+#[test]
+fn scroll_renderer_matches_full_redraw() {
+    let css = "body { margin: 0 } div { height: 37px } div:nth-child(odd) { background: #369 } \
+               div:nth-child(3n) { background: #c33 }";
+    let html = "<div></div>".repeat(80) + "<p>text at the end</p>";
+    let list = display_list(&html, css);
+    let (vw, vh) = (400usize, 300usize);
+    let full = |y: f32| {
+        let mut out = vec![0u32; vw * vh];
+        kumo_paint::ScrollRenderer::default().render(
+            &list,
+            &mut CpuRasterizer::default(),
+            &mut NoImageProvider,
+            RectF::new(0.0, y, vw as f32, vh as f32),
+            &mut out,
+            false,
+        );
+        out
+    };
+    let mut renderer = kumo_paint::ScrollRenderer::default();
+    let mut raster = CpuRasterizer::default();
+    let mut out = vec![0u32; vw * vh];
+    let first = renderer.render(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 500.0, vw as f32, vh as f32),
+        &mut out,
+        false,
+    );
+    assert_eq!(first, Some(0..vh));
+    for y in [550.0, 530.0, 900.0, 899.0] {
+        let damage = renderer.render(
+            &list,
+            &mut raster,
+            &mut NoImageProvider,
+            RectF::new(0.0, y, vw as f32, vh as f32),
+            &mut out,
+            true,
+        );
+        assert!(
+            damage.is_some_and(|r| r.len() < vh || y == 900.0),
+            "大きく飛んだときだけ全面描画"
+        );
+        assert!(out == full(y), "y={y} で全面描画と一致");
+    }
+    assert!(renderer.bytes() <= vw * 64 * 4);
+}
+
+#[test]
+fn floats_paint_above_following_block_backgrounds() {
+    let css = "body { margin: 0 } #f { float: right; width: 100px; height: 100px; background: lime } \
+               p { margin: 0; height: 50px; background: red }";
+    let list = display_list("<div id=f></div><p></p>", css);
+    let mut raster = CpuRasterizer::default();
+    let pm = render_region(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 0.0, W, H),
+    )
+    .unwrap();
+    assert_eq!(
+        pixel(&pm, (W - 50.0) as u32, 25),
+        (0, 255, 0),
+        "フロートが段落の背景より手前"
+    );
+    assert_eq!(pixel(&pm, 10, 25), (255, 0, 0));
+}

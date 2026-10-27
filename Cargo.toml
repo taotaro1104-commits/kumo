@@ -1,0 +1,50 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+kumo-dom = { path = "crates/kumo-dom" }
+kumo-html = { path = "crates/kumo-html" }
+kumo-css = { path = "crates/kumo-css" }
+kumo-text = { path = "crates/kumo-text" }
+kumo-layout = { path = "crates/kumo-layout" }
+kumo-image = { path = "crates/kumo-image" }
+kumo-paint = { path = "crates/kumo-paint" }
+kumo-mem = { path = "crates/kumo-mem" }
+
+html5ever = "0.40"
+markup5ever = "0.40"
+cssparser = "0.38"
+selectors = "0.41"
+taffy = { version = "0.15", features = ["parse"] }
+parley = "0.12"
+fontique = "0.12"
+swash = "0.2"
+tiny-skia = "0.12"
+compact_str = "0.10"
+smallvec = { version = "1", features = ["union", "const_generics"] }
+bumpalo = "3"
+mimalloc = { version = "0.1", default-features = false, features = ["v2"] }
+winit = "0.30"
+softbuffer = "0.4"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif"] }
+ureq = "3"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+panic = "abort"
+
+[profile.dev.package."*"]
+opt-level = 2

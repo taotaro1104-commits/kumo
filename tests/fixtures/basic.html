@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Kumo basic fixture</title>
+<style>
+  body { font-family: sans-serif; margin: 24px; color: #202122; background: #f8f9fa; }
+  h1 { border-bottom: 1px solid #a2a9b1; font-family: Georgia, serif; font-weight: normal; }
+  .box { display: flex; gap: 16px; }
+  .card { flex: 1; background: white; border: 1px solid #c8ccd1; padding: 12px; }
+  .infobox { float: right; width: 220px; background: #eaecf0; border: 1px solid #a2a9b1; margin: 0 0 8px 16px; }
+  table.wikitable { border-collapse: collapse; border: 1px solid #a2a9b1; background: #f8f9fa; }
+  .wikitable th, .wikitable td { border: 1px solid #a2a9b1; padding: 4px 8px; }
+  .wikitable th { background: #eaecf0; }
+  code { background: #eaecf0; font-family: monospace; }
+  a { color: #3366cc; text-decoration: none; }
+</style>
+</head>
+<body>
+<h1>Kumo（雲）静的ビューア</h1>
+<table class="infobox"><tr><th colspan="2">情報</th></tr>
+<tr><td>言語</td><td>Rust</td></tr><tr><td>目標</td><td>30MB 以下</td></tr></table>
+<p><b>Kumo</b> はレンダリングエンジンから UI まで全て <a href="#">Rust</a> で書く省メモリブラウザです。
+この段落は <i>イタリック</i>、<u>下線</u>、<code>inline code</code> を含み、右側の情報ボックスの横で折り返されます。
+The quick brown fox jumps over the lazy dog. 日本語と English が混在しても正しく改行されます。</p>
+<h2>特徴</h2>
+<ul><li>アリーナDOM（u32 ID）</li><li>適応型サイト分離</li><li>タブ休止<ol><li>Background</li><li>Frozen</li><li>Discarded</li></ol></li></ul>
+<div class="box"><div class="card">Flex カード 1</div><div class="card">Flex カード 2 はもう少し長いテキストを持っています。</div></div>
+<h2>予算</h2>
+<table class="wikitable"><tr><th>サブシステム</th><th>予算</th></tr>
+<tr><td>ラスタタイル</td><td>12MB</td></tr><tr><td>JSヒープ</td><td>10MB</td></tr><tr><td>DOM＋スタイル</td><td>8MB</td></tr></table>
+</body>
+</html>

@@ -1,0 +1,14 @@
+[package]
+name = "kumo-image"
+description = "Display-size image decoding with an LRU bitmap budget"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+image.workspace = true
+kumo-layout.workspace = true
+kumo-paint.workspace = true
+
+[lints]
+workspace = true
