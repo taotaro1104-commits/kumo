@@ -81,6 +81,9 @@ const GENERIC: [&str; 9] = [
     "ui-monospace",
 ];
 
+/// 記号用のフォールバックフォント（Windows・Linux の代表的なもの）。
+const SYMBOL_FALLBACK: &str = ", \"Segoe UI Symbol\", \"Noto Sans Symbols 2\", \"DejaVu Sans\"";
+
 impl TextStyleSpec {
     /// CSS の font-family リスト表記を作る（固有名は引用符で囲む）。
     fn family_source(&self) -> String {
@@ -109,6 +112,9 @@ impl TextStyleSpec {
                 ", sans-serif"
             });
         }
+        // 記号（↻ など）はシステムの既定フォールバックで見つからないことがあるので、
+        // 記号用フォントを最後に足す（存在しない名前は無視される）
+        out.push_str(SYMBOL_FALLBACK);
         out
     }
 
@@ -175,12 +181,15 @@ mod tests {
         };
         assert_eq!(
             spec.family_source(),
-            "\"Linux Libertine\", \"Georgia\", serif"
+            format!("\"Linux Libertine\", \"Georgia\", serif{SYMBOL_FALLBACK}")
         );
         let named_only = TextStyleSpec {
             families: Arc::from([Box::from("Arial")]),
             ..TextStyleSpec::default()
         };
-        assert_eq!(named_only.family_source(), "\"Arial\", sans-serif");
+        assert_eq!(
+            named_only.family_source(),
+            format!("\"Arial\", sans-serif{SYMBOL_FALLBACK}")
+        );
     }
 }

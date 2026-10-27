@@ -245,3 +245,32 @@ fn z_index_and_stacking_contexts() {
     assert!(get("d").creates_stacking_context());
     assert_eq!(get("e").z_index, None);
 }
+
+#[test]
+fn border_radius_shorthand_and_longhands() {
+    let (doc, map) = style(
+        "<div id=a></div><div id=b></div><div id=c></div><div id=d></div>",
+        "#a { border-radius: 6px }
+         #b { border-radius: 1px 2px 3px 4px / 9px }
+         #c { border-radius: 50%; border-top-left-radius: 0 }
+         #d { border-radius: 2px 5px; border-bottom-right-radius: -3px }",
+    );
+    let px = LengthPct::px;
+    let half = LengthPct { px: 0.0, pct: 50.0 };
+    assert_eq!(computed(&doc, &map, "a").border_radius, [px(6.0); 4]);
+    assert_eq!(
+        computed(&doc, &map, "b").border_radius,
+        [px(1.0), px(2.0), px(3.0), px(4.0)],
+        "左上・右上・右下・左下（/ 以降の縦の半径は無視）"
+    );
+    assert_eq!(
+        computed(&doc, &map, "c").border_radius,
+        [px(0.0), half, half, half]
+    );
+    assert_eq!(
+        computed(&doc, &map, "d").border_radius,
+        [px(2.0), px(5.0), px(2.0), px(5.0)],
+        "負の値は無効"
+    );
+    assert_eq!(ComputedStyle::default().border_radius, [LengthPct::ZERO; 4]);
+}

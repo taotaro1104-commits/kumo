@@ -16,6 +16,10 @@ kumo-layout = { path = "crates/kumo-layout" }
 kumo-image = { path = "crates/kumo-image" }
 kumo-paint = { path = "crates/kumo-paint" }
 kumo-mem = { path = "crates/kumo-mem" }
+kumo-net = { path = "crates/kumo-net" }
+kumo-ipc = { path = "crates/kumo-ipc" }
+kumo-content = { path = "crates/kumo-content" }
+kumo-browser = { path = "crates/kumo-browser" }
 
 html5ever = "0.40"
 markup5ever = "0.40"

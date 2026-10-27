@@ -240,3 +240,67 @@ fn hidden_visibility_skips_box_but_not_visible_children() {
         "親の背景は描かない"
     );
 }
+
+#[test]
+fn link_regions_cover_link_text_and_block_links() {
+    let css = "body { margin: 0; font-size: 20px; line-height: 30px } p { margin: 0 } \
+               #blk { display: block; height: 40px; width: 100px }";
+    let html = "<p>plain text <a href='/inline'>linked words</a></p><a id=blk href='/block'><span>x</span></a>";
+    let list = display_list(html, css);
+    let inline = list
+        .links
+        .iter()
+        .find(|l| &*l.href == "/inline")
+        .expect("テキストのリンク");
+    assert_eq!(inline.rect.y, 0.0);
+    assert_eq!(inline.rect.h, 30.0);
+    assert!(inline.rect.x > 50.0, "リンク部分だけ: {:?}", inline.rect);
+    let (cx, cy) = (inline.rect.x + 5.0, 15.0);
+    assert_eq!(list.link_at(cx, cy).map(|h| &**h), Some("/inline"));
+    assert_eq!(list.link_at(2.0, 15.0), None, "リンク外");
+    assert_eq!(
+        list.link_at(90.0, 50.0).map(|h| &**h),
+        Some("/block"),
+        "ブロック全体が当たり判定"
+    );
+}
+
+#[test]
+fn rounded_boxes_paint_round_corners() {
+    let css = "body { margin: 0; background: #fff }
+               #pill { width: 100px; height: 40px; background: red; border-radius: 50% }
+               #ring { width: 60px; height: 60px; border: 6px solid blue; border-radius: 12px }
+               #mixed { width: 40px; height: 40px; border: 4px solid; border-color: red blue; border-radius: 8px }";
+    let list = display_list(
+        "<div id=pill></div><div id=ring></div><div id=mixed></div>",
+        css,
+    );
+    let rounded = list
+        .entries
+        .iter()
+        .filter(|e| {
+            matches!(
+                e.item,
+                DisplayItem::RoundedFill { .. } | DisplayItem::RoundedBorder { .. }
+            )
+        })
+        .count();
+    assert_eq!(
+        rounded, 2,
+        "ピルの背景と、単色の枠線だけが角丸（色違いの枠線は四角で描く）"
+    );
+    let mut raster = CpuRasterizer::default();
+    let pm = render_region(
+        &list,
+        &mut raster,
+        &mut NoImageProvider,
+        RectF::new(0.0, 0.0, W, H),
+    )
+    .unwrap();
+    assert_eq!(pixel(&pm, 50, 20), (255, 0, 0), "ピルの中央");
+    assert_eq!(pixel(&pm, 1, 1), (255, 255, 255), "ピルの角は丸く抜ける");
+    // 枠線の輪（上端 40px から）：辺は青、角の外は白、内側は白
+    assert_eq!(pixel(&pm, 36, 42), (0, 0, 255), "輪の上辺");
+    assert_eq!(pixel(&pm, 0, 40), (255, 255, 255), "輪の角の外");
+    assert_eq!(pixel(&pm, 36, 76), (255, 255, 255), "輪の内側");
+}

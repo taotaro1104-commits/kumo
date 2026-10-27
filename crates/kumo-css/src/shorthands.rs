@@ -128,8 +128,11 @@ fn parse_border<'i>(rest: &str, input: &mut Parser<'i>, out: &mut Vec<Decl>) -> 
             };
         }
     }
-    if rest.contains("radius") || rest.contains("image") {
-        return invalid(); // Phase 0 では未対応
+    if rest.ends_with("radius") {
+        return parse_radius(rest, input, out);
+    }
+    if rest.contains("image") {
+        return invalid(); // 未対応
     }
     let sides = sides_for(rest).map_or_else(invalid, Ok)?;
     let (mut width, mut style, mut color) = (None, None, None);
@@ -157,6 +160,50 @@ fn parse_border<'i>(rest: &str, input: &mut Parser<'i>, out: &mut Vec<Decl>) -> 
             side,
             color.unwrap_or(ColorValue::CurrentColor),
         ));
+    }
+    Ok(())
+}
+
+/// `border-radius`（1〜4 値、`/` 以降の縦の半径は無視）と `border-top-left-radius` 等。
+fn parse_radius<'i>(rest: &str, input: &mut Parser<'i>, out: &mut Vec<Decl>) -> ParseResult<()> {
+    let radius = |i: &mut Parser<'i>| non_negative(parse_length(i)?);
+    let corner = match rest {
+        "-radius" => None,
+        "-top-left-radius" => Some(0),
+        "-top-right-radius" => Some(1),
+        "-bottom-right-radius" => Some(2),
+        "-bottom-left-radius" => Some(3),
+        _ => return invalid(),
+    };
+    if let Some(corner) = corner {
+        // 2つ目（縦の半径）があっても横の半径だけを使う
+        let value = radius(input)?;
+        let _ = input.try_parse(radius);
+        out.push(Decl::BorderRadius(corner, value));
+        return Ok(());
+    }
+    let mut values = Vec::new();
+    while values.len() < 4 {
+        match input.try_parse(radius) {
+            Ok(v) => values.push(v),
+            Err(_) => break,
+        }
+    }
+    if input.try_parse(|i| i.expect_delim('/')).is_ok() {
+        while input.try_parse(radius).is_ok() {}
+    }
+    if !input.is_exhausted() {
+        return invalid();
+    }
+    let corners = match values.as_slice() {
+        [a] => [*a; 4],
+        [a, b] => [*a, *b, *a, *b],
+        [a, b, c] => [*a, *b, *c, *b],
+        [a, b, c, d] => [*a, *b, *c, *d],
+        _ => return invalid(),
+    };
+    for (i, value) in corners.into_iter().enumerate() {
+        out.push(Decl::BorderRadius(i, value));
     }
     Ok(())
 }

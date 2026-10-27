@@ -45,6 +45,11 @@ pub fn apply_decl(style: &mut ComputedStyle, decl: &Decl, ctx: &ResolveContext<'
         Decl::Margin(side, v) => *style.margin.get_mut(*side) = lpa(*v),
         Decl::Padding(side, v) => *style.padding.get_mut(*side) = len(*v),
         Decl::BorderWidth(side, v) => *style.border_width.get_mut(*side) = len(*v).px.max(0.0),
+        Decl::BorderRadius(corner, v) => {
+            if let Some(slot) = style.border_radius.get_mut(*corner) {
+                *slot = len(*v);
+            }
+        }
         Decl::BorderStyle(side, v) => *style.border_style.get_mut(*side) = *v,
         // currentcolor は color 確定後に解決するため、ここでは目印として保持しない
         Decl::BorderColor(side, v) => *style.border_color.get_mut(*side) = color(*v, style.color),

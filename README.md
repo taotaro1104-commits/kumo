@@ -1,7 +1,17 @@
-# Kumo — Rust製・省メモリブラウザ（Phase 0：静的ビューア）
+# Kumo — Rust製・省メモリブラウザ（Phase 1：ブラウザの骨格・プロセス分離）
 
-設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 0 の実装です。
-HTML/CSS → アリーナDOM → カスケード → Taffy + Parley レイアウト → tiny-skia タイル描画（JSなし）。
+設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 1 までの実装です（JSなし）。
+HTML/CSS → アリーナDOM → カスケード → Taffy + Parley レイアウト → tiny-skia 描画。
+タブ・履歴・Network プロセス（rustls・HTTPキャッシュ・コンテンツブロック・Cookie 永続化）を備え、
+ページの処理は Content プロセスで非同期に行います（Browser / Content / Network の3プロセス）。
+フォーム送信とページ内アンカーにも対応しています。
+計画と計測結果は [docs/phase1.md](docs/phase1.md)、プロセス分離は [docs/phase1b.md](docs/phase1b.md)。
+
+```
+Browser（タブ・履歴・UI）──stdin/stdout──▶ Content（全タブのページ、共有フレームへ描画）
+   │        ▲ 共有メモリのフレーム ─────────────┘          │
+   └──local socket──▶ Network ◀──local socket────────────┘   （接続ごとに共有メモリの本文リング）
+```
 
 ## 構成
 
@@ -15,19 +25,46 @@ HTML/CSS → アリーナDOM → カスケード → Taffy + Parley レイアウ
 | `kumo-paint` | ディスプレイリスト、tiny-skia CPU ラスタライザ。ウィンドウは前フレームをずらして再利用し、新しく見えた帯だけを描く（`ScrollRenderer`）。タイルキャッシュも併設 |
 | `kumo-image` | 表示サイズでのデコード、展開済みビットマップ 8MB LRU |
 | `kumo-mem` | タグ付きアロケータ（mimalloc v2）、一時ヒープ、プロセスメモリ計測。`unsafe` はこの crate のみ |
-| `kumo-viewer` | winit + softbuffer のビューア / ヘッドレスPNG出力 |
+| `kumo-ipc` | 共有メモリ（ファイルのマップ）、リングの領域管理、ローカルソケット。`unsafe` は kumo-mem とこの crate のみ |
+| `kumo-net` | Network プロセス：取得（ureq + rustls）、HTTP キャッシュ（メモリ 8MB + ディスク、索引は redb）、コンテンツブロック（adblock）、Cookie の永続化、複数クライアントの受付と本文リング |
+| `kumo-content` | Content プロセス：取得・パース（別スレッド）→ スタイル・レイアウト → 共有フレームへの描画、フォーム・リンク・スクロールの処理 |
+| `kumo-browser` | Browser プロセス：タブ・セッション履歴・閲覧履歴（redb）・ブラウザ UI（自エンジンで描く HTML）。Content へは要求を送るだけで待たない |
+| `kumo-viewer` | ブラウザ本体（winit + softbuffer）。同じ実行ファイルを `--network-process`・`--content-process` で子プロセスとして起動 |
 
 ## 使い方
 
 ```sh
 cargo build --release
-# ウィンドウ表示（↑↓/PageUp/PageDown/Space/Home/End でスクロール、m でメモリ内訳、Esc で終了）
-target/release/kumo-viewer "https://en.wikipedia.org/wiki/Rust_(programming_language)"
-# ヘッドレス：PNG に保存してメモリ内訳を表示
+# ブラウザとして起動（複数の URL はそれぞれタブで開く）
+target/release/kumo-viewer "https://en.wikipedia.org/wiki/Rust_(programming_language)" example.com
+# ヘッドレス：表示中タブを PNG に保存し、3プロセスのメモリ内訳を表示
 target/release/kumo-viewer tests/fixtures/basic.html --headless out.png --width 1280 --height 900 --mem-report
 ```
 
-`KUMO_ALLOC_STATS=1` を付けると mimalloc の内部統計（コミット量・断片化）も出力します。
+| 操作 | キー |
+|---|---|
+| 新しいタブ / 閉じる | Ctrl+T / Ctrl+W（タブの中クリックでも閉じる） |
+| タブ切り替え | Ctrl+Tab / Ctrl+Shift+Tab、タブのクリック |
+| URL 欄 | Ctrl+L、入力して Enter（Esc で取り消し） |
+| 戻る / 進む / 再読み込み | Alt+← / Alt+→ / F5・Ctrl+R |
+| リンク | クリックで移動、Ctrl+クリック・中クリックで背景タブ。`#id` は取得し直さずにスクロール |
+| フォーム | 入力欄をクリックして入力、Enter・送信ボタンで送信（GET/POST）。チェックボックス・ラジオ・選択（クリックで次へ） |
+| スクロール | ホイール、↑↓、PageUp/PageDown/Space、Home/End |
+| メモリ内訳 | Ctrl+M |
+
+### 画面
+
+- **URL 欄**：通信の安全性を左端に示す（🔒 https / ⚠ 保護されていない通信 / 🗋 ファイル）。ドメインを濃く、パスを薄く表示する。
+- **読み込み中**：タブに青い ●、URL 欄の下に青い線と「読み込み中…」。Content プロセスが落ちて作り直せないときは赤い表示。
+- **マウス**：UI のボタン・タブは乗せると淡く強調。リンク・ボタンの上は指のカーソル、入力欄の上は I ビーム。
+  リンクの上では左下にリンク先を表示する。
+- **新しいタブ**：よく見るページのカードと、主な操作キーの早見。
+- **エラーページ**：原因を分かる言葉で示し（サーバーが見つからない、応答がない、ファイルがない など）、「再読み込み」「戻る」ボタンを置く。
+- ページの `border-radius`（角丸の背景・枠線）に対応。フォーム部品も角を丸めて描く。
+
+オプション：`--in-process`（Content・Network を別プロセスにせずスレッドで動かす）、`--no-disk-cache`（キャッシュ・履歴を保存しない）、
+`--filter-list FILE`（EasyList などを追加）。キャッシュと履歴は `%LOCALAPPDATA%\Kumo`（Linux は `~/.cache/kumo`）。
+`KUMO_ALLOC_STATS=1` で mimalloc の内部統計も出力します。
 
 ## 検証
 

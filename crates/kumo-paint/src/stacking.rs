@@ -89,8 +89,25 @@ fn is_visible(tree: &BoxTree, index: usize) -> bool {
 fn paint_own_background(tree: &BoxTree, placed: Placed, list: &mut DisplayList) {
     let b = &tree.boxes[placed.index];
     let is_root_element = tree.boxes[0].children.first() == Some(&placed.index);
+    if let Some(name) = &b.anchor {
+        list.anchors.push((name.clone(), placed.rect.y));
+    }
+    if b.form_control
+        && let Some(node) = b.dom
+    {
+        let rect = placed
+            .clip
+            .map_or(placed.rect, |c| placed.rect.intersect(&c));
+        list.controls.push((rect, node.index()));
+    }
     if b.dom.is_some() && !is_root_element && is_visible(tree, placed.index) {
         paint_background_and_borders(&b.computed, placed.rect, placed.clip, list);
+        // ブロックや画像そのものがリンクの場合（テキストは段落側で記録する）
+        if let Some(href) = &b.link
+            && !matches!(b.kind, BoxKind::Inline(_))
+        {
+            list.add_link(placed.rect, href, placed.clip);
+        }
     }
 }
 

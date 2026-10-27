@@ -12,6 +12,7 @@ use crate::text_style::{text_spec, transform_text};
 struct OpenSpan {
     style: Arc<ComputedStyle>,
     node: DomId,
+    link: Option<Arc<str>>,
     decorated: bool,
 }
 
@@ -19,6 +20,7 @@ struct OpenSpan {
 pub struct InlineBuilder {
     root: Arc<ComputedStyle>,
     root_node: Option<DomId>,
+    root_link: Option<Arc<str>>,
     stack: Vec<OpenSpan>,
     items: Vec<InlineItem>,
     paints: Vec<TextPaint>,
@@ -35,10 +37,15 @@ fn is_decorated(style: &ComputedStyle) -> bool {
 }
 
 impl InlineBuilder {
-    pub fn new(root: Arc<ComputedStyle>, root_node: Option<DomId>) -> Self {
+    pub fn new(
+        root: Arc<ComputedStyle>,
+        root_node: Option<DomId>,
+        root_link: Option<Arc<str>>,
+    ) -> Self {
         let mut builder = Self {
             root,
             root_node,
+            root_link,
             stack: Vec::new(),
             items: Vec::new(),
             paints: Vec::new(),
@@ -54,17 +61,18 @@ impl InlineBuilder {
         self.stack.last().map_or(&self.root, |s| &s.style)
     }
 
-    pub fn open(&mut self, style: Arc<ComputedStyle>, node: DomId) {
+    pub fn open(&mut self, style: Arc<ComputedStyle>, node: DomId, link: Option<Arc<str>>) {
         let decorated = is_decorated(&style);
         if decorated {
             self.items.push(InlineItem::SpanStart(style.clone()));
         }
-        let brush = self.push_paint(style.clone(), Some(node));
+        let brush = self.push_paint(style.clone(), Some(node), link.clone());
         self.items
             .push(InlineItem::PushStyle(text_spec(&style, brush)));
         self.stack.push(OpenSpan {
             style,
             node,
+            link,
             decorated,
         });
     }
@@ -88,9 +96,11 @@ impl InlineBuilder {
         let mut style = (**self.current_style()).clone();
         style.white_space = WhiteSpace::Pre;
         let brush = self.paints.len() as u32;
+        let link = self.stack.last().and_then(|s| s.link.clone());
         self.paints.push(TextPaint {
             style: Arc::new(style.clone()),
             node: None,
+            link,
         });
         self.items
             .push(InlineItem::PushStyle(text_spec(&style, brush)));
@@ -118,18 +128,23 @@ impl InlineBuilder {
         })
     }
 
-    fn push_paint(&mut self, style: Arc<ComputedStyle>, node: Option<DomId>) -> u32 {
-        self.paints.push(TextPaint { style, node });
+    fn push_paint(
+        &mut self,
+        style: Arc<ComputedStyle>,
+        node: Option<DomId>,
+        link: Option<Arc<str>>,
+    ) -> u32 {
+        self.paints.push(TextPaint { style, node, link });
         (self.paints.len() - 1) as u32
     }
 
     /// 内容を取り出し、開いているインライン要素を新しい区間で開き直す。
     /// 空白だけなら `None`。
     pub fn take(&mut self) -> Option<InlineContent> {
-        let open: Vec<(Arc<ComputedStyle>, DomId)> = self
+        let open: Vec<(Arc<ComputedStyle>, DomId, Option<Arc<str>>)> = self
             .stack
             .iter()
-            .map(|s| (s.style.clone(), s.node))
+            .map(|s| (s.style.clone(), s.node, s.link.clone()))
             .collect();
         // 開いたままの区間を閉じて整合させる
         for _ in 0..self.stack.len() {
@@ -150,8 +165,8 @@ impl InlineBuilder {
             final_breaks: None,
         };
         self.reset();
-        for (style, node) in open {
-            self.open(style, node);
+        for (style, node, link) in open {
+            self.open(style, node, link);
         }
         content.has_content().then_some(content)
     }
@@ -161,6 +176,6 @@ impl InlineBuilder {
         self.paints.clear();
         self.stack.clear();
         let root = self.root.clone();
-        self.push_paint(root, self.root_node);
+        self.push_paint(root, self.root_node, self.root_link.clone());
     }
 }

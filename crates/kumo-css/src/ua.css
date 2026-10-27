@@ -57,6 +57,16 @@ th { text-align: center; }
 col, colgroup { display: table-column; }
 
 img, video, canvas, iframe, svg, input, button, select, textarea { display: inline-block; }
-input, button, select, textarea { border: 1px solid #767676; padding: 1px 2px; }
+input, button, select, textarea { border: 1px solid #767676; border-radius: 3px; padding: 1px 2px; font-size: 13.33px; }
+input, select { white-space: pre; overflow: hidden; vertical-align: middle; }
+input { width: 13em; background-color: #fff; }
+input[type=submit i], input[type=reset i], input[type=button i], input[type=file i] {
+  width: auto; padding: 1px 6px; background-color: #efefef; }
+input[type=checkbox i], input[type=radio i] { width: 13px; height: 13px; padding: 0; font-size: 11px;
+  line-height: 13px; text-align: center; margin: 3px 3px 3px 4px; border-radius: 2px; }
+input[type=radio i] { border-radius: 50%; }
+textarea { width: 20em; height: 3.6em; white-space: pre-wrap; overflow: hidden; background-color: #fff; }
+select { background-color: #fff; }
+[data-kumo-focused] { border-color: #1a73e8; background-color: #f8fbff; }
 button { background-color: #efefef; }
 fieldset { margin-left: 2px; margin-right: 2px; padding: 0.35em 0.75em 0.625em; border: 2px groove #c0c0c0; }

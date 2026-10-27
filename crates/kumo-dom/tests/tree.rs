@@ -161,3 +161,20 @@ fn node_stays_small() {
         std::mem::size_of::<Node>()
     );
 }
+
+#[test]
+fn set_and_remove_attributes() {
+    let mut doc = Document::new();
+    let root = doc.root();
+    let input = doc.create_element(html("input"), vec![Attr::new(local_name!("value"), "a")]);
+    doc.append(root, input);
+    doc.set_attr(input, "value", "changed");
+    doc.set_attr(input, "checked", "");
+    assert_eq!(doc.attr(input, "value"), Some("changed"));
+    assert_eq!(doc.attr(input, "checked"), Some(""));
+    doc.remove_attr(input, "checked");
+    assert_eq!(doc.attr(input, "checked"), None);
+    assert!(doc.is_inclusive_descendant(input, root));
+    assert!(!doc.is_inclusive_descendant(root, input));
+    assert_eq!(kumo_dom::NodeId::from_index(input.index()), input);
+}

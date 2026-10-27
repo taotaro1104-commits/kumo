@@ -1,0 +1,324 @@
+//! Network サービス本体：コンテンツブロック → キャッシュ → 取得（再検証）→ 保存。
+//! Network プロセスの中で全タブ共有の1つとして動く（スレッド安全）。
+
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{Duration, SystemTime};
+
+use url::Url;
+
+use crate::blocker::ContentBlocker;
+use crate::cache::{CachedEntry, CachedMeta, DISK_BUDGET, HttpCache, MEMORY_BUDGET, unix};
+use crate::cookies::CookiePersistence;
+use crate::policy::{CacheHeaders, Storability, storability};
+use crate::protocol::{
+    FetchError, FetchRequest, FetchResponse, MAX_BODY_BYTES, NetworkStats, RequestMethod,
+};
+
+const USER_AGENT: &str =
+    "Mozilla/5.0 (compatible; Kumo/0.1; +https://github.com/taotaro1104-commits/kumo)";
+const TIMEOUT: Duration = Duration::from_secs(30);
+const MAX_REDIRECTS: u32 = 10;
+/// 接続ごとの送受信バッファ（ureq の既定 128KB は省メモリ方針には大きい）。
+const CONNECTION_BUFFER: usize = 32 * 1024;
+/// 使い回すために保持する接続の上限。
+const IDLE_CONNECTIONS: usize = 6;
+const IDLE_CONNECTIONS_PER_HOST: usize = 2;
+const IDLE_AGE: Duration = Duration::from_secs(30);
+
+/// Network プロセスの設定。
+#[derive(Clone, Debug, Default)]
+pub struct NetworkConfig {
+    /// ディスクキャッシュとシリアライズ済みフィルタの置き場。`None` ならメモリのみ
+    pub cache_dir: Option<PathBuf>,
+    /// 追加のフィルタリスト（EasyList など）
+    pub filter_lists: Vec<PathBuf>,
+}
+
+#[derive(Default)]
+struct Counters {
+    requests: AtomicU64,
+    cache_hits: AtomicU64,
+    revalidated: AtomicU64,
+    blocked: AtomicU64,
+}
+
+pub struct NetworkService {
+    agent: ureq::Agent,
+    cache: HttpCache,
+    blocker: ContentBlocker,
+    counters: Counters,
+    cookies: CookiePersistence,
+}
+
+impl NetworkService {
+    pub fn new(config: &NetworkConfig) -> Self {
+        let agent_config = ureq::Agent::config_builder()
+            .http_status_as_error(false)
+            .timeout_global(Some(TIMEOUT))
+            .max_redirects(MAX_REDIRECTS)
+            .user_agent(USER_AGENT)
+            .input_buffer_size(CONNECTION_BUFFER)
+            .output_buffer_size(CONNECTION_BUFFER)
+            .max_idle_connections(IDLE_CONNECTIONS)
+            .max_idle_connections_per_host(IDLE_CONNECTIONS_PER_HOST)
+            .max_idle_age(IDLE_AGE)
+            .build();
+        let cache = config
+            .cache_dir
+            .as_ref()
+            .and_then(
+                |dir| match HttpCache::open(&dir.join("http"), MEMORY_BUDGET, DISK_BUDGET) {
+                    Ok(cache) => Some(cache),
+                    Err(e) => {
+                        eprintln!(
+                            "[network] ディスクキャッシュを開けないためメモリのみで動作: {e}"
+                        );
+                        None
+                    }
+                },
+            )
+            .unwrap_or_else(|| HttpCache::in_memory(MEMORY_BUDGET));
+        let filter_cache = config
+            .cache_dir
+            .as_ref()
+            .map(|dir| dir.join("adblock-engine.bin"));
+        let blocker = ContentBlocker::load(&config.filter_lists, filter_cache.as_deref());
+        let agent = ureq::Agent::new_with_config(agent_config);
+        let cookies =
+            CookiePersistence::new(config.cache_dir.as_ref().map(|d| d.join("cookies.json")));
+        cookies.load(&agent);
+        Self {
+            agent,
+            cache,
+            blocker,
+            counters: Counters::default(),
+            cookies,
+        }
+    }
+
+    /// Cookie をディスクへ書き出す（終了時に呼ぶ）。
+    pub fn persist(&self) {
+        self.cookies.save(&self.agent);
+    }
+
+    pub fn stats(&self) -> NetworkStats {
+        let c = &self.counters;
+        NetworkStats {
+            requests: c.requests.load(Ordering::Relaxed),
+            cache_hits: c.cache_hits.load(Ordering::Relaxed),
+            revalidated: c.revalidated.load(Ordering::Relaxed),
+            blocked: c.blocked.load(Ordering::Relaxed),
+            memory_cache_bytes: self.cache.memory_bytes() as u64,
+            disk_cache_bytes: self.cache.disk_bytes(),
+            private_bytes: 0,
+        }
+    }
+
+    pub fn fetch(&self, request: &FetchRequest) -> Result<FetchResponse, FetchError> {
+        self.counters.requests.fetch_add(1, Ordering::Relaxed);
+        let url = Url::parse(&request.url)
+            .map_err(|e| FetchError::BadUrl(format!("{}: {e}", request.url)))?;
+        match url.scheme() {
+            "http" | "https" => {}
+            "file" => return read_file(request, &url),
+            other => return Err(FetchError::UnsupportedScheme(other.to_owned())),
+        }
+        if self
+            .blocker
+            .should_block(url.as_str(), request.source_url.as_deref(), request.kind)
+        {
+            self.counters.blocked.fetch_add(1, Ordering::Relaxed);
+            return Err(FetchError::Blocked);
+        }
+        if let RequestMethod::Post { content_type, body } = &request.method {
+            return self.post(request, &url, content_type, body);
+        }
+        let cached = self.cache.get(url.as_str());
+        if let Some(entry) = &cached
+            && entry.meta.is_fresh(SystemTime::now())
+        {
+            self.counters.cache_hits.fetch_add(1, Ordering::Relaxed);
+            return Ok(from_entry(request.id, entry));
+        }
+        self.fetch_network(request, &url, cached.filter(|e| e.meta.has_validator()))
+    }
+
+    /// フォーム送信。キャッシュは参照も保存もしない（Cookie は通常どおり送受信する）。
+    fn post(
+        &self,
+        request: &FetchRequest,
+        url: &Url,
+        content_type: &str,
+        body: &[u8],
+    ) -> Result<FetchResponse, FetchError> {
+        let mut response = self
+            .agent
+            .post(url.as_str())
+            .header("Content-Type", content_type)
+            .send(body)
+            .map_err(network_error)?;
+        let status = response.status().as_u16();
+        let (final_url, content_type, body) = read_response(&mut response)?;
+        self.cookies.save_if_due(&self.agent);
+        Ok(FetchResponse {
+            id: request.id,
+            status,
+            final_url,
+            content_type,
+            body,
+            from_cache: false,
+        })
+    }
+
+    fn fetch_network(
+        &self,
+        request: &FetchRequest,
+        url: &Url,
+        stale: Option<CachedEntry>,
+    ) -> Result<FetchResponse, FetchError> {
+        let mut builder = self.agent.get(url.as_str());
+        if let Some(entry) = &stale {
+            if let Some(etag) = &entry.meta.etag {
+                builder = builder.header("If-None-Match", etag.as_str());
+            }
+            if let Some(modified) = &entry.meta.last_modified {
+                builder = builder.header("If-Modified-Since", modified.as_str());
+            }
+        }
+        let mut response = builder.call().map_err(network_error)?;
+        let status = response.status().as_u16();
+        let headers = cache_headers(response.headers());
+        let now = SystemTime::now();
+        if status == 304
+            && let Some(entry) = stale
+        {
+            self.counters.revalidated.fetch_add(1, Ordering::Relaxed);
+            let meta = refreshed_meta(&entry.meta, &headers, now);
+            self.cache.refresh(url.as_str(), meta.clone());
+            return Ok(from_entry(
+                request.id,
+                &CachedEntry {
+                    meta,
+                    body: entry.body,
+                },
+            ));
+        }
+        let (final_url, content_type, body) = read_response(&mut response)?;
+        if let Storability::Store { fresh_until } = storability(status, &headers, now) {
+            let meta = CachedMeta {
+                final_url: final_url.clone(),
+                content_type: content_type.clone(),
+                fresh_until: fresh_until.map(unix),
+                etag: headers.etag.clone(),
+                last_modified: headers.last_modified.clone(),
+                size: body.len() as u64,
+                stored_at: unix(now),
+            };
+            self.cache.put(url.as_str(), meta, &body);
+        }
+        self.cookies.save_if_due(&self.agent);
+        Ok(FetchResponse {
+            id: request.id,
+            status,
+            final_url,
+            content_type,
+            body,
+            from_cache: false,
+        })
+    }
+}
+
+fn network_error(e: ureq::Error) -> FetchError {
+    FetchError::Network(e.to_string())
+}
+
+fn header(headers: &ureq::http::HeaderMap, name: &str) -> Option<String> {
+    headers
+        .get(name)
+        .and_then(|v| v.to_str().ok())
+        .map(str::to_owned)
+}
+
+fn cache_headers(headers: &ureq::http::HeaderMap) -> CacheHeaders {
+    CacheHeaders {
+        cache_control: header(headers, "cache-control"),
+        expires: header(headers, "expires"),
+        date: header(headers, "date"),
+        last_modified: header(headers, "last-modified"),
+        etag: header(headers, "etag"),
+    }
+}
+
+/// 304 の新しいヘッダで期限と検証子を更新する（本文は保存済みのものを使う）。
+fn refreshed_meta(old: &CachedMeta, headers: &CacheHeaders, now: SystemTime) -> CachedMeta {
+    let merged = CacheHeaders {
+        etag: headers.etag.clone().or_else(|| old.etag.clone()),
+        last_modified: headers
+            .last_modified
+            .clone()
+            .or_else(|| old.last_modified.clone()),
+        ..headers.clone()
+    };
+    let fresh_until = match storability(200, &merged, now) {
+        Storability::Store { fresh_until } => fresh_until.map(unix),
+        Storability::NotStorable => None,
+    };
+    CachedMeta {
+        fresh_until,
+        etag: merged.etag,
+        last_modified: merged.last_modified,
+        stored_at: unix(now),
+        ..old.clone()
+    }
+}
+
+fn from_entry(id: u64, entry: &CachedEntry) -> FetchResponse {
+    FetchResponse {
+        id,
+        status: 200,
+        final_url: entry.meta.final_url.clone(),
+        content_type: entry.meta.content_type.clone(),
+        body: entry.body.to_vec(),
+        from_cache: true,
+    }
+}
+
+fn read_file(request: &FetchRequest, url: &Url) -> Result<FetchResponse, FetchError> {
+    let path = url
+        .to_file_path()
+        .map_err(|()| FetchError::BadUrl(url.to_string()))?;
+    let metadata = std::fs::metadata(&path)
+        .map_err(|e| FetchError::Network(format!("{}: {e}", path.display())))?;
+    if metadata.len() > MAX_BODY_BYTES {
+        return Err(FetchError::TooLarge);
+    }
+    let body = std::fs::read(&path)
+        .map_err(|e| FetchError::Network(format!("{}: {e}", path.display())))?;
+    Ok(FetchResponse {
+        id: request.id,
+        status: 200,
+        final_url: url.to_string(),
+        content_type: None,
+        body,
+        from_cache: false,
+    })
+}
+
+/// レスポンスの最終 URL・Content-Type・本文（上限付き）を読む。
+fn read_response(
+    response: &mut ureq::http::Response<ureq::Body>,
+) -> Result<(String, Option<String>, Vec<u8>), FetchError> {
+    let final_url = ureq::ResponseExt::get_uri(&*response).to_string();
+    let content_type = header(response.headers(), "content-type");
+    let body = response
+        .body_mut()
+        .with_config()
+        .limit(MAX_BODY_BYTES)
+        .read_to_vec()
+        .map_err(|e| match e {
+            ureq::Error::BodyExceedsLimit(_) => FetchError::TooLarge,
+            other => network_error(other),
+        })?;
+    Ok((final_url, content_type, body))
+}

@@ -78,6 +78,20 @@ impl<L: ImageLoader> ImageStore<L> {
         data
     }
 
+    /// 先に取得しておいた圧縮データを入れる（既にあれば何もしない）。
+    /// 取得を別スレッドで済ませ、レイアウト中に取得で待たないようにするため。
+    pub fn preload(&self, src: &str, data: Option<Vec<u8>>) {
+        self.sources
+            .borrow_mut()
+            .entry(Arc::from(src))
+            .or_insert_with(|| data.map(Arc::from));
+    }
+
+    /// 取得済み（失敗を含む）か。
+    pub fn has_source(&self, src: &str) -> bool {
+        self.sources.borrow().contains_key(src)
+    }
+
     /// ヘッダだけを読んで固有サイズを返す（全体はデコードしない）。
     pub fn intrinsic_size(&self, src: &str) -> Option<(f32, f32)> {
         let data = self.source(src)?;
@@ -215,5 +229,21 @@ mod tests {
         s.bitmap("b.png", 10, 10).unwrap();
         assert!(s.decoded_bytes() <= 20 * 10 * 4);
         assert!(s.compressed_bytes() > 0);
+    }
+
+    #[test]
+    fn preloaded_sources_skip_the_loader() {
+        let s = store(DECODED_BUDGET);
+        assert!(!s.has_source("pre.png"));
+        s.preload("pre.png", Some(png(7, 3, [0, 0, 0, 255])));
+        s.preload("pre.png", None); // 2回目は無視
+        assert!(s.has_source("pre.png"));
+        assert_eq!(s.intrinsic_size("pre.png"), Some((7.0, 3.0)));
+        s.preload("gone.png", None);
+        assert_eq!(
+            s.intrinsic_size("gone.png"),
+            None,
+            "失敗も記録して取りに行かない"
+        );
     }
 }

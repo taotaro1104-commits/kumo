@@ -4,12 +4,15 @@
 mod builder;
 mod display_list;
 mod raster;
+mod rounded;
 mod scroll;
 mod stacking;
 mod tiles;
 
 pub use builder::build_display_list;
-pub use display_list::{DisplayEntry, DisplayItem, DisplayList, GlyphRunItem, PlacedGlyph, RectF};
+pub use display_list::{
+    DisplayEntry, DisplayItem, DisplayList, GlyphRunItem, LinkRegion, PlacedGlyph, RectF,
+};
 pub use raster::{CpuRasterizer, ImageBitmap, ImageProvider, NoImageProvider, Rasterizer};
 pub use scroll::{DamagedRows, STRIP_ROWS, ScrollRenderer};
 pub use tiles::{TILE_BUDGET, TILE_SIZE, TileCache};

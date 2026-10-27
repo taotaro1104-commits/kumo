@@ -1,0 +1,20 @@
+[package]
+name = "kumo-net"
+description = "Kumo network process: fetching, HTTP cache and content blocking"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kumo-mem.workspace = true
+kumo-ipc.workspace = true
+serde = { version = "1", features = ["derive"] }
+postcard = { version = "1", features = ["use-std"] }
+ureq = { workspace = true, features = ["cookies", "json"] }
+redb = "4"
+adblock = { version = "0.13", default-features = false, features = ["embedded-domain-resolver", "full-regex-handling"] }
+sha2 = "0.11"
+url = "2.5"
+
+[lints]
+workspace = true

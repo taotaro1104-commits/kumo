@@ -32,8 +32,10 @@ pub struct ReplacedContent {
 #[derive(Clone, Debug, PartialEq)]
 pub struct TextPaint {
     pub style: Arc<ComputedStyle>,
-    /// このテキストを含む最も近い要素（リンク判定などに使う）
+    /// このテキストを含む最も近い要素
     pub node: Option<DomId>,
+    /// 最も近い `<a href>` 祖先の href（未解決のまま）
+    pub link: Option<Arc<str>>,
 }
 
 /// インラインレベル要素の背景・枠（`<code>` の背景など）を描くための区間。
@@ -129,6 +131,12 @@ pub struct LayoutBox {
     pub children: Vec<usize>,
     /// リストマーカー（`list-style-position: outside` のみ）
     pub marker: Option<Box<Layout<BrushId>>>,
+    /// このボックスを含む最も近い `<a href>` の href（クリック判定用）
+    pub link: Option<Arc<str>>,
+    /// ページ内リンクの飛び先名（要素の `id`、または `<a name>`）
+    pub anchor: Option<Arc<str>>,
+    /// クリックで操作するフォーム部品（input・select・textarea・button）か
+    pub form_control: bool,
     pub(crate) cache: Cache,
     pub(crate) unrounded: TaffyLayout,
     pub(crate) final_layout: TaffyLayout,
@@ -146,6 +154,9 @@ impl LayoutBox {
             style: taffy::Style::default(),
             children: Vec::new(),
             marker: None,
+            link: None,
+            anchor: None,
+            form_control: false,
             cache: Cache::new(),
             unrounded: TaffyLayout::with_order(0),
             final_layout: TaffyLayout::with_order(0),

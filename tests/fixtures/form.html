@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Form fixture</title>
+<style>body { font-family: sans-serif; margin: 20px; } label { margin-right: 12px; } p { margin: 10px 0; }</style>
+</head><body>
+<form action="https://en.wikipedia.org/w/index.php">
+<p><input name="search" placeholder="Wikipedia を検索"> <input type="submit" value="検索"></p>
+<p><label><input type="checkbox" name="fulltext" value="1" checked> 全文検索</label>
+<label><input type="radio" name="ns" value="0" checked> 記事</label>
+<label><input type="radio" name="ns" value="1"> ノート</label></p>
+<p><select name="limit"><option value="20">20 件<option value="50" selected>50 件<option value="100">100 件</select>
+<input type="password" name="pw" value="secret"> <button type="button">ボタン</button></p>
+<p><textarea name="memo" placeholder="メモ"></textarea></p>
+</form>
+</body></html>

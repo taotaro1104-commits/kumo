@@ -1,18 +1,25 @@
-//! winit + softbuffer のウィンドウ。前フレームを再利用し、新しく見えた帯だけを描く。
+//! winit + softbuffer のウィンドウ。上部に UI を描き、その下に Content が共有メモリに描いたフレームを写す。
+//! Content からの通知はイベントループのユーザーイベントとして届き、そのたびに取り込む。
 
 use std::num::NonZeroU32;
 use std::rc::Rc;
+use std::sync::Arc;
 
-use kumo_paint::{CpuRasterizer, RectF, ScrollRenderer};
+use kumo_browser::{Browser, CHROME_HEIGHT, FrameView, Pointer, Redraw};
+use kumo_net::process::Fetcher;
+use kumo_paint::{CpuRasterizer, NoImageProvider, RectF, ScrollRenderer};
 use winit::application::ApplicationHandler;
-use winit::event::{ElementState, KeyEvent, MouseScrollDelta, WindowEvent};
+use winit::dpi::PhysicalPosition;
+use winit::event::{ElementState, MouseScrollDelta, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoop};
-use winit::keyboard::{Key, NamedKey};
+use winit::keyboard::ModifiersState;
 use winit::window::{Window, WindowId};
 
-use crate::page::Page;
+use crate::input::{self, LINE_SCROLL, Outcome};
 
-const LINE_SCROLL: f32 = 48.0;
+/// Content から通知が届いた。
+#[derive(Clone, Copy, Debug)]
+pub struct ContentWake;
 
 struct Surface {
     window: Rc<Window>,
@@ -20,48 +27,61 @@ struct Surface {
 }
 
 pub struct Viewer {
-    page: Page,
+    browser: Browser,
+    network: Arc<dyn Fetcher>,
     raster: CpuRasterizer,
-    renderer: ScrollRenderer,
-    scroll_y: f32,
+    chrome_renderer: ScrollRenderer,
+    chrome_dirty: bool,
     surface: Option<Surface>,
-    title: String,
+    cursor: PhysicalPosition<f64>,
+    mods: ModifiersState,
     mem_report: bool,
     reported: bool,
+    /// リンク先の吹き出しを描いた行（コンテンツ領域の座標）
+    status_rows: Option<std::ops::Range<usize>>,
+    pointer: Pointer,
 }
 
 impl Viewer {
-    pub fn new(page: Page, title: String, mem_report: bool) -> Self {
-        Self {
-            page,
-            raster: CpuRasterizer::default(),
-            renderer: ScrollRenderer::default(),
-            scroll_y: 0.0,
-            surface: None,
-            title,
-            mem_report,
-            reported: false,
-        }
-    }
-
-    fn scroll_by(&mut self, dy: f32) {
-        let (_, vh) = self.page.viewport();
-        let max = (self.page.document_height() - vh).max(0.0);
-        let next = (self.scroll_y + dy).clamp(0.0, max).round();
-        if next != self.scroll_y {
-            self.scroll_y = next;
-            self.request_redraw();
-        }
-    }
-
     fn request_redraw(&self) {
         if let Some(s) = &self.surface {
             s.window.request_redraw();
         }
     }
 
-    /// サーフェスだけを合わせ、再レイアウトは次の描画まで遅らせる。
-    /// 起動直後の一時的なサイズや、ドラッグ中の連続したリサイズをまとめて1回にするため。
+    fn apply(&mut self, outcome: Outcome, event_loop: &ActiveEventLoop) {
+        self.mark(outcome.redraw);
+        if outcome.report {
+            self.report();
+        }
+        if outcome.exit {
+            event_loop.exit();
+        }
+    }
+
+    /// カーソルの形を、マウスの下にあるものに合わせる。
+    fn update_cursor(&mut self) {
+        let pointer = self.browser.pointer();
+        if pointer != self.pointer
+            && let Some(s) = &self.surface
+        {
+            s.window.set_cursor(crate::overlay::cursor_icon(pointer));
+            self.pointer = pointer;
+        }
+    }
+
+    fn mark(&mut self, redraw: Redraw) {
+        self.chrome_dirty |= redraw.chrome;
+        if redraw.chrome || redraw.content {
+            self.request_redraw();
+        }
+    }
+
+    fn report(&mut self) {
+        let frame = self.chrome_renderer.bytes();
+        crate::report::print(&mut self.browser, &*self.network, &self.raster, frame);
+    }
+
     fn resize(&mut self, width: u32, height: u32) {
         let (Some(w), Some(h)) = (NonZeroU32::new(width), NonZeroU32::new(height)) else {
             return;
@@ -72,27 +92,8 @@ impl Viewer {
             eprintln!("[window] サーフェスの再確保に失敗: {e}");
             return;
         }
-        self.request_redraw();
-    }
-
-    /// ビューポートが変わっていれば再レイアウトする。
-    fn sync_layout(&mut self, width: u32, height: u32) {
-        if self.page.viewport() == (width as f32, height as f32) {
-            return;
-        }
-        let started = std::time::Instant::now();
-        let before = self.page.viewport();
-        self.page.relayout(width as f32, height as f32);
-        eprintln!(
-            "[layout] {:.0}x{:.0} -> {width}x{height} を {:.0}ms で再レイアウト",
-            before.0,
-            before.1,
-            started.elapsed().as_secs_f64() * 1000.0
-        );
-        self.renderer.invalidate();
-        let (_, vh) = self.page.viewport();
-        let max = (self.page.document_height() - vh).max(0.0);
-        self.scroll_y = self.scroll_y.clamp(0.0, max).round();
+        let redraw = self.browser.resize(width as f32, height as f32);
+        self.mark(redraw);
     }
 
     fn redraw(&mut self) {
@@ -100,10 +101,20 @@ impl Viewer {
             return;
         };
         let (w, h) = (size.width as usize, size.height as usize);
-        if w == 0 || h == 0 {
+        let chrome_rows = (CHROME_HEIGHT as usize).min(h);
+        if w == 0 || h <= chrome_rows {
             return;
         }
-        self.sync_layout(size.width, size.height);
+        if self.chrome_dirty
+            && let Some(s) = &self.surface
+        {
+            let title = self
+                .browser
+                .active_tab()
+                .map(|t| t.title())
+                .unwrap_or_default();
+            s.window.set_title(&format!("{title} — Kumo"));
+        }
         let Some(s) = &mut self.surface else { return };
         let mut buffer = match s.surface.buffer_mut() {
             Ok(b) => b,
@@ -112,15 +123,57 @@ impl Viewer {
                 return;
             }
         };
-        let viewport = RectF::new(0.0, self.scroll_y, w as f32, h as f32);
         let buffer_valid = buffer.age() > 0;
-        let damage = self.renderer.render(
-            &self.page.list,
+        let (chrome_out, content_out) = buffer.split_at_mut(chrome_rows * w);
+        let mut damage = Vec::new();
+        if self.chrome_dirty || !buffer_valid {
+            self.chrome_renderer.invalidate();
+            let viewport = RectF::new(0.0, 0.0, w as f32, chrome_rows as f32);
+            let chrome = self.browser.chrome_page();
+            if let Some(rows) = self.chrome_renderer.render(
+                &chrome.list,
+                &mut self.raster,
+                &mut NoImageProvider,
+                viewport,
+                chrome_out,
+                false,
+            ) {
+                damage.push(rows);
+            }
+            self.chrome_dirty = false;
+        }
+        let content_rows = h - chrome_rows;
+        let mut copied = None;
+        let presented = self.browser.present_frame(|frame| {
+            copied = Some(copy_frame(
+                &frame,
+                content_out,
+                w,
+                content_rows,
+                buffer_valid,
+            ));
+        });
+        if !presented && !buffer_valid {
+            // バッファが作り直された：新しいフレームがなくても最後のフレームを全面写す
+            copied = self
+                .browser
+                .last_frame()
+                .map(|frame| copy_frame(&frame, content_out, w, content_rows, false));
+        }
+        if let Some(rows) = copied {
+            damage.push(rows.start + chrome_rows..rows.end + chrome_rows);
+        }
+        let status = crate::overlay::draw_status(
+            &mut self.browser,
             &mut self.raster,
-            &mut self.page.images,
-            viewport,
-            &mut buffer,
-            buffer_valid,
+            content_out,
+            (w, content_rows),
+            &mut self.status_rows,
+        );
+        damage.extend(
+            status
+                .into_iter()
+                .map(|r| r.start + chrome_rows..r.end + chrome_rows),
         );
         let width = NonZeroU32::new(w as u32).expect("w > 0");
         let rects: Vec<softbuffer::Rect> = damage
@@ -143,42 +196,50 @@ impl Viewer {
         if let Err(e) = result {
             eprintln!("[window] 表示に失敗: {e}");
         }
-        if self.mem_report && !self.reported {
+        if self.mem_report && !self.reported && !self.browser.tabs().iter().any(|t| t.is_loading())
+        {
             self.reported = true;
-            crate::print_memory_report(&self.page, &self.raster, self.renderer.bytes());
-        }
-    }
-
-    fn on_key(&mut self, event: &KeyEvent, event_loop: &ActiveEventLoop) {
-        if event.state != ElementState::Pressed {
-            return;
-        }
-        let (_, vh) = self.page.viewport();
-        match &event.logical_key {
-            Key::Named(NamedKey::ArrowDown) => self.scroll_by(LINE_SCROLL),
-            Key::Named(NamedKey::ArrowUp) => self.scroll_by(-LINE_SCROLL),
-            Key::Named(NamedKey::PageDown | NamedKey::Space) => self.scroll_by(vh * 0.9),
-            Key::Named(NamedKey::PageUp) => self.scroll_by(-vh * 0.9),
-            Key::Named(NamedKey::Home) => self.scroll_by(-self.scroll_y),
-            Key::Named(NamedKey::End) => self.scroll_by(f32::MAX / 2.0),
-            Key::Named(NamedKey::Escape) => event_loop.exit(),
-            Key::Character(c) if c.as_str() == "m" => {
-                crate::print_memory_report(&self.page, &self.raster, self.renderer.bytes());
-            }
-            _ => {}
+            self.report();
         }
     }
 }
 
-impl ApplicationHandler for Viewer {
+/// Content のフレームをウィンドウのバッファ（幅 `w`、`rows` 行）へ写し、写した行範囲を返す。
+/// バッファが前回の内容を保っていれば描き直された行だけを写す。大きさが違えば重なる部分だけ。
+fn copy_frame(
+    frame: &FrameView<'_>,
+    out: &mut [u32],
+    w: usize,
+    rows: usize,
+    buffer_valid: bool,
+) -> std::ops::Range<usize> {
+    let fw = frame.width as usize;
+    let fh = (frame.height as usize).min(rows);
+    let (start, end) = if buffer_valid && fw == w {
+        (frame.damage.0 as usize, (frame.damage.1 as usize).min(fh))
+    } else {
+        (0, fh)
+    };
+    let cols = fw.min(w);
+    for y in start..end {
+        let src = &frame.pixels[y * fw..y * fw + cols];
+        out[y * w..y * w + cols].copy_from_slice(src);
+    }
+    start..end.max(start)
+}
+
+impl ApplicationHandler<ContentWake> for Viewer {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.surface.is_some() {
             return;
         }
-        let (w, h) = self.page.viewport();
+        let (w, h) = self.browser.content_viewport();
         let attributes = Window::default_attributes()
-            .with_title(format!("Kumo — {}", self.title))
-            .with_inner_size(winit::dpi::PhysicalSize::new(w as u32, h as u32));
+            .with_title("Kumo")
+            .with_inner_size(winit::dpi::PhysicalSize::new(
+                w as u32,
+                (h + CHROME_HEIGHT) as u32,
+            ));
         let window = match event_loop.create_window(attributes) {
             Ok(w) => Rc::new(w),
             Err(e) => {
@@ -197,7 +258,6 @@ impl ApplicationHandler for Viewer {
                 });
                 let size = window.inner_size();
                 self.resize(size.width, size.height);
-                window.request_redraw();
             }
             Err(e) => {
                 eprintln!("[window] softbuffer の初期化に失敗: {e}");
@@ -206,23 +266,110 @@ impl ApplicationHandler for Viewer {
         }
     }
 
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ContentWake) {
+        let redraw = self.browser.pump();
+        self.mark(redraw);
+        self.update_cursor();
+    }
+
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::Resized(size) => self.resize(size.width, size.height),
             WindowEvent::RedrawRequested => self.redraw(),
-            WindowEvent::MouseWheel { delta, .. } => match delta {
-                MouseScrollDelta::LineDelta(_, y) => self.scroll_by(-y * LINE_SCROLL),
-                MouseScrollDelta::PixelDelta(p) => self.scroll_by(-p.y as f32),
-            },
-            WindowEvent::KeyboardInput { event, .. } => self.on_key(&event, event_loop),
+            WindowEvent::ModifiersChanged(mods) => self.mods = mods.state(),
+            WindowEvent::CursorMoved { position, .. } => {
+                self.cursor = position;
+                let (x, y) = (position.x as f32, position.y as f32);
+                let redraw = if y < CHROME_HEIGHT {
+                    self.browser.hover_chrome(x, y)
+                } else {
+                    self.browser.hover_content(x, y - CHROME_HEIGHT)
+                };
+                self.mark(redraw);
+                self.update_cursor();
+            }
+            WindowEvent::CursorLeft { .. } => {
+                let redraw = self.browser.leave_window();
+                self.mark(redraw);
+                self.update_cursor();
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button,
+                ..
+            } => {
+                let (x, y) = (self.cursor.x as f32, self.cursor.y as f32);
+                let outcome = input::click(&mut self.browser, x, y, button, self.mods);
+                self.apply(outcome, event_loop);
+            }
+            WindowEvent::MouseWheel { delta, .. } => {
+                let dy = match delta {
+                    MouseScrollDelta::LineDelta(_, y) => -y * LINE_SCROLL,
+                    MouseScrollDelta::PixelDelta(p) => -p.y as f32,
+                };
+                // 新しい位置のフレームは Content から届く
+                self.browser.scroll_by(dy);
+            }
+            WindowEvent::KeyboardInput { event, .. } => {
+                let outcome = input::key(&mut self.browser, &event, self.mods);
+                self.apply(outcome, event_loop);
+            }
             _ => {}
         }
     }
 }
 
-pub fn run(viewer: Viewer) -> Result<(), String> {
-    let event_loop = EventLoop::new().map_err(|e| e.to_string())?;
-    let mut viewer = viewer;
+pub fn run(browser: Browser, network: Arc<dyn Fetcher>, mem_report: bool) -> Result<(), String> {
+    let event_loop = EventLoop::<ContentWake>::with_user_event()
+        .build()
+        .map_err(|e| e.to_string())?;
+    let proxy = event_loop.create_proxy();
+    let mut browser = browser;
+    browser.set_notify(Arc::new(move || {
+        let _ = proxy.send_event(ContentWake);
+    }));
+    let mut viewer = Viewer {
+        browser,
+        network,
+        raster: CpuRasterizer::default(),
+        chrome_renderer: ScrollRenderer::default(),
+        chrome_dirty: true,
+        surface: None,
+        cursor: PhysicalPosition::new(0.0, 0.0),
+        mods: ModifiersState::empty(),
+        mem_report,
+        reported: false,
+        status_rows: None,
+        pointer: Pointer::Default,
+    };
+    // 通知を設定する前に届いていた分を取り込む
+    let redraw = viewer.browser.pump();
+    viewer.chrome_dirty |= redraw.chrome;
     event_loop.run_app(&mut viewer).map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn copies_damaged_rows_or_everything() {
+        let pixels: Vec<u32> = (0..12).collect();
+        let frame = FrameView {
+            pixels: &pixels,
+            width: 4,
+            height: 3,
+            damage: (2, 3),
+        };
+        let mut out = vec![0u32; 5 * 3];
+        assert_eq!(copy_frame(&frame, &mut out, 4, 3, true), 2..3);
+        assert_eq!(&out[8..12], &[8, 9, 10, 11]);
+        assert_eq!(out[0], 0, "描き直していない行は写さない");
+        // 幅が違う（リサイズ直後）なら重なる部分を全部
+        let mut wide = vec![7u32; 5 * 2];
+        assert_eq!(copy_frame(&frame, &mut wide, 5, 2, true), 0..2);
+        assert_eq!(&wide[..5], &[0, 1, 2, 3, 7]);
+        assert_eq!(&wide[5..9], &[4, 5, 6, 7]);
+    }
 }

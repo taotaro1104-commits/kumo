@@ -1,24 +1,22 @@
 [package]
 name = "kumo-viewer"
-description = "Kumo Phase 0 static viewer"
+description = "Kumo browser: tabs, history, browser/content/network processes"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
-kumo-dom.workspace = true
-kumo-html.workspace = true
-kumo-css.workspace = true
-kumo-text.workspace = true
-kumo-layout.workspace = true
+kumo-browser.workspace = true
+kumo-net.workspace = true
+kumo-content.workspace = true
 kumo-paint.workspace = true
-kumo-image.workspace = true
 kumo-mem.workspace = true
 tiny-skia.workspace = true
 winit.workspace = true
 softbuffer.workspace = true
-ureq.workspace = true
-url = "2.5"
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+url = "2.5"

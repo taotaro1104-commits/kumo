@@ -136,6 +136,39 @@ impl Document {
 
     // ---- 変更 ----
 
+    /// 属性を設定する（なければ追加）。要素以外には何もしない。
+    pub fn set_attr(&mut self, id: NodeId, name: &str, value: &str) {
+        let NodeKind::Element(i) = self.node(id).kind else {
+            return;
+        };
+        let element = &mut self.elements[i as usize];
+        match element.attrs.iter_mut().find(|a| &*a.name == name) {
+            Some(attr) => attr.value = CompactString::from(value),
+            None => element
+                .attrs
+                .push(Attr::new(markup5ever::LocalName::from(name), value)),
+        }
+    }
+
+    /// 属性を取り除く。
+    pub fn remove_attr(&mut self, id: NodeId, name: &str) {
+        if let NodeKind::Element(i) = self.node(id).kind {
+            self.elements[i as usize].attrs.retain(|a| &*a.name != name);
+        }
+    }
+
+    /// `id` が `ancestor` の子孫（自身を含む）か。
+    pub fn is_inclusive_descendant(&self, id: NodeId, ancestor: NodeId) -> bool {
+        let mut node = Some(id);
+        while let Some(n) = node {
+            if n == ancestor {
+                return true;
+            }
+            node = self.parent(n);
+        }
+        false
+    }
+
     pub fn add_attrs_if_missing(&mut self, id: NodeId, attrs: Vec<Attr>) {
         let NodeKind::Element(i) = self.node(id).kind else {
             return;

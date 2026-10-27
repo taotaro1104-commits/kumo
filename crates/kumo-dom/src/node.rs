@@ -9,7 +9,8 @@ use smallvec::SmallVec;
 pub struct NodeId(NonZeroU32);
 
 impl NodeId {
-    pub(crate) fn from_index(index: usize) -> Self {
+    /// アリーナ上のインデックスから ID を作る（[`NodeId::index`] の逆）。
+    pub fn from_index(index: usize) -> Self {
         let raw = u32::try_from(index + 1).expect("ノード数が u32 の範囲を超えた");
         Self(NonZeroU32::new(raw).expect("index + 1 は 0 にならない"))
     }

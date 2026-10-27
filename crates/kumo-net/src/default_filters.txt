@@ -1,0 +1,37 @@
+! Kumo 既定フィルタ（最小セット）。EasyList 等は設定で追加する。
+! 主要な広告配信
+||doubleclick.net^
+||googlesyndication.com^
+||googleadservices.com^
+||adservice.google.com^
+||amazon-adsystem.com^
+||adnxs.com^
+||criteo.com^
+||criteo.net^
+||taboola.com^
+||outbrain.com^
+||pubmatic.com^
+||rubiconproject.com^
+||openx.net^
+||adform.net^
+||smartadserver.com^
+||yieldmo.com^
+! 主要な計測・トラッカー
+||google-analytics.com^
+||googletagmanager.com^
+||googletagservices.com^
+||scorecardresearch.com^
+||quantserve.com^
+||hotjar.com^
+||mixpanel.com^
+||segment.io^
+||segment.com^$third-party
+||connect.facebook.net^$third-party
+||facebook.com/tr^
+||bat.bing.com^
+||analytics.twitter.com^
+||static.ads-twitter.com^
+||ads-twitter.com^
+||clarity.ms^
+||newrelic.com^$third-party
+||nr-data.net^

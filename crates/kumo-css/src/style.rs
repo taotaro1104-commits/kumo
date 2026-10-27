@@ -147,6 +147,8 @@ pub struct ComputedStyle {
     pub border_width: Sides<f32>,
     pub border_style: Sides<BorderStyle>,
     pub border_color: Sides<Rgba>,
+    /// 角の丸み（左上・右上・右下・左下）。% は箱の幅が基準（縦横別の楕円は扱わない）
+    pub border_radius: [LengthPct; 4],
     pub width: LengthPctAuto,
     pub height: LengthPctAuto,
     pub min_width: LengthPctAuto,
@@ -222,6 +224,7 @@ impl ComputedStyle {
             border_width: Sides::all(3.0), // medium
             border_style: Sides::all(BorderStyle::None),
             border_color: Sides::all(Rgba::BLACK),
+            border_radius: [LengthPct::ZERO; 4],
             width: LengthPctAuto::Auto,
             height: LengthPctAuto::Auto,
             min_width: LengthPctAuto::Auto,

@@ -98,6 +98,10 @@ pub(crate) fn paint_background_and_borders(
     clip: Option<RectF>,
     list: &mut DisplayList,
 ) {
+    if let Some(radii) = crate::rounded::resolve_radii(&style.border_radius, rect) {
+        paint_rounded(style, rect, radii, clip, list);
+        return;
+    }
     if !style.background_color.is_transparent() {
         list.push(
             DisplayItem::Fill {
@@ -128,6 +132,44 @@ pub(crate) fn paint_background_and_borders(
             clip,
             list,
         );
+    }
+}
+
+/// 角の丸い箱。枠線の色が辺ごとに違うときは、角を丸めずに辺ごとに描く。
+fn paint_rounded(
+    style: &ComputedStyle,
+    rect: RectF,
+    radii: [f32; 4],
+    clip: Option<RectF>,
+    list: &mut DisplayList,
+) {
+    if !style.background_color.is_transparent() {
+        let color = style.background_color;
+        list.push(DisplayItem::RoundedFill { rect, color, radii }, rect, clip);
+    }
+    let widths = Side::ALL.map(|side| style.used_border_width(side));
+    let colors: Vec<Rgba> = Side::ALL
+        .iter()
+        .zip(widths)
+        .filter(|(_, w)| *w > 0.0)
+        .map(|(side, _)| *style.border_color.get(*side))
+        .collect();
+    let Some(&color) = colors.first() else { return };
+    if colors.iter().any(|c| *c != color) {
+        let mut square = style.clone();
+        square.border_radius = [kumo_css::LengthPct::ZERO; 4];
+        square.background_color = Rgba::TRANSPARENT;
+        paint_background_and_borders(&square, rect, clip, list);
+        return;
+    }
+    if !color.is_transparent() {
+        let item = DisplayItem::RoundedBorder {
+            rect,
+            widths,
+            color,
+            radii,
+        };
+        list.push(item, rect, clip);
     }
 }
 
@@ -195,6 +237,39 @@ fn paint_inline(
             .map_or(Rgba::BLACK, |p| p.style.color)
     };
     paint_layout(layout, x, y, &color_of, clip, list);
+    record_links(content, layout, x, y, clip, list);
+}
+
+/// リンク内のテキストのグリフ列をリンク領域として記録する。
+fn record_links(
+    content: &InlineContent,
+    layout: &kumo_text::Layout<u32>,
+    x: f32,
+    y: f32,
+    clip: Option<RectF>,
+    list: &mut DisplayList,
+) {
+    if content.paints.iter().all(|p| p.link.is_none()) {
+        return;
+    }
+    for line in layout.lines() {
+        let metrics = line.metrics();
+        let top = y + metrics.block_min_coord;
+        let height = metrics.block_max_coord - metrics.block_min_coord;
+        for item in line.items() {
+            let PositionedLayoutItem::GlyphRun(glyph_run) = item else {
+                continue;
+            };
+            let link = content
+                .paints
+                .get(glyph_run.style().brush as usize)
+                .and_then(|p| p.link.as_ref());
+            if let Some(href) = link {
+                let rect = RectF::new(x + glyph_run.offset(), top, glyph_run.advance(), height);
+                list.add_link(rect, href, clip);
+            }
+        }
+    }
 }
 
 /// Parley のレイアウトをグリフ列と装飾線に変換する。

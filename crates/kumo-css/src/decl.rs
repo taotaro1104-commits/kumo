@@ -86,6 +86,8 @@ pub enum Decl {
     BorderWidth(Side, Length),
     BorderStyle(Side, BorderStyle),
     BorderColor(Side, ColorValue),
+    /// 角（0 = 左上、1 = 右上、2 = 右下、3 = 左下）の丸み
+    BorderRadius(usize, Length),
     Size(SizeProp, LengthOrAuto),
     BoxSizing(BoxSizing),
     OverflowX(Overflow),

@@ -64,6 +64,19 @@ impl Rasterizer for CpuRasterizer {
                 DisplayItem::Fill { rect, color } => {
                     fill(out, rect.translate(-region.x, -region.y), *color, clip);
                 }
+                DisplayItem::RoundedFill { rect, color, radii } => {
+                    let rect = rect.translate(-region.x, -region.y);
+                    crate::rounded::fill_rounded(out, rect, *color, *radii, clip);
+                }
+                DisplayItem::RoundedBorder {
+                    rect,
+                    widths,
+                    color,
+                    radii,
+                } => {
+                    let rect = rect.translate(-region.x, -region.y);
+                    crate::rounded::fill_rounded_border(out, rect, *widths, *color, *radii, clip);
+                }
                 DisplayItem::Glyphs(run) => {
                     self.draw_glyphs(out, run, region, clip);
                 }

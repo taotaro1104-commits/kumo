@@ -34,9 +34,7 @@ const MAX_DEPTH: usize = 128;
 /// 属性で指定できる画像の一辺の上限（px）。
 const MAX_IMAGE_SIDE: f32 = 100_000.0;
 
-const REPLACED: [&str; 8] = [
-    "img", "svg", "video", "canvas", "iframe", "input", "textarea", "select",
-];
+const REPLACED: [&str; 5] = ["img", "svg", "video", "canvas", "iframe"];
 
 pub(crate) struct Builder<'a> {
     pub(crate) doc: &'a Document,
@@ -48,6 +46,8 @@ pub(crate) struct Builder<'a> {
     depth: usize,
     /// リスト項目の序数（親ごとにまとめて計算）
     ordinals: std::collections::HashMap<DomId, i32>,
+    /// 開いている `<a href>` の href（内側ほど後ろ）
+    links: Vec<Arc<str>>,
 }
 
 /// ボックスツリーを構築する。`text` は全タブ共有のテキストシステム。
@@ -66,6 +66,7 @@ pub fn build_box_tree(
         text,
         depth: 0,
         ordinals: std::collections::HashMap::new(),
+        links: Vec::new(),
     };
     let mut root_style = ComputedStyle::initial();
     root_style.display = CssDisplay::Block;
@@ -101,19 +102,51 @@ impl Builder<'_> {
     ) -> usize {
         let mut layout_box = LayoutBox::new(kind, dom, computed.clone());
         layout_box.style = to_taffy(&computed, &mut self.calc);
+        layout_box.link = self.current_link();
+        layout_box.anchor = dom
+            .and_then(|node| self.doc.element(node))
+            .and_then(|e| {
+                e.id()
+                    .or_else(|| e.is_html("a").then(|| e.attr("name")).flatten())
+            })
+            .filter(|id| !id.is_empty())
+            .map(Arc::from);
         self.boxes.push(layout_box);
         self.boxes.len() - 1
     }
 
     fn is_replaced(&self, node: DomId) -> bool {
         let element = self.doc.element(node).expect("要素");
-        REPLACED.iter().any(|t| element.is_html(t)) || &*element.local == "svg"
+        REPLACED.iter().any(|t| element.is_html(t))
+            || &*element.local == "svg"
+            || (element.is_html("input") && crate::forms::input_type(self.doc, node) == "image")
+    }
+
+    pub(crate) fn current_link(&self) -> Option<Arc<str>> {
+        self.links.last().cloned()
+    }
+
+    /// `<a href>` なら href を積んで `true` を返す（呼び出し側が抜けるときに pop する）。
+    fn enter_link(&mut self, node: DomId) -> bool {
+        let element = self.doc.element(node);
+        let href = element
+            .filter(|e| e.is_html("a") || e.is_html("area"))
+            .and_then(|e| e.attr("href"));
+        if let Some(href) = href {
+            self.links.push(Arc::from(href));
+            return true;
+        }
+        false
     }
 
     /// 要素1つ分のボックス（とその子孫）を作る。
     pub(crate) fn build_element(&mut self, node: DomId, style: Arc<ComputedStyle>) -> usize {
         self.depth += 1;
+        let entered = self.enter_link(node);
         let index = self.build_element_inner(node, style);
+        if entered {
+            self.links.pop();
+        }
         self.depth -= 1;
         index
     }
@@ -126,10 +159,16 @@ impl Builder<'_> {
         if self.is_replaced(node) {
             return self.build_replaced(node, style);
         }
+        if let Some(control) = self.build_form_control(node, &style) {
+            return control;
+        }
         if matches!(style.display, CssDisplay::Table | CssDisplay::InlineTable) {
             return self.build_table(node, style);
         }
         let index = self.add_box(BoxKind::Container, Some(node), style.clone());
+        if self.doc.element(node).is_some_and(|e| e.is_html("button")) {
+            self.boxes[index].form_control = true;
+        }
         match style.display {
             CssDisplay::Flex
             | CssDisplay::InlineFlex
@@ -138,7 +177,7 @@ impl Builder<'_> {
                 self.build_item_children(index, node, &style);
             }
             _ => {
-                let mut ifc = InlineBuilder::new(style.clone(), Some(node));
+                let mut ifc = InlineBuilder::new(style.clone(), Some(node), self.current_link());
                 if style.display == CssDisplay::ListItem {
                     self.add_marker(index, node, &style, &mut ifc);
                 }
@@ -161,10 +200,10 @@ impl Builder<'_> {
                 .filter(|v| v.is_finite() && *v >= 0.0 && *v <= MAX_IMAGE_SIDE)
         };
         let from_attrs = attr_size("width").zip(attr_size("height"));
-        let intrinsic = if element.is_html("img") {
+        // img と input[type=image] は画像として、その他（svg・video など）は既定の大きさ
+        let is_image = element.is_html("img") || element.is_html("input");
+        let intrinsic = if is_image {
             from_attrs.or_else(|| src.as_deref().and_then(|s| self.images.intrinsic_size(s)))
-        } else if element.is_html("input") || element.is_html("select") {
-            Some((150.0, style.line_height_px() + 4.0))
         } else {
             from_attrs.or(Some((300.0, 150.0)))
         };
@@ -174,7 +213,7 @@ impl Builder<'_> {
 
     /// flex / grid コンテナの子：要素はそれぞれアイテム、連続テキストは匿名アイテム。
     fn build_item_children(&mut self, parent: usize, node: DomId, style: &Arc<ComputedStyle>) {
-        let mut ifc = InlineBuilder::new(style.clone(), Some(node));
+        let mut ifc = InlineBuilder::new(style.clone(), Some(node), self.current_link());
         let mut stack: Vec<DomId> = self.doc.children(node).collect();
         stack.reverse();
         while let Some(child) = stack.pop() {
@@ -223,11 +262,15 @@ impl Builder<'_> {
                     _ if element.is_html("br") => ifc.push_break(),
                     CssDisplay::Inline if !self.is_replaced(child) && self.depth < MAX_DEPTH => {
                         self.depth += 1;
-                        ifc.open(style, child);
+                        let entered = self.enter_link(child);
+                        ifc.open(style, child, self.current_link());
                         for grandchild in self.doc.children(child).collect::<Vec<_>>() {
                             self.flow_child(parent, grandchild, ifc);
                         }
                         ifc.close();
+                        if entered {
+                            self.links.pop();
+                        }
                         self.depth -= 1;
                     }
                     display if display.is_inline_level() || display == CssDisplay::Inline => {
@@ -254,7 +297,12 @@ impl Builder<'_> {
     }
 
     /// 溜まったインライン内容を匿名インラインボックスとして親に追加する。
-    fn flush(&mut self, parent: usize, ifc: &mut InlineBuilder, parent_style: &Arc<ComputedStyle>) {
+    pub(crate) fn flush(
+        &mut self,
+        parent: usize,
+        ifc: &mut InlineBuilder,
+        parent_style: &Arc<ComputedStyle>,
+    ) {
         let Some(content) = ifc.take() else { return };
         let children: Vec<usize> = content
             .atomics

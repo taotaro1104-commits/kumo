@@ -199,6 +199,10 @@ pub fn configure_for_low_memory() {
         libmimalloc_sys::mi_option_set(MI_OPTION_EAGER_COMMIT, 0);
         libmimalloc_sys::mi_option_set(MI_OPTION_PURGE_DELAY, 0);
     }
+    // main より前（Rust ランタイムの初期化時）に最初のセグメント（32MiB）が先行コミット
+    // されているので、設定を変えた直後に未使用部分を OS へ返す。これで起動直後の
+    // コミット量が約 33MB から約 1MB になる。
+    release_free_memory();
 }
 
 /// 既定ヒープを切り替え、スコープ終了（panic による巻き戻しを含む）で元に戻す内部ガード。

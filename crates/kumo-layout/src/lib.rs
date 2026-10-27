@@ -4,6 +4,7 @@
 mod boxes;
 mod build;
 mod convert;
+mod forms;
 mod grid;
 mod inline;
 mod inline_break;
@@ -16,6 +17,7 @@ pub use boxes::{
     BoxKind, BreakPlan, InlineContent, InlineSpan, LayoutBox, LineSlot, ReplacedContent, TextPaint,
 };
 pub use build::{ImageSizes, NoImages, build_box_tree};
+pub use forms::{ControlText, FOCUS_ATTR, control_text, input_type, selected_option_text};
 pub use tree::BoxTree;
 
 use taffy::prelude::*;

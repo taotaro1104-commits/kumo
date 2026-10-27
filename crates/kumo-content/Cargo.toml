@@ -1,0 +1,24 @@
+[package]
+name = "kumo-content"
+description = "Kumo content process: page pipeline, tabs' pages, rendering into a shared frame"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kumo-dom.workspace = true
+kumo-html.workspace = true
+kumo-css.workspace = true
+kumo-text.workspace = true
+kumo-layout.workspace = true
+kumo-paint.workspace = true
+kumo-image.workspace = true
+kumo-mem.workspace = true
+kumo-net.workspace = true
+kumo-ipc.workspace = true
+url = "2.5"
+percent-encoding = "2"
+serde = { version = "1", features = ["derive"] }
+
+[lints]
+workspace = true

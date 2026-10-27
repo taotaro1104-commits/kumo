@@ -71,9 +71,28 @@ pub struct GlyphRunItem {
 
 #[derive(Clone, Debug)]
 pub enum DisplayItem {
-    Fill { rect: RectF, color: Rgba },
+    Fill {
+        rect: RectF,
+        color: Rgba,
+    },
+    /// 角の丸い背景（半径は左上・右上・右下・左下、px）
+    RoundedFill {
+        rect: RectF,
+        color: Rgba,
+        radii: [f32; 4],
+    },
+    /// 角の丸い枠線（全辺同じ色。`widths` は上・右・下・左）
+    RoundedBorder {
+        rect: RectF,
+        widths: [f32; 4],
+        color: Rgba,
+        radii: [f32; 4],
+    },
     Glyphs(Box<GlyphRunItem>),
-    Image { rect: RectF, src: Arc<str> },
+    Image {
+        rect: RectF,
+        src: Arc<str>,
+    },
 }
 
 /// 描画命令1つ。`bounds` はタイル選別用、`clip` は overflow によるクリップ。
@@ -92,9 +111,70 @@ pub struct DisplayList {
     pub height: f32,
     /// キャンバス背景色（ルート要素/body から伝播）
     pub background: Option<Rgba>,
+    /// クリックできるリンクの領域（描画順。後ろほど手前）
+    pub links: Vec<LinkRegion>,
+    /// ページ内リンクの飛び先（名前と文書上の y 座標）
+    pub anchors: Vec<(Arc<str>, f32)>,
+    /// フォーム部品の領域（DOM ノードのインデックス付き）
+    pub controls: Vec<(RectF, usize)>,
+}
+
+/// リンクの当たり判定領域。`href` は未解決のまま。
+#[derive(Clone, Debug, PartialEq)]
+pub struct LinkRegion {
+    pub rect: RectF,
+    pub href: Arc<str>,
 }
 
 impl DisplayList {
+    /// リンク領域を追加する（クリップの外は除く）。
+    pub fn add_link(&mut self, rect: RectF, href: &Arc<str>, clip: Option<RectF>) {
+        let rect = clip.map_or(rect, |c| rect.intersect(&c));
+        if rect.is_empty() {
+            return;
+        }
+        // 同じリンクの隣り合う領域（同じ行の連続したグリフ列）はまとめる
+        if let Some(last) = self.links.last_mut()
+            && Arc::ptr_eq(&last.href, href)
+            && (last.rect.y - rect.y).abs() < 0.5
+            && (last.rect.h - rect.h).abs() < 0.5
+            && (last.rect.right() - rect.x).abs() < 1.0
+        {
+            last.rect.w = rect.right() - last.rect.x;
+            return;
+        }
+        self.links.push(LinkRegion {
+            rect,
+            href: href.clone(),
+        });
+    }
+
+    /// 名前 `name` の飛び先の y 座標（最初に現れたもの）。
+    pub fn anchor_y(&self, name: &str) -> Option<f32> {
+        self.anchors
+            .iter()
+            .find(|(n, _)| &**n == name)
+            .map(|&(_, y)| y)
+    }
+
+    /// 文書座標 (x, y) にある最も手前のフォーム部品（DOM ノードのインデックス）。
+    pub fn control_at(&self, x: f32, y: f32) -> Option<usize> {
+        self.controls
+            .iter()
+            .rev()
+            .find(|(r, _)| x >= r.x && x < r.right() && y >= r.y && y < r.bottom())
+            .map(|&(_, node)| node)
+    }
+
+    /// 文書座標 (x, y) にある最も手前のリンク。
+    pub fn link_at(&self, x: f32, y: f32) -> Option<&Arc<str>> {
+        self.links
+            .iter()
+            .rev()
+            .find(|l| x >= l.rect.x && x < l.rect.right() && y >= l.rect.y && y < l.rect.bottom())
+            .map(|l| &l.href)
+    }
+
     pub fn push(&mut self, item: DisplayItem, bounds: RectF, clip: Option<RectF>) {
         let visible = match clip {
             Some(c) => bounds.intersect(&c),
