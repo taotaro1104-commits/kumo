@@ -47,6 +47,8 @@ pub fn key(browser: &mut Browser, event: &KeyEvent, mods: ModifiersState) -> Out
             "w" => Outcome::redraw(browser.close_tab(browser.active_index())),
             "l" => Outcome::redraw(browser.focus_url_bar()),
             "r" => Outcome::redraw(browser.reload()),
+            "d" => Outcome::redraw(browser.toggle_bookmark()),
+            "b" => Outcome::redraw(browser.show_bookmarks()),
             "m" => Outcome {
                 report: true,
                 ..Outcome::default()
@@ -62,6 +64,7 @@ pub fn key(browser: &mut Browser, event: &KeyEvent, mods: ModifiersState) -> Out
             };
             Outcome::redraw(browser.activate(next))
         }
+        Key::Named(NamedKey::Home) if mods.alt_key() => Outcome::redraw(browser.go_home()),
         Key::Named(NamedKey::ArrowLeft) if mods.alt_key() => Outcome::redraw(browser.back()),
         Key::Named(NamedKey::ArrowRight) if mods.alt_key() => Outcome::redraw(browser.forward()),
         Key::Named(NamedKey::BrowserBack) => Outcome::redraw(browser.back()),

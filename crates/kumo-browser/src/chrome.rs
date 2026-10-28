@@ -6,6 +6,7 @@ use url::Url;
 
 use kumo_content::escape;
 
+use crate::chrome_css::CSS;
 use crate::url_display::format_url;
 
 /// UI の高さ（px）。コンテンツはこの下に描く。
@@ -23,6 +24,9 @@ pub enum ChromeAction {
     Forward,
     Reload,
     FocusUrlBar,
+    ToggleBookmark,
+    ShowBookmarks,
+    Home,
 }
 
 impl ChromeAction {
@@ -38,6 +42,9 @@ impl ChromeAction {
                 "forward" => Self::Forward,
                 "reload" => Self::Reload,
                 "url" => Self::FocusUrlBar,
+                "bookmark" => Self::ToggleBookmark,
+                "bookmarks" => Self::ShowBookmarks,
+                "home" => Self::Home,
                 _ => return None,
             },
         })
@@ -62,54 +69,13 @@ pub struct ChromeState<'a> {
     pub can_go_back: bool,
     pub can_go_forward: bool,
     pub loading: bool,
+    /// 表示中のページがブックマーク済み
+    pub bookmarked: bool,
     /// Content プロセスが終了して作り直せなかった
     pub content_lost: bool,
     /// マウスが乗っている UI のリンク
     pub hover: Option<&'a str>,
 }
-
-const CSS: &str = "
-html, body { margin: 0; background: #e3e6ea; color: #1f2328;
-             font-family: 'Segoe UI', 'Yu Gothic UI', system-ui, sans-serif; font-size: 13px; }
-.tabs { display: flex; box-sizing: border-box; height: 38px; padding: 6px 8px 0; gap: 4px; align-items: flex-end; }
-.tab { display: flex; align-items: center; flex: 0 1 220px; min-width: 72px; height: 32px;
-       padding: 0 4px 0 12px; border-radius: 9px 9px 0 0; overflow: hidden; }
-.tab.hover { background: #d4d8de; }
-.tab.active { background: #ffffff; }
-.tab a.title { flex: 1; color: #4a5058; text-decoration: none; white-space: nowrap; overflow: hidden; }
-.tab.dormant a.title { color: #8a9099; }
-.tab.active a.title { color: #1f2328; font-weight: 600; }
-.dot { display: inline-block; width: 14px; color: #1a73e8; font-size: 10px; }
-.tab a.close { flex: none; width: 20px; height: 20px; line-height: 20px; border-radius: 10px; text-align: center;
-               color: #6b7280; text-decoration: none; font-size: 11px; }
-.tab a.close.hover { background: #c5cad1; color: #1f2328; }
-a.new { flex: none; width: 28px; height: 28px; line-height: 28px; margin-bottom: 2px; border-radius: 14px;
-        text-align: center; color: #4a5058; text-decoration: none; font-size: 16px; }
-a.new.hover { background: #d4d8de; }
-.nav { display: flex; box-sizing: border-box; align-items: center; height: 38px; padding: 0 8px; gap: 4px;
-       background: #ffffff; border-bottom: 1px solid #d5d9de; }
-.nav.loading { border-bottom: 2px solid #1a73e8; }
-.nav a.btn { flex: none; width: 30px; height: 30px; line-height: 30px; border-radius: 15px; text-align: center;
-             color: #3c4043; text-decoration: none; font-size: 16px; }
-.nav a.btn.hover { background: #eceef1; }
-.nav a.btn.off { color: #c3c7cc; background: #ffffff; }
-a.url { flex: 1; display: flex; box-sizing: border-box; align-items: center; height: 30px; padding: 0 14px 0 4px;
-        background: #f1f3f4; border: 1px solid #f1f3f4; border-radius: 15px; text-decoration: none;
-        white-space: nowrap; overflow: hidden; font-size: 14px; color: #1f2328; }
-a.url.hover { background: #e8eaed; border-color: #e8eaed; }
-a.url.focused { background: #ffffff; border: 2px solid #1a73e8; padding-left: 12px; }
-.chip { flex: none; height: 22px; line-height: 22px; padding: 0 8px; margin-right: 4px; border-radius: 11px;
-        font-size: 12px; color: #4a5058; }
-.chip.insecure { background: #fce8e6; color: #b3261e; }
-.chip.file { background: #e8eaed; }
-.host { color: #1f2328; }
-.rest { color: #6b7280; }
-.placeholder { color: #80868b; }
-.caret { color: #1a73e8; }
-.badge { flex: none; height: 24px; line-height: 24px; padding: 0 10px; border-radius: 12px; font-size: 12px; }
-.badge.loading { background: #e8f0fe; color: #1a56c4; }
-.badge.lost { background: #fce8e6; color: #b3261e; }
-";
 
 fn truncate(s: &str, max: usize) -> String {
     if s.chars().count() <= max {
@@ -196,6 +162,7 @@ pub fn chrome_html(state: &ChromeState<'_>) -> String {
     html.push_str(&button(state.can_go_back, "kumo:back", "←", "戻る"));
     html.push_str(&button(state.can_go_forward, "kumo:forward", "→", "進む"));
     html.push_str(&button(true, "kumo:reload", "↻", "再読み込み"));
+    html.push_str(&button(true, "kumo:home", "⌂", "ホーム (Alt+Home)"));
     let url_class = if state.url_focused {
         "url focused".to_owned()
     } else {
@@ -204,6 +171,25 @@ pub fn chrome_html(state: &ChromeState<'_>) -> String {
     html.push_str(&format!(
         "<a class='{url_class}' href='kumo:url'>{}</a>",
         url_html(state)
+    ));
+    let star_class = class_for(
+        state,
+        if state.bookmarked { "star on" } else { "star" },
+        "kumo:bookmark",
+    );
+    let (star, star_title) = if state.bookmarked {
+        ("★", "ブックマークを外す (Ctrl+D)")
+    } else {
+        ("☆", "ブックマークに追加 (Ctrl+D)")
+    };
+    html.push_str(&format!(
+        "<a class='{star_class}' href='kumo:bookmark' title='{star_title}'>{star}</a>"
+    ));
+    html.push_str(&button(
+        true,
+        "kumo:bookmarks",
+        "☰",
+        "ブックマーク一覧 (Ctrl+B)",
     ));
     if state.content_lost {
         html.push_str("<span class='badge lost'>⚠ Content プロセスが終了しました</span>");
@@ -265,6 +251,7 @@ mod tests {
             can_go_back: false,
             can_go_forward: true,
             loading: false,
+            bookmarked: true,
             content_lost: false,
             hover,
         }
@@ -287,6 +274,18 @@ mod tests {
         assert_eq!(
             ChromeAction::from_href("kumo:back"),
             Some(ChromeAction::Back)
+        );
+        assert_eq!(
+            ChromeAction::from_href("kumo:bookmark"),
+            Some(ChromeAction::ToggleBookmark)
+        );
+        assert_eq!(
+            ChromeAction::from_href("kumo:bookmarks"),
+            Some(ChromeAction::ShowBookmarks)
+        );
+        assert_eq!(
+            ChromeAction::from_href("kumo:home"),
+            Some(ChromeAction::Home)
         );
         assert_eq!(ChromeAction::from_href("kumo:tab/x"), None);
         assert_eq!(ChromeAction::from_href("https://x/"), None);
@@ -337,6 +336,10 @@ mod tests {
             "ドメインを分けて強調"
         );
         assert!(html.contains("chip secure"));
+        assert!(
+            html.contains("star on") && html.contains("★"),
+            "ブックマーク済みの星"
+        );
         assert!(
             !html.contains(" hover'"),
             "マウスが乗っていなければ hover クラスはない"

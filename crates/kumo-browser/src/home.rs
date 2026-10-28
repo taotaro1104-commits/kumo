@@ -1,0 +1,112 @@
+//! ホーム URL：ホームボタン・起動時・設定ページからの保存。
+
+use kumo_content::LoadLevel;
+use kumo_content::protocol::ToContent;
+use url::Url;
+
+use crate::browser::{Browser, Redraw};
+use crate::chrome::parse_input;
+use crate::history::HistoryDb;
+use crate::settings_page::{HOME_FIELD, SET_HOME_ACTION, SET_LEVEL_ACTION, SETTINGS_URL};
+
+/// 保存済みの負荷レベル（なければ既定）。
+pub(crate) fn saved_load_level(history: Option<&HistoryDb>) -> LoadLevel {
+    history
+        .and_then(HistoryDb::load_level_number)
+        .and_then(LoadLevel::from_number)
+        .unwrap_or_default()
+}
+
+impl Browser {
+    /// 設定済みのホーム URL（保存された文字列が壊れていれば `None`）。
+    pub fn home_url(&self) -> Option<Url> {
+        let text = self.history.as_ref()?.home_url()?;
+        Url::parse(&text).ok()
+    }
+
+    /// 表示中のタブをホームへ移す（未設定なら新しいタブのページ）。
+    pub fn go_home(&mut self) -> Redraw {
+        let url = self
+            .home_url()
+            .unwrap_or_else(|| Url::parse(crate::NEW_TAB_URL).expect("固定の URL"));
+        self.navigate(url)
+    }
+
+    /// 起動時のタブ：ホームがあればそこ、なければ新しいタブのページ。
+    pub fn open_start_tab(&mut self) -> Redraw {
+        self.open_tab(self.home_url(), true)
+    }
+
+    /// 設定ページを開く。
+    pub fn show_settings(&mut self) -> Redraw {
+        self.open_tab(Url::parse(SETTINGS_URL).ok(), true)
+    }
+
+    /// 読み込みの負荷レベル。
+    pub fn load_level(&self) -> LoadLevel {
+        self.load_level
+    }
+
+    pub(crate) fn send_load_level(&self) {
+        self.content.send(ToContent::LoadLevel(self.load_level));
+    }
+
+    /// 負荷レベルを変える（以後に始める読み込みから効く）。`save` なら次の起動でも使う。
+    pub fn set_load_level(&mut self, level: LoadLevel, save: bool) {
+        self.load_level = level;
+        self.send_load_level();
+        if save
+            && let Some(history) = &self.history
+            && let Err(e) = history.set_load_level_number(level.number())
+        {
+            eprintln!("[settings] {e}");
+        }
+    }
+
+    /// 設定ページのフォーム送信（`kumo:sethome?home=…`）。設定ページを表示しているときだけ受け付け、扱ったら `true`。
+    /// 入力は http(s)・file・about の URL か、空（解除）だけを保存する。
+    pub(crate) fn save_home_link(&mut self, link: &Url) -> bool {
+        let is_level = link.as_str().starts_with(SET_LEVEL_ACTION);
+        if !is_level && !link.as_str().starts_with(SET_HOME_ACTION) {
+            return false;
+        }
+        let on_settings = self
+            .active_tab()
+            .and_then(|t| t.url())
+            .is_some_and(|u| u.as_str() == SETTINGS_URL);
+        if !on_settings {
+            return true; // 他のページからは操作させない
+        }
+        if is_level {
+            let level = link
+                .query_pairs()
+                .find(|(k, _)| k == "n")
+                .and_then(|(_, v)| v.parse().ok())
+                .and_then(LoadLevel::from_number);
+            if let Some(level) = level {
+                self.set_load_level(level, true);
+                self.reload();
+            }
+            return true;
+        }
+        let input = link
+            .query_pairs()
+            .find(|(k, _)| k == HOME_FIELD)
+            .map(|(_, v)| v.trim().to_owned())
+            .unwrap_or_default();
+        let value = if input.is_empty() {
+            None
+        } else if let Some(url) = parse_input(&input).filter(|u| u.scheme() != "about") {
+            Some(url.to_string())
+        } else {
+            return true; // 解釈できない入力は保存しない
+        };
+        if let Some(history) = &self.history
+            && let Err(e) = history.set_home_url(value.as_deref())
+        {
+            eprintln!("[settings] {e}");
+        }
+        self.reload();
+        true
+    }
+}

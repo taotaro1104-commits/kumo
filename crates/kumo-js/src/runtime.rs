@@ -1,6 +1,7 @@
 //! JS ランタイムの公開 API。Content はこれを通して、スクリプトの実行・イベントの送出・タイマーの進行・
 //! `fetch` の受け渡しを行う。
 
+use crate::limits::ScriptLimits;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -46,17 +47,11 @@ pub struct JsRuntime {
     /// 実行したスクリプトの合計の大きさと、実行にかけた時間（予算の消費）
     script_bytes: usize,
     script_time: Duration,
+    limits: ScriptLimits,
 }
 
 /// 1つのループの反復回数の上限（超えると例外）。`while (true) {}` のようなループを止める。
 const LOOP_ITERATION_LIMIT: u64 = 20_000_000;
-
-/// 1つのスクリプトの大きさの上限。巨大なバンドルは純 Rust のエンジンでは実用的な時間・メモリで動かない。
-pub const SCRIPT_MAX_BYTES: usize = 512 * 1024;
-/// 1ページが実行するスクリプトの合計の大きさの予算（設計書の「JS ヒープ＋バイトコード 10MB」に収める）。
-pub const SCRIPT_BYTES_BUDGET: usize = 1536 * 1024;
-/// 1ページがスクリプトの実行に使える時間の予算。使い切ったら以降のスクリプトは実行しない。
-pub const SCRIPT_TIME_BUDGET: Duration = Duration::from_secs(2);
 
 /// この回数 panic したページの JS は止める（状態が壊れているかもしれないため）。
 const MAX_PANICS: u32 = 3;
@@ -88,6 +83,7 @@ impl JsRuntime {
             panics: 0,
             script_bytes: 0,
             script_time: Duration::ZERO,
+            limits: ScriptLimits::default(),
         })
     }
 
@@ -132,13 +128,18 @@ impl JsRuntime {
         outcome
     }
 
+    /// 予算を変える（スクリプトを実行する前に呼ぶ）。
+    pub fn set_limits(&mut self, limits: ScriptLimits) {
+        self.limits = limits;
+    }
+
     /// 予算を超えるなら、その理由。
     fn over_budget(&self, bytes: usize) -> Option<&'static str> {
-        if bytes > SCRIPT_MAX_BYTES {
+        if bytes > self.limits.max_bytes {
             Some("1つのスクリプトとして大きすぎる")
-        } else if self.script_bytes + bytes > SCRIPT_BYTES_BUDGET {
+        } else if self.script_bytes + bytes > self.limits.bytes_budget {
             Some("このページのスクリプトの大きさの予算を超える")
-        } else if self.script_time >= SCRIPT_TIME_BUDGET {
+        } else if self.script_time >= self.limits.time_budget {
             Some("このページのスクリプトの実行時間の予算を使い切った")
         } else {
             None

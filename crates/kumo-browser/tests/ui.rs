@@ -2,7 +2,7 @@
 mod common;
 
 use common::{Site, browser, settle, title};
-use kumo_browser::{CHROME_HEIGHT, HistoryDb};
+use kumo_browser::{CHROME_HEIGHT, ChromeAction, HistoryDb};
 
 #[test]
 fn hovering_sets_the_pointer_and_shows_the_link_target() {
@@ -136,4 +136,123 @@ fn loading_and_hover_states_fit_in_the_chrome() {
         pm.save_png(path).unwrap();
     }
     settle(&mut b);
+}
+
+#[test]
+fn bookmarks_toggle_list_and_remove() {
+    let site = Site::new("bookmarks");
+    let path = site.dir.join("history.redb");
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    b.chrome_action(ChromeAction::ToggleBookmark);
+    b.open_tab(None, true);
+    settle(&mut b);
+    b.toggle_bookmark();
+    b.show_bookmarks();
+    settle(&mut b);
+    assert_eq!(title(&b), "ブックマーク");
+    assert_eq!(b.tabs().len(), 2, "新しいタブは一覧に置き換わる");
+    // 一覧の「削除」リンク
+    let link = format!(
+        "kumo:unbookmark?u={}",
+        url::form_urlencoded::byte_serialize(site.url("a.html").as_str().as_bytes())
+            .collect::<String>()
+    );
+    b.follow_link(&link, false);
+    settle(&mut b);
+    drop(b);
+    let history = HistoryDb::open(&path).unwrap();
+    assert!(history.bookmarks().is_empty(), "付けて外した");
+}
+
+#[test]
+fn bookmark_removal_is_refused_from_other_pages() {
+    let site = Site::new("bookmarks2");
+    let path = site.dir.join("history.redb");
+    let db = HistoryDb::open(&path).unwrap();
+    db.add_bookmark("https://keep.example/", "keep").unwrap();
+    let mut b = browser(Some(db));
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    b.follow_link("kumo:unbookmark?u=https%3A%2F%2Fkeep.example%2F", false);
+    settle(&mut b);
+    drop(b);
+    assert_eq!(HistoryDb::open(&path).unwrap().bookmarks().len(), 1);
+}
+
+#[test]
+fn home_url_is_saved_from_the_settings_page_and_used() {
+    let site = Site::new("home");
+    let path = site.dir.join("history.redb");
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert!(b.home_url().is_none());
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    // 設定ページ以外からは保存できない
+    b.follow_link("kumo:sethome?home=https%3A%2F%2Fevil.example%2F", false);
+    settle(&mut b);
+    assert!(b.home_url().is_none());
+    b.show_settings();
+    settle(&mut b);
+    assert_eq!(title(&b), "設定");
+    let target = site.url("b.html");
+    let link = format!(
+        "kumo:sethome?home={}",
+        url::form_urlencoded::byte_serialize(target.as_str().as_bytes()).collect::<String>()
+    );
+    b.follow_link(&link, false);
+    settle(&mut b);
+    assert_eq!(b.home_url(), Some(target));
+    // 解釈できない入力は保存しない（about: も不可）
+    b.follow_link("kumo:sethome?home=about%3Amemory", false);
+    assert_ne!(
+        b.home_url().map(|u| u.scheme().to_owned()),
+        Some("about".into())
+    );
+    b.chrome_action(ChromeAction::Home);
+    settle(&mut b);
+    assert_eq!(title(&b), "Page B");
+    drop(b);
+    assert!(
+        HistoryDb::open(&path).unwrap().home_url().is_some(),
+        "再起動後も残る"
+    );
+    // 空で保存すると解除
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    b.show_settings();
+    settle(&mut b);
+    b.follow_link("kumo:sethome?home=", false);
+    assert!(b.home_url().is_none());
+}
+
+#[test]
+fn load_level_is_chosen_on_the_settings_page_and_persists() {
+    use kumo_browser::LoadLevel;
+    let site = Site::new("level");
+    let path = site.dir.join("history.redb");
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert_eq!(b.load_level(), LoadLevel::Standard, "既定は標準");
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    // 設定ページ以外からは変えられない
+    b.follow_link("kumo:setlevel?n=1", false);
+    settle(&mut b);
+    assert_eq!(b.load_level(), LoadLevel::Standard);
+    b.show_settings();
+    settle(&mut b);
+    b.follow_link("kumo:setlevel?n=5", false);
+    settle(&mut b);
+    assert_eq!(b.load_level(), LoadLevel::Maximum);
+    b.follow_link("kumo:setlevel?n=9", false);
+    b.follow_link("kumo:setlevel?n=x", false);
+    assert_eq!(b.load_level(), LoadLevel::Maximum, "範囲外は無視");
+    b.set_load_level(LoadLevel::Light, false);
+    drop(b);
+    let b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert_eq!(
+        b.load_level(),
+        LoadLevel::Maximum,
+        "保存したのはページで選んだ値"
+    );
 }

@@ -48,6 +48,10 @@ pub struct Browser {
     pub(crate) bubble: Option<crate::pointer::BubbleCache>,
     /// メモリ管理（凍結・破棄の方針と状態）
     pub(crate) memory: crate::memory::MemoryState,
+    /// 読み込みの負荷レベル（Content を作り直したら送り直す）
+    pub(crate) load_level: kumo_content::LoadLevel,
+    /// スクリプトを実行するか（`--no-js`）
+    pub(crate) javascript: bool,
 }
 
 /// Content を作る関数（落ちたときの作り直し用）。
@@ -85,6 +89,7 @@ impl Redraw {
 
 impl Browser {
     pub fn new(content: ContentClient, history: Option<HistoryDb>, window: (f32, f32)) -> Self {
+        let load_level = crate::home::saved_load_level(history.as_ref());
         let browser = Self {
             content,
             chrome_services: Services::new(Arc::new(Offline)),
@@ -107,8 +112,11 @@ impl Browser {
             chrome_hover: None,
             bubble: None,
             memory: crate::memory::MemoryState::default(),
+            load_level,
+            javascript: true,
         };
         browser.send_viewport();
+        browser.send_load_level();
         browser
     }
 
@@ -369,6 +377,10 @@ impl Browser {
                 can_go_back: tab.is_some_and(|t| t.session.can_go_back()),
                 can_go_forward: tab.is_some_and(|t| t.session.can_go_forward()),
                 loading: tab.is_some_and(Tab::is_loading),
+                bookmarked: tab
+                    .and_then(Tab::url)
+                    .zip(self.history.as_ref())
+                    .is_some_and(|(u, h)| h.is_bookmarked(u.as_str())),
                 content_lost: self.content_lost,
                 hover: self.chrome_hover.as_deref(),
             };

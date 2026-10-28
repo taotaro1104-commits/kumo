@@ -25,7 +25,7 @@ pub struct HistoryEntry {
 }
 
 pub struct HistoryDb {
-    db: Database,
+    pub(crate) db: Database,
 }
 
 #[derive(Debug)]
@@ -39,7 +39,7 @@ impl std::fmt::Display for HistoryError {
 
 impl std::error::Error for HistoryError {}
 
-fn err(e: impl std::fmt::Display) -> HistoryError {
+pub(crate) fn err(e: impl std::fmt::Display) -> HistoryError {
     HistoryError(e.to_string())
 }
 
@@ -60,6 +60,8 @@ impl HistoryDb {
             .map_err(err)?;
         let txn = db.begin_write().map_err(err)?;
         txn.open_table(VISITS).map_err(err)?;
+        txn.open_table(crate::bookmarks::BOOKMARKS).map_err(err)?;
+        txn.open_table(crate::settings::SETTINGS).map_err(err)?;
         txn.commit().map_err(err)?;
         Ok(Self { db })
     }

@@ -18,6 +18,9 @@ impl Browser {
             ChromeAction::Forward => self.forward(),
             ChromeAction::Reload => self.reload(),
             ChromeAction::FocusUrlBar => self.focus_url_bar(),
+            ChromeAction::ToggleBookmark => self.toggle_bookmark(),
+            ChromeAction::ShowBookmarks => self.show_bookmarks(),
+            ChromeAction::Home => self.go_home(),
         }
     }
 
@@ -57,6 +60,9 @@ impl Browser {
         if url.scheme() != "kumo" {
             return false;
         }
+        if index == self.active && (self.remove_bookmark_link(url) || self.save_home_link(url)) {
+            return true;
+        }
         if index == self.active {
             match ChromeAction::from_href(url.as_str()) {
                 Some(ChromeAction::Reload) => {
@@ -73,6 +79,7 @@ impl Browser {
 
     /// スクリプトの実行を切り替える（以後に読み込むページから効く）。
     pub fn set_javascript(&mut self, on: bool) {
+        self.javascript = on;
         self.content.send(ToContent::Settings { javascript: on });
     }
 

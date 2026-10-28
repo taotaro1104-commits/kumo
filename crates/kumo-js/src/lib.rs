@@ -15,6 +15,7 @@ mod element_html;
 mod events;
 mod geometry;
 mod host;
+mod limits;
 mod natives;
 mod node_api;
 mod parent_node;
@@ -26,7 +27,6 @@ mod wrap;
 
 pub use computed_style::StyleSource;
 pub use host::{FetchOutcome, FetchRequest, may_reach};
-pub use runtime::{
-    InitValue, JsRuntime, SCRIPT_BYTES_BUDGET, SCRIPT_MAX_BYTES, SCRIPT_TIME_BUDGET, SharedDocument,
-};
+pub use limits::{SCRIPT_BYTES_BUDGET, SCRIPT_MAX_BYTES, SCRIPT_TIME_BUDGET, ScriptLimits};
+pub use runtime::{InitValue, JsRuntime, SharedDocument};
 pub use scripts::{ScriptInfo, needs_js, script_info, scripts_in_order};

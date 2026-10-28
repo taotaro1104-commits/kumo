@@ -7,7 +7,8 @@ use kumo_net::process::{FetchResult, Fetcher};
 use kumo_net::protocol::{FetchError, ResourceKind};
 use url::Url;
 
-use crate::fetch::{FetchedPage, MAX_SCRIPT_BYTES, fetch_document};
+use crate::fetch::{FetchedPage, fetch_document};
+use crate::level::LoadLevel;
 use crate::protocol::TabId;
 
 /// 文書の取得の依頼。
@@ -16,6 +17,7 @@ pub struct FetchJob {
     pub nav: u64,
     pub url: Url,
     pub post_body: Option<Vec<u8>>,
+    pub level: LoadLevel,
 }
 
 /// 文書の取得の結果。
@@ -28,7 +30,7 @@ pub struct Fetched {
 
 impl FetchJob {
     pub fn run(self, fetcher: &dyn Fetcher) -> Fetched {
-        let result = fetch_document(fetcher, &self.url, self.post_body);
+        let result = fetch_document(fetcher, &self.url, self.post_body, self.level);
         Fetched {
             tab: self.tab,
             nav: self.nav,
@@ -95,6 +97,7 @@ pub struct SubJob {
     pub body: Option<Vec<u8>>,
     /// 要求元のページの URL（コンテンツブロックの判定に使う）
     pub source: String,
+    pub level: LoadLevel,
 }
 
 pub struct SubFetched {
@@ -160,10 +163,12 @@ impl SubJob {
             SubKind::Api(_) => script_request(fetcher, &self),
         }
         .and_then(|response| match self.kind {
-            SubKind::Script(_) if response.body.len() > MAX_SCRIPT_BYTES => Err(format!(
-                "{} バイトは大きすぎて実行しません",
-                response.body.len()
-            )),
+            SubKind::Script(_) if response.body.len() > self.level.script_limits().max_bytes => {
+                Err(format!(
+                    "{} バイトは大きすぎて実行しません",
+                    response.body.len()
+                ))
+            }
             _ => Ok(response),
         });
         SubFetched {
@@ -297,6 +302,7 @@ mod tests {
             content_type: content_type.map(str::to_owned),
             body: None,
             source: source.to_owned(),
+            level: Default::default(),
         }
     }
 

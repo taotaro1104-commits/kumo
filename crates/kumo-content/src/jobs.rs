@@ -106,6 +106,7 @@ mod tests {
             nav,
             url: Url::parse("https://example.com/").unwrap(),
             post_body: None,
+            level: Default::default(),
         })
     }
 
@@ -119,6 +120,7 @@ mod tests {
             content_type: None,
             body: None,
             source: String::new(),
+            level: Default::default(),
         })
     }
 

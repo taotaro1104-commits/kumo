@@ -1,6 +1,7 @@
 //! `JsRuntime` の単体テスト（panic の保護と、スクリプトの予算）。
 
 use super::*;
+use crate::limits::{SCRIPT_BYTES_BUDGET, SCRIPT_MAX_BYTES, SCRIPT_TIME_BUDGET};
 
 fn runtime() -> JsRuntime {
     let doc = Rc::new(RefCell::new(kumo_html::parse_html("<p id=p>x</p>")));
@@ -76,6 +77,29 @@ fn scripts_over_the_size_or_total_budget_are_skipped_without_errors() {
     );
     let (bytes, _) = js.script_usage();
     assert!(bytes > SCRIPT_BYTES_BUDGET - SCRIPT_MAX_BYTES);
+}
+
+#[test]
+fn limits_can_be_changed_per_runtime() {
+    let mut js = runtime();
+    js.set_limits(ScriptLimits {
+        max_bytes: 10,
+        ..ScriptLimits::default()
+    });
+    let err = js
+        .run_script("/* 0123456789 */ 1", "big.js", None)
+        .unwrap_err();
+    assert!(err.contains("大きすぎる"), "{err}");
+    assert!(js.run_script("1", "ok.js", None).is_ok());
+    js.set_limits(ScriptLimits {
+        time_budget: Duration::ZERO,
+        ..ScriptLimits::default()
+    });
+    assert!(
+        js.run_script("1", "late.js", None)
+            .unwrap_err()
+            .contains("実行時間")
+    );
 }
 
 #[test]

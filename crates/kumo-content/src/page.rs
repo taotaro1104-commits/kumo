@@ -15,6 +15,7 @@ use kumo_paint::{DisplayList, build_display_list_with};
 use url::Url;
 
 use crate::fetch::{FetchedPage, prepare};
+use crate::level::LoadLevel;
 use crate::services::{PageImages, Services};
 use crate::style_snapshot::StyleSnapshot;
 
@@ -58,6 +59,7 @@ impl Page {
         services: &mut Services,
         viewport: (f32, f32),
         clock: Option<Duration>,
+        limits: kumo_js::ScriptLimits,
     ) -> Self {
         for (src, data) in fetched.images {
             services.images.preload(&src, data);
@@ -68,7 +70,8 @@ impl Page {
         };
         let title = title_of(&fetched.doc).unwrap_or_else(|| fetched.url.to_string());
         let doc = Rc::new(RefCell::new(fetched.doc));
-        let js = clock.and_then(|c| start_js(&doc, &fetched.url, &fetched.scripts, viewport, c));
+        let js =
+            clock.and_then(|c| start_js(&doc, &fetched.url, &fetched.scripts, viewport, c, limits));
         let mut page = Self {
             url: fetched.url,
             title,
@@ -112,10 +115,11 @@ impl Page {
     pub fn from_html(html: &str, url: Url, services: &mut Services, viewport: (f32, f32)) -> Self {
         let fetcher = services.fetcher.clone();
         Self::build(
-            prepare(html, url, &*fetcher),
+            prepare(html, url, &*fetcher, LoadLevel::Standard),
             services,
             viewport,
             Some(Duration::ZERO),
+            kumo_js::ScriptLimits::default(),
         )
     }
 
@@ -279,6 +283,7 @@ fn start_js(
     bodies: &[(NodeId, Option<String>)],
     viewport: (f32, f32),
     clock: Duration,
+    limits: kumo_js::ScriptLimits,
 ) -> Option<JsRuntime> {
     if !kumo_js::needs_js(&doc.borrow(), url) {
         return None;
@@ -290,6 +295,7 @@ fn start_js(
             return None;
         }
     };
+    js.set_limits(limits);
     js.set_time(clock);
     let external: HashMap<NodeId, &Option<String>> = bodies.iter().map(|(n, b)| (*n, b)).collect();
     let scripts = kumo_js::scripts_in_order(&doc.borrow(), url);

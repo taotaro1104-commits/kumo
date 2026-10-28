@@ -10,6 +10,7 @@ use kumo_net::process::Fetcher;
 use kumo_net::protocol::{FetchError, ResourceKind};
 use url::Url;
 
+use crate::level::LoadLevel;
 use crate::page::escape;
 
 /// フォーム送信の本文の形式。
@@ -27,16 +28,12 @@ pub struct FetchedPage {
     pub scripts: Vec<(NodeId, Option<String>)>,
 }
 
-/// 1ページで先に取得する外部スクリプトの数の上限。
-const MAX_SCRIPTS: usize = 64;
-/// 実行するスクリプトの大きさの上限（巨大なバンドルは純 Rust の JS エンジンでは実用にならない）。
-pub const MAX_SCRIPT_BYTES: usize = kumo_js::SCRIPT_MAX_BYTES;
-
 /// 文書を取得してパースする。`post_body` があればフォームを POST で送る。
 pub fn fetch_document(
     fetcher: &dyn Fetcher,
     url: &Url,
     post_body: Option<Vec<u8>>,
+    level: LoadLevel,
 ) -> Result<FetchedPage, FetchError> {
     let response = match post_body {
         Some(body) => fetcher.post(url.as_str(), FORM_CONTENT_TYPE, body, None)?,
@@ -48,11 +45,11 @@ pub fn fetch_document(
     }
     let html = document_html(&response.body, response.content_type.as_deref(), &final_url);
     drop(response);
-    Ok(prepare(&html, final_url, fetcher))
+    Ok(prepare(&html, final_url, fetcher, level))
 }
 
 /// HTML をパースし、外部スタイルシートと画像を取得する。
-pub fn prepare(html: &str, url: Url, fetcher: &dyn Fetcher) -> FetchedPage {
+pub fn prepare(html: &str, url: Url, fetcher: &dyn Fetcher, level: LoadLevel) -> FetchedPage {
     let doc = {
         let _tag = scope(Subsystem::Dom);
         // パーサの一時データは専用ヒープに置き、完成した DOM だけを通常ヒープへ詰めて複製する
@@ -63,10 +60,18 @@ pub fn prepare(html: &str, url: Url, fetcher: &dyn Fetcher) -> FetchedPage {
     };
     let stylesheets = {
         let _tag = scope(Subsystem::Style);
-        load_stylesheets(&doc, &url, fetcher)
+        load_stylesheets(&doc, &url, fetcher, level)
     };
-    let images = prefetch_images(&doc, &url, fetcher);
-    let scripts = prefetch_scripts(&doc, &url, fetcher);
+    let images = if level.images() {
+        prefetch_images(&doc, &url, fetcher)
+    } else {
+        Vec::new()
+    };
+    let scripts = if level.javascript() {
+        prefetch_scripts(&doc, &url, fetcher, level)
+    } else {
+        Vec::new()
+    };
     FetchedPage {
         url,
         doc,
@@ -100,8 +105,16 @@ fn document_html(body: &[u8], content_type: Option<&str>, url: &Url) -> String {
 }
 
 /// 外部スタイルシートをまとめて（Network プロセス側で並行に）取得する。
-fn load_stylesheets(doc: &Document, base: &Url, fetcher: &dyn Fetcher) -> Vec<Stylesheet> {
-    let sources = stylesheets(doc);
+fn load_stylesheets(
+    doc: &Document,
+    base: &Url,
+    fetcher: &dyn Fetcher,
+    level: LoadLevel,
+) -> Vec<Stylesheet> {
+    let mut sources = stylesheets(doc);
+    if !level.stylesheets() {
+        sources.retain(|s| matches!(s, StyleSource::Inline(_)));
+    }
     let external: Vec<(String, ResourceKind)> = sources
         .iter()
         .filter_map(|s| match s {
@@ -173,11 +186,13 @@ fn prefetch_scripts(
     doc: &Document,
     base: &Url,
     fetcher: &dyn Fetcher,
+    level: LoadLevel,
 ) -> Vec<(NodeId, Option<String>)> {
+    let max_bytes = level.script_limits().max_bytes;
     let external: Vec<(NodeId, String)> = kumo_js::scripts_in_order(doc, base)
         .into_iter()
         .filter_map(|(node, info)| info.src.map(|src| (node, src)))
-        .take(MAX_SCRIPTS)
+        .take(level.max_scripts())
         .collect();
     if external.is_empty() {
         return Vec::new();
@@ -192,9 +207,7 @@ fn prefetch_scripts(
         .zip(results)
         .map(|((node, url), result)| {
             let body = match result {
-                Ok(response)
-                    if response.status == 200 && response.body.len() <= MAX_SCRIPT_BYTES =>
-                {
+                Ok(response) if response.status == 200 && response.body.len() <= max_bytes => {
                     Some(String::from_utf8_lossy(&response.body).into_owned())
                 }
                 Ok(response) => {

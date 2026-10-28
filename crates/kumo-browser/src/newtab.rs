@@ -5,8 +5,10 @@ use kumo_content::protocol::{TabId, ToContent};
 use url::Url;
 
 use crate::about_memory::ABOUT_MEMORY_URL;
+use crate::bookmarks_page::BOOKMARKS_URL;
 use crate::browser::Browser;
 use crate::history::HistoryEntry;
+use crate::settings_page::SETTINGS_URL;
 use crate::url_display::format_url;
 
 /// 新しいタブのページの URL（Browser が HTML を作って Content に渡す）。
@@ -33,11 +35,15 @@ h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #4a5058; }
 .empty { padding: 28px; text-align: center; color: #6b7280; font-size: 14px; background: #ffffff;
          border: 1px dashed #d5d9de; border-radius: 12px; }
 .keys { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 8px 20px; color: #6b7280; font-size: 13px; }
+.set { color: #1a56c4; text-decoration: none; }
 .k { display: flex; align-items: center; gap: 6px; }
 ";
 
 /// 使い方の早見（キーと説明）。
-const SHORTCUTS: [(&str, &str); 5] = [
+const SHORTCUTS: [(&str, &str); 8] = [
+    ("Alt+Home", "ホームへ"),
+    ("Ctrl+D", "ブックマーク"),
+    ("Ctrl+B", "ブックマーク一覧"),
     ("Ctrl+L", "URL 欄へ"),
     ("Ctrl+T", "新しいタブ"),
     ("Ctrl+W", "タブを閉じる"),
@@ -118,7 +124,9 @@ pub fn new_tab_html(frequent: &[HistoryEntry]) -> String {
             "<span class=k><span class=key>{key}</span><span>{label}</span></span>"
         ));
     }
-    html.push_str("</div></div></body></html>");
+    html.push_str(
+        "</div><div class=keys><a class=set href='about:settings'>設定</a>         <a class=set href='about:bookmarks'>ブックマーク</a>         <a class=set href='about:memory'>メモリ</a></div></div></body></html>",
+    );
     html
 }
 
@@ -142,6 +150,32 @@ impl Browser {
                 nav,
                 url: url.to_string(),
                 html: new_tab_html(&frequent),
+            };
+        }
+        if url.as_str() == SETTINGS_URL {
+            let home = self
+                .history
+                .as_ref()
+                .and_then(|h| h.home_url())
+                .unwrap_or_default();
+            return ToContent::LoadHtml {
+                tab,
+                nav,
+                url: url.to_string(),
+                html: crate::settings_page::settings_html(&home, self.load_level),
+            };
+        }
+        if url.as_str() == BOOKMARKS_URL {
+            let list = self
+                .history
+                .as_ref()
+                .map(|h| h.bookmarks())
+                .unwrap_or_default();
+            return ToContent::LoadHtml {
+                tab,
+                nav,
+                url: url.to_string(),
+                html: crate::bookmarks_page::bookmarks_html(&list),
             };
         }
         if url.as_str() == ABOUT_MEMORY_URL {

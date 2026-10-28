@@ -12,6 +12,7 @@ mod host;
 mod interact;
 mod jobs;
 mod js_glue;
+mod level;
 mod page;
 pub mod protocol;
 mod services;
@@ -25,6 +26,7 @@ pub use fetch::{FORM_CONTENT_TYPE, FetchedPage, fetch_document, image_urls, prep
 pub use forms::{ControlClick, Submission, build_submission, click_control};
 pub use frame::{FrameReader, FrameWriter};
 pub use host::{Event, run, serve_stdio};
+pub use level::LoadLevel;
 pub use page::{Page, PageStats, escape};
 pub use services::{FetchLoader, PageImages, Services};
 pub use work::{Done, FetchJob, Fetched, SubFetched, SubJob, SubKind, Work};

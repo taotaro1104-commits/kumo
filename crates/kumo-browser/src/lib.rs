@@ -4,27 +4,38 @@
 
 mod about_memory;
 mod actions;
+mod bookmark_actions;
+mod bookmarks;
+mod bookmarks_page;
 mod browser;
 mod chrome;
+mod chrome_css;
 mod events;
 mod governor;
 mod history;
+mod home;
 mod memory;
 mod newtab;
 mod offline;
 mod pointer;
 mod recovery;
+mod settings;
+mod settings_page;
 mod tab;
 mod url_display;
 
 pub use about_memory::ABOUT_MEMORY_URL;
+pub use bookmarks::Bookmark;
+pub use bookmarks_page::BOOKMARKS_URL;
 pub use browser::{Browser, ContentFactory, Redraw};
 pub use chrome::{CHROME_HEIGHT, ChromeAction, ChromeState, TabLabel, chrome_html, parse_input};
 pub use events::FrameView;
 pub use governor::{Action, Policy, TabInfo, TabState, plan};
 pub use history::{HistoryDb, HistoryEntry, Visit};
+pub use kumo_content::LoadLevel;
 pub use newtab::{NEW_TAB_URL, new_tab_html};
 pub use offline::Offline;
 pub use pointer::{Pointer, StatusBubble};
+pub use settings_page::SETTINGS_URL;
 pub use tab::{Session, Tab};
 pub use url_display::{Security, UrlParts, format_url};

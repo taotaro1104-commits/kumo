@@ -58,6 +58,10 @@ impl Browser {
         }
         self.content = client;
         self.send_viewport();
+        self.content.send(ToContent::Settings {
+            javascript: self.javascript,
+        });
+        self.send_load_level();
         for index in 0..self.tabs.len() {
             let tab = &mut self.tabs[index];
             let url = tab

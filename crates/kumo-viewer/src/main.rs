@@ -102,10 +102,13 @@ fn run(args: Args) -> Result<(), String> {
     );
     browser.set_content_restart(processes.restart);
     browser.set_javascript(!args.no_js);
+    if let Some(level) = args.load_level {
+        browser.set_load_level(level, false);
+    }
     browser.set_memory_policy(memory_policy(&args));
     let started = std::time::Instant::now();
     if args.targets.is_empty() {
-        browser.open_tab(None, true);
+        browser.open_start_tab();
     }
     for (i, target) in args.targets.iter().enumerate() {
         let url = parse_input(target).ok_or_else(|| format!("開けません: {target}"))?;

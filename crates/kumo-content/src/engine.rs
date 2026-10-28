@@ -53,6 +53,8 @@ pub struct ContentEngine {
     pub(crate) now: Duration,
     /// スクリプトを実行するか
     javascript: bool,
+    /// 読み込みの負荷レベル
+    pub(crate) level: crate::LoadLevel,
     private_bytes: fn() -> u64,
 }
 
@@ -69,6 +71,7 @@ impl ContentEngine {
             jobs: Vec::new(),
             now: Duration::ZERO,
             javascript: true,
+            level: crate::LoadLevel::default(),
             private_bytes,
         }
     }
@@ -106,6 +109,7 @@ impl ContentEngine {
         match message {
             ToContent::Viewport { width, height } => self.set_viewport(width, height),
             ToContent::Settings { javascript } => self.javascript = javascript,
+            ToContent::LoadLevel(level) => self.level = level,
             ToContent::Load {
                 tab,
                 nav,
@@ -212,6 +216,7 @@ impl ContentEngine {
                 nav,
                 url,
                 post_body,
+                level: self.level,
             })),
             Err(e) => {
                 let page = self.error_page(url, &FetchError::BadUrl(e.to_string()));
@@ -234,7 +239,8 @@ impl ContentEngine {
                 page,
                 &mut self.services,
                 as_f32(self.viewport),
-                self.javascript.then_some(self.now),
+                (self.javascript && self.level.javascript()).then_some(self.now),
+                self.level.script_limits(),
             ),
             Err(e) => self.error_page(fetched.url.as_str(), &e),
         };

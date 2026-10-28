@@ -12,6 +12,8 @@ pub struct Args {
     pub mem_report: bool,
     pub in_process: bool,
     pub no_js: bool,
+    /// 読み込みの負荷レベル（1〜5）。指定すると保存済みの設定より優先する（保存はしない）
+    pub load_level: Option<kumo_browser::LoadLevel>,
     pub no_disk_cache: bool,
     /// ヘッドレスで、読み込み後にタイマーを動かしながら待つ時間（ms）
     pub wait_ms: u64,
@@ -26,7 +28,7 @@ pub struct Args {
 }
 
 pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
-[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
+[--headless out.png] [--mem-report] [--in-process] [--no-js] [--load-level 1-5] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
     let mut args = Args {
@@ -38,6 +40,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         mem_report: false,
         in_process: false,
         no_js: false,
+        load_level: None,
         no_disk_cache: false,
         wait_ms: 0,
         eval: Vec::new(),
@@ -76,6 +79,15 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
             "--mem-report" => args.mem_report = true,
             "--in-process" => args.in_process = true,
             "--no-js" => args.no_js = true,
+            "--load-level" => {
+                let n = value("--load-level")?;
+                args.load_level = Some(
+                    n.parse::<u8>()
+                        .ok()
+                        .and_then(kumo_browser::LoadLevel::from_number)
+                        .ok_or_else(|| format!("--load-level は 1〜5: {n}"))?,
+                );
+            }
             "--no-disk-cache" => args.no_disk_cache = true,
             "-h" | "--help" => return Err(USAGE.to_owned()),
             other if other.starts_with("--") => {
@@ -107,6 +119,16 @@ mod tests {
 
     fn args(list: &[&str]) -> Result<Args, String> {
         parse(list.iter().map(|s| s.to_string()))
+    }
+
+    #[test]
+    fn load_level_takes_one_to_five() {
+        let a = args(&["--load-level", "5"]).unwrap();
+        assert_eq!(a.load_level, Some(kumo_browser::LoadLevel::Maximum));
+        assert!(args(&[]).unwrap().load_level.is_none());
+        assert!(args(&["--load-level", "0"]).is_err());
+        assert!(args(&["--load-level", "6"]).is_err());
+        assert!(args(&["--load-level", "x"]).is_err());
     }
 
     #[test]

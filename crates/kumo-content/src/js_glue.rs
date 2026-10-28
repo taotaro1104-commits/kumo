@@ -135,6 +135,7 @@ impl ContentEngine {
                     content_type: None,
                     body: None,
                     source: source.clone(),
+                    level: self.level,
                 })),
             }
         }
@@ -148,6 +149,7 @@ impl ContentEngine {
                 content_type: request.content_type,
                 body: request.body,
                 source: source.clone(),
+                level: self.level,
             }));
         }
         if changes.dirty
