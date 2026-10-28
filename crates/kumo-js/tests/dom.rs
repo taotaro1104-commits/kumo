@@ -363,3 +363,28 @@ fn create_range_supports_contextual_fragments() {
     );
     assert_eq!(run("window.getSelection().toString()"), "");
 }
+
+#[test]
+fn style_values_are_normalized_like_browsers() {
+    assert_eq!(
+        run(
+            "var d = document.createElement('div'); d.style.cssText = 'top:1px;float:left;opacity:.5'; \
+             d.style.opacity + '|' + d.style.cssFloat + '|' + d.style.top"
+        ),
+        "0.5|left|1px"
+    );
+}
+
+#[test]
+fn new_elements_report_the_user_agent_default_display() {
+    // jQuery の `show()` は、作ったばかりの要素の既定の display を読む（空だと内部で例外になる）
+    assert_eq!(
+        run(
+            "var l = document.createElement('li'); document.body.appendChild(l); \
+             var d = document.createElement('div'); var s = document.createElement('span'); \
+             [getComputedStyle(l).display, getComputedStyle(d).display, getComputedStyle(s).display, \
+              getComputedStyle(s).visibility].join()"
+        ),
+        "list-item,block,inline,visible"
+    );
+}

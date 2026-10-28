@@ -5,6 +5,7 @@ pub mod blocker;
 pub mod cache;
 mod client;
 pub mod cookies;
+mod http_io;
 mod local_file;
 pub mod policy;
 pub mod process;

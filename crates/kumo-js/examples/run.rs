@@ -25,6 +25,19 @@ fn run() {
     let url = Url::parse("https://example.com/page.html").unwrap();
     let mut js = JsRuntime::new(doc, url, (1280.0, 800.0)).expect("ランタイム");
     for path in args {
+        if path == "--" {
+            // ここまでを読み込みとみなし、読み込みのイベントを送って 3 秒ぶんタイマーを動かす
+            js.set_ready_state("interactive");
+            js.fire_dom_content_loaded();
+            js.set_ready_state("complete");
+            js.fire_load();
+            for ms in (0..3000).step_by(16) {
+                let now = std::time::Duration::from_millis(ms);
+                js.set_time(now);
+                js.tick(now);
+            }
+            continue;
+        }
         let source = std::fs::read_to_string(&path).expect("スクリプトを読める");
         // 本文は JSON 風にエスケープして eval に渡し、捕まえた例外のスタックを表示する
         let escaped = js_string_literal(&source);

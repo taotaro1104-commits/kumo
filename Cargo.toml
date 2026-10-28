@@ -53,3 +53,8 @@ codegen-units = 4
 
 [profile.dev.package."*"]
 opt-level = 2
+
+# taffy 0.15.1 に、`clear` のブロックが中にフロートを持つと直前の兄弟の下ではなくフロートの下端に置かれる不具合がある
+# （vendor/taffy/src/compute/block.rs の "Kumo patch"）。上流で直るまでこの写しを使う。
+[patch.crates-io]
+taffy = { path = "vendor/taffy" }

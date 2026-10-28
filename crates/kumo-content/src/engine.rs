@@ -152,6 +152,10 @@ impl ContentEngine {
                 let stats = self.stats();
                 self.out.push(FromContent::Stats { id, stats });
             }
+            ToContent::Eval { id, tab, code } => {
+                let result = self.eval(tab, &code);
+                self.out.push(FromContent::EvalResult { id, result });
+            }
             ToContent::Shutdown => {}
         }
     }

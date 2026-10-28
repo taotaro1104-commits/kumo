@@ -5,11 +5,12 @@ use boa_engine::property::PropertyKey;
 use boa_engine::{Context, JsObject, JsResult, JsValue, js_string};
 use kumo_dom::{Document, NodeId};
 
+use crate::dataset::{dataset_delete, dataset_get, dataset_has, dataset_set, get_dataset};
 use crate::host::Host;
 use crate::node_api::write;
 use crate::wrap::{Native, NodeData, define_accessor, define_method, js_str, this_node};
 
-fn read<R>(ctx: &Context, f: impl FnOnce(&Document) -> R) -> R {
+pub(crate) fn read<R>(ctx: &Context, f: impl FnOnce(&Document) -> R) -> R {
     let doc = Host::of(ctx).doc();
     let doc = doc.borrow();
     f(&doc)
@@ -113,13 +114,21 @@ fn get_style_property(ctx: &Context, id: NodeId, name: &str) -> String {
         .into_iter()
         .rev()
         .find(|(n, _)| *n == name)
-        .map(|(_, v)| v)
+        .map(|(_, v)| normalize_number(&v))
         .unwrap_or_default()
+}
+
+/// `.5` → `0.5`（ブラウザは先頭の 0 を補って返す。jQuery の opacity 判定がこれを見る）。
+fn normalize_number(value: &str) -> String {
+    match value.strip_prefix('.') {
+        Some(rest) if rest.starts_with(|c: char| c.is_ascii_digit()) => format!("0.{rest}"),
+        _ => value.to_owned(),
+    }
 }
 
 // ---- style オブジェクト（Proxy で任意のプロパティ名を扱う） ----
 
-fn prop_name(key: &JsValue) -> Option<String> {
+pub(crate) fn prop_name(key: &JsValue) -> Option<String> {
     key.as_string().map(|s| s.to_std_string_escaped())
 }
 
@@ -197,16 +206,6 @@ fn style_has(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue
     Ok(JsValue::from(supported))
 }
 
-/// `"fooBar" in el.dataset` は `data-foo-bar` 属性があるときだけ真。
-fn dataset_has(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
-    let (Some(target), Some(name)) = (args.first(), args.get(1).and_then(prop_name)) else {
-        return Ok(JsValue::from(false));
-    };
-    let id = this_node(target)?;
-    let present = read(ctx, |d| d.attr(id, &data_attr(&name)).is_some());
-    Ok(JsValue::from(present))
-}
-
 fn style_delete(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
     if let (Some(target), Some(name)) = (args.first(), args.get(1).and_then(prop_name)) {
         let id = this_node(target)?;
@@ -215,7 +214,7 @@ fn style_delete(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<Js
     Ok(JsValue::from(true))
 }
 
-fn make_proxy(ctx: &mut Context, proto: &str, id: NodeId) -> JsResult<JsValue> {
+pub(crate) fn make_proxy(ctx: &mut Context, proto: &str, id: NodeId) -> JsResult<JsValue> {
     let target =
         JsObject::from_proto_and_data(Some(Host::of(ctx).proto(proto)), NodeData { id }).upcast();
     let proxy = JsProxy::builder(target)
@@ -308,52 +307,6 @@ fn css_priority(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue
     Ok(js_str(""))
 }
 
-// ---- dataset ----
-
-/// `fooBar` → `data-foo-bar`。
-fn data_attr(name: &str) -> String {
-    format!("data-{}", kebab(name))
-}
-
-fn dataset_get(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
-    let (Some(target), Some(key)) = (args.first(), args.get(1)) else {
-        return Ok(JsValue::undefined());
-    };
-    let id = this_node(target)?;
-    match prop_name(key) {
-        Some(name) => {
-            let value = read(ctx, |d| d.attr(id, &data_attr(&name)).map(str::to_owned));
-            Ok(value.map_or(JsValue::undefined(), |v| js_str(&v)))
-        }
-        None => Ok(JsValue::undefined()),
-    }
-}
-
-fn dataset_set(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
-    let (Some(target), Some(key)) = (args.first(), args.get(1)) else {
-        return Ok(JsValue::from(false));
-    };
-    let id = this_node(target)?;
-    if let Some(name) = prop_name(key) {
-        let value = crate::wrap::arg_string(args, 2, ctx)?;
-        write(ctx, |d| d.set_attr(id, &data_attr(&name), &value));
-    }
-    Ok(JsValue::from(true))
-}
-
-fn dataset_delete(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
-    if let (Some(target), Some(name)) = (args.first(), args.get(1).and_then(prop_name)) {
-        let id = this_node(target)?;
-        write(ctx, |d| d.remove_attr(id, &data_attr(&name)));
-    }
-    Ok(JsValue::from(true))
-}
-
-fn get_dataset(this: &JsValue, _: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
-    let id = this_node(this)?;
-    make_proxy(ctx, "dataset", id)
-}
-
 /// プロトタイプを作って登録する（`element` に `style` などを足す）。
 pub(crate) fn install(ctx: &mut Context, element: &JsObject) {
     let host = Host::of(ctx);
@@ -391,6 +344,7 @@ pub(crate) fn install(ctx: &mut Context, element: &JsObject) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dataset::data_attr;
 
     #[test]
     fn style_text_round_trips_with_urls_and_quotes() {

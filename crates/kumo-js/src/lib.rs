@@ -5,6 +5,8 @@
 
 mod bootstrap;
 mod class_list;
+mod computed_style;
+mod dataset;
 mod dispatch;
 mod document_api;
 mod document_extras;
@@ -22,6 +24,7 @@ mod style_api;
 mod timers;
 mod wrap;
 
+pub use computed_style::StyleSource;
 pub use host::{FetchOutcome, FetchRequest, may_reach};
 pub use runtime::{
     InitValue, JsRuntime, SCRIPT_BYTES_BUDGET, SCRIPT_MAX_BYTES, SCRIPT_TIME_BUDGET, SharedDocument,

@@ -58,6 +58,20 @@ impl ContentEngine {
     }
 
     /// スクリプトが起こした変化を取り込む：DOM の更新・移動・題名・動的スクリプト・`fetch`。
+    /// 診断用：タブのページで式を評価する。評価後に DOM が変わっていれば描画に反映する。
+    pub(crate) fn eval(&mut self, id: TabId, code: &str) -> Result<String, String> {
+        let result = self
+            .tabs
+            .get_mut(&id)
+            .and_then(|t| t.page.as_mut())
+            .ok_or_else(|| "ページがありません".to_owned())?
+            .js_mut()
+            .ok_or_else(|| "このページはスクリプトを実行していません".to_owned())?
+            .eval_to_string(code);
+        self.pump_js(id);
+        result
+    }
+
     pub(crate) fn pump_js(&mut self, id: TabId) {
         for _ in 0..MAX_ROUNDS {
             let Some(changes) = self.take_js_changes(id) else {

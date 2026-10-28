@@ -144,7 +144,21 @@
   g.sessionStorage = makeStorage();
 
   // ---- スタイル・メディア ----
-  g.getComputedStyle = (el) => el.style;
+  // スタイルシートの値は Content が計算した結果（`__kumo_computed`）から。インラインのスタイルが優先
+  g.getComputedStyle = (el) => {
+    const read = (name) => el.style.getPropertyValue(name) || __kumo_computed(el, name);
+    const kebab = (p) => (p === 'cssFloat' ? 'float' : p.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()));
+    return new Proxy({}, {
+      get(_, p) {
+        if (p === 'getPropertyValue') return (n) => read(String(n));
+        if (typeof p !== 'string') return undefined;
+        if (p === 'length') return 0;
+        if (p === 'cssText') return '';
+        return read(kebab(p));
+      },
+      has: () => true,
+    });
+  };
   g.matchMedia = (q) => ({
     matches: __kumo_media(String(q)), media: String(q), onchange: null,
     addListener: noop, removeListener: noop, addEventListener: noop, removeEventListener: noop, dispatchEvent: () => false,

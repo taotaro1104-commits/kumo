@@ -111,6 +111,7 @@ pub(crate) fn bootstrap(ctx: &mut Context, host: &Host) -> JsResult<()> {
     crate::dispatch::install_event_target(ctx, &global);
     crate::timers::install(ctx, &global);
     crate::natives::install(ctx, &global);
+    crate::computed_style::install(ctx, &global);
 
     let root = host.doc().borrow().root();
     let document_object = wrap_node(ctx, root);

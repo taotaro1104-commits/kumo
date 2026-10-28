@@ -66,8 +66,8 @@ fn fast_forward(browser: &mut Browser, args: &Args) {
 }
 
 /// ヘッドレスの `--wait`：タイマー（アニメーションなど）を動かしながら待ってから描画する。
-fn wait_for_timers(browser: &mut Browser, args: &Args) {
-    let deadline = std::time::Instant::now() + Duration::from_millis(args.wait_ms);
+fn wait_for_timers(browser: &mut Browser, millis: u64) {
+    let deadline = std::time::Instant::now() + Duration::from_millis(millis);
     while std::time::Instant::now() < deadline {
         browser.pump();
         browser.settle(Duration::from_millis(500));
@@ -122,7 +122,15 @@ fn run(args: Args) -> Result<(), String> {
                 started.elapsed().as_secs_f64() * 1000.0
             );
             fast_forward(&mut browser, &args);
-            wait_for_timers(&mut browser, &args);
+            wait_for_timers(&mut browser, args.wait_ms);
+            for code in &args.eval {
+                match browser.eval(code, Duration::from_secs(10)) {
+                    Ok(value) => println!("[eval] {value}"),
+                    Err(e) => println!("[eval error] {e}"),
+                }
+                // 続きの式が、この式で始めたタイマーの結果を見られるように少し待つ
+                wait_for_timers(&mut browser, 700);
+            }
             headless::render(&mut browser, &*processes.network, &args, out)
         }
         None => window::run(browser, processes.network, args.mem_report),

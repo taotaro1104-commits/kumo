@@ -4,25 +4,24 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use kumo_dom::{Document, LocalName, NodeId};
+use kumo_dom::{Document, NodeId};
 use selectors::context::{
     MatchingContext, MatchingForInvalidation, MatchingMode, NeedsSelectorFlags, QuirksMode,
     SelectorCaches,
 };
 use selectors::matching::matches_selector;
 
-use crate::apply::{ResolveContext, apply_decl};
-use crate::decl::{ContentPart, Decl, DeclarationBlock};
+use crate::apply::ResolveContext;
+use crate::cascade_util::{apply_custom_properties, apply_with_vars, fixup, resolve_content};
+use crate::decl::{Decl, DeclarationBlock};
 use crate::element::ElementRef;
 use crate::hints::presentational_hints;
 use crate::index::{IndexEntry, RuleIndex};
-use crate::keywords::{Display, Float, Position};
+use crate::keywords::Display;
 use crate::media::Device;
-use crate::properties::parse_property;
 use crate::selector::PseudoElement;
 use crate::style::ComputedStyle;
 use crate::stylesheet::{StyleRule, Stylesheet, parse_declaration_block};
-use crate::var::substitute;
 
 /// 要素ごとの計算値。テキストノード等は `None`（親のスタイルを使う）。
 #[derive(Debug, Default)]
@@ -361,82 +360,4 @@ fn push_block<'d>(
         key: (important, spec, order),
         decl,
     }));
-}
-
-/// カスタムプロパティを適用する（変更がある場合だけマップを複製）。
-/// カスタムプロパティを適用する（変更がある場合だけマップを複製）。
-///
-/// まず各名前の勝ち値（カスケード順で最後のもの）を未解決のまま表に載せ、
-/// その表に対して置換する。`var()` は参照先を再帰的に展開するので、宣言の並び順ではなく
-/// 依存関係の順で解決される。循環参照は置換の深さ上限で無効（未定義）になる。
-fn apply_custom_properties(style: &mut ComputedStyle, decls: &[&Decl]) {
-    let mut winners: Vec<(&LocalName, &Arc<str>)> = Vec::new();
-    for decl in decls {
-        if let Decl::Custom(name, value) = decl {
-            match winners.iter_mut().find(|(n, _)| *n == name) {
-                Some(slot) => slot.1 = value,
-                None => winners.push((name, value)),
-            }
-        }
-    }
-    if winners.is_empty() {
-        return;
-    }
-    let map = Arc::make_mut(&mut style.custom);
-    for &(name, value) in &winners {
-        map.insert(name.clone(), value.clone());
-    }
-    let unresolved: Vec<(LocalName, Arc<str>)> = winners
-        .iter()
-        .filter(|(_, v)| v.contains("var("))
-        .map(|&(n, v)| (n.clone(), v.clone()))
-        .collect();
-    let resolved: Vec<(LocalName, Option<Arc<str>>)> = unresolved
-        .iter()
-        .map(|(name, value)| (name.clone(), substitute(value, map).map(Arc::from)))
-        .collect();
-    for (name, value) in resolved {
-        match value {
-            Some(v) => map.insert(name, v),
-            None => map.remove(&name),
-        };
-    }
-}
-
-fn apply_with_vars(style: &mut ComputedStyle, decl: &Decl, ctx: &ResolveContext<'_>) {
-    let Decl::Unparsed(name, css) = decl else {
-        apply_decl(style, decl, ctx);
-        return;
-    };
-    let Some(css) = substitute(css, &style.custom) else {
-        return; // 計算値時点で無効 → 継承値/初期値のまま
-    };
-    for decl in parse_property(name, &css).unwrap_or_default() {
-        if !matches!(decl, Decl::Unparsed(..)) {
-            apply_decl(style, &decl, ctx);
-        }
-    }
-}
-
-/// CSS 2.1 §9.7 のブロック化などの後処理。
-fn fixup(style: &mut ComputedStyle, is_root: bool) {
-    let out_of_flow = matches!(style.position, Position::Absolute | Position::Fixed);
-    if out_of_flow {
-        style.float = Float::None;
-    }
-    if is_root || out_of_flow || style.float != Float::None {
-        style.display = style.display.blockify();
-    }
-}
-
-/// `content` の部品をつないで文字列にする（`attr()` は生成元の要素の属性値）。
-fn resolve_content(parts: &[ContentPart], doc: &Document, node: NodeId) -> String {
-    let mut out = String::new();
-    for part in parts {
-        match part {
-            ContentPart::Text(text) => out.push_str(text),
-            ContentPart::Attr(name) => out.push_str(doc.attr(node, name).unwrap_or("")),
-        }
-    }
-    out
 }

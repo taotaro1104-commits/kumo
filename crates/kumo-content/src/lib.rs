@@ -15,6 +15,7 @@ mod js_glue;
 mod page;
 pub mod protocol;
 mod services;
+mod style_snapshot;
 mod work;
 
 pub use client::{ContentClient, Notify};

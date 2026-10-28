@@ -4,6 +4,13 @@ use cssparser::Parser;
 
 use crate::values::{ParseResult, invalid};
 
+/// `a | b | c` のうち最初のリテラル（CSS で書く正式な名前）。
+macro_rules! first_css_name {
+    ($first:literal $(| $rest:literal)*) => {
+        $first
+    };
+}
+
 macro_rules! keyword_enum {
     ($(#[$meta:meta])* $name:ident default $default:ident { $($variant:ident = $($css:literal)|+),+ $(,)? }) => {
         $(#[$meta])*
@@ -26,6 +33,13 @@ macro_rules! keyword_enum {
                     }
                 )+
                 None
+            }
+
+            /// CSS での名前（`getComputedStyle` の値など）。
+            pub fn css_name(self) -> &'static str {
+                match self {
+                    $(Self::$variant => first_css_name!($($css)|+)),+
+                }
             }
 
             pub fn parse<'i>(input: &mut Parser<'i>) -> ParseResult<Self> {

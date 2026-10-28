@@ -16,6 +16,7 @@ use url::Url;
 
 use crate::fetch::{FetchedPage, prepare};
 use crate::services::{PageImages, Services};
+use crate::style_snapshot::StyleSnapshot;
 
 pub struct Page {
     url: Url,
@@ -202,7 +203,7 @@ impl Page {
         let text = services.take_text();
         let doc = self.doc.clone();
         // スタイル計算とレイアウトの一時データは専用ヒープに置き、終わったらページごと返す。
-        let (list, text, boxes, unique_styles) = kumo_mem::with_scratch_heap(|| {
+        let (list, text, boxes, unique_styles, snapshot) = kumo_mem::with_scratch_heap(|| {
             let doc = doc.borrow();
             let styles: StyleMap = {
                 let _tag = scope(Subsystem::Style);
@@ -224,12 +225,24 @@ impl Page {
             };
             // レイアウトツリーは再生成できる派生データなので、描画命令を作ったら捨てる（設計書）
             let boxes = tree.boxes.len();
-            (list, tree.into_text_system(), boxes, styles.unique_styles)
+            // `getComputedStyle` 用に、JS を使うページだけ計算値を文字列にして持ち出す
+            let snapshot = record_hits
+                .then(|| kumo_mem::with_long_lived(|| StyleSnapshot::capture(&doc, &styles)));
+            (
+                list,
+                tree.into_text_system(),
+                boxes,
+                styles.unique_styles,
+                snapshot,
+            )
         });
         services.return_text(text);
         let mut list = list;
         // 幾何情報は JS ランタイムへ渡して、描画命令側には残さない
         let geometry = std::mem::take(&mut list.geometry);
+        if let (Some(js), Some(snapshot)) = (&mut self.js, snapshot) {
+            js.set_style_source(Rc::new(snapshot));
+        }
         if let Some(js) = &mut self.js {
             js.set_geometry(
                 geometry.iter().map(|&(n, r)| (n, [r.x, r.y, r.w, r.h])),

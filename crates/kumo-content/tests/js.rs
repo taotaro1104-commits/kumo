@@ -412,3 +412,67 @@ fn geometry_is_available_to_load_handlers_and_later_scripts() {
     // 最初のレイアウトの前は 0、読み込み完了の時点では測った値
     assert_eq!(text(&e), "0|120x40|120|0");
 }
+
+#[test]
+fn get_computed_style_reports_stylesheet_values() {
+    let site = Site::new("js-computed");
+    let e = open(
+        &site,
+        &[(
+            "c.html",
+            "<html><head><style>.hid{display:none} #a{color:#102030;padding-left:7px;position:relative}</style></head>\
+             <body><div id=a class=x style='margin-top:3px'>x</div><div id=h class=hid>h</div><p id=out>-</p><script>\
+               document.addEventListener('DOMContentLoaded', function () {\
+                 var a = getComputedStyle(document.getElementById('a'));\
+                 var h = getComputedStyle(document.getElementById('h'));\
+                 document.getElementById('out').textContent = [a.color, a.paddingLeft, a.position, a.marginTop,\
+                   a.getPropertyValue('display'), h.display, a.width.indexOf('px')>0].join('|');\
+               });\
+             </script></body></html>",
+        )],
+        "c.html",
+    );
+    // 色・padding・position はスタイルシートから、margin-top はインライン、display:none の要素は none
+    assert_eq!(text(&e), "rgb(16, 32, 48)|7px|relative|3px|block|none|true");
+}
+
+#[test]
+fn eval_runs_in_the_page_and_reports_errors() {
+    let site = Site::new("js-eval");
+    let mut e = open(
+        &site,
+        &[(
+            "e.html",
+            "<html><body><p id=out>x</p><script>var n = 41;</script></body></html>",
+        )],
+        "e.html",
+    );
+    e.handle(ToContent::Eval {
+        id: 7,
+        tab: 1,
+        code: "n + 1".to_owned(),
+    });
+    e.handle(ToContent::Eval {
+        id: 8,
+        tab: 1,
+        code: "nope()".to_owned(),
+    });
+    e.handle(ToContent::Eval {
+        id: 9,
+        tab: 5,
+        code: "1".to_owned(),
+    });
+    let results: Vec<(u64, bool)> = pump(&mut e, true)
+        .into_iter()
+        .filter_map(|m| match m {
+            FromContent::EvalResult { id, result } => {
+                if id == 7 {
+                    assert_eq!(result, Ok("42".to_owned()));
+                }
+                Some((id, result.is_ok()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(results, vec![(7, true), (8, false), (9, false)]);
+}

@@ -398,3 +398,98 @@ fn inline_text_len(laid: &Laid, id: &str) -> usize {
         })
         .sum()
 }
+
+#[test]
+fn clear_never_moves_a_block_above_its_normal_position() {
+    let css = "body { margin: 0 } #fl { float: right; width: 100px; height: 20px }\
+               #a { height: 50px } #b { clear: both; height: 10px }";
+    let laid = lay("<div id=fl></div><div id=a></div><div id=b></div>", css);
+    // フロートの下端（20）より、通常の位置（50）が下にあるので 50 のまま
+    assert_eq!(rect(&laid, "b").1, 50.0);
+    let css2 = "body { margin: 0 } #fl { float: right; width: 100px; height: 80px }\
+                #a { height: 50px } #b { clear: both; height: 10px }";
+    let laid2 = lay("<div id=fl></div><div id=a></div><div id=b></div>", css2);
+    assert_eq!(rect(&laid2, "b").1, 80.0, "フロートの下端まで下がる");
+}
+
+#[test]
+fn consecutive_cleared_blocks_stack_normally() {
+    let css = "body { margin: 0 } #fl { float: right; width: 100px; height: 80px }               #a { clear: both; height: 50px } #b { clear: both; height: 10px }";
+    let laid = lay("<div id=fl></div><div id=a></div><div id=b></div>", css);
+    assert_eq!(rect(&laid, "a").1, 80.0);
+    assert_eq!(rect(&laid, "b").1, 130.0);
+}
+
+#[test]
+fn cleared_relative_block_after_float_containing_block() {
+    // nav の中身はフロートだがクリアフィックスで囲まれている。次の clear:both の相対配置ブロックは nav の下
+    let css = "body { margin: 0 } #fl { float: right; width: 100px; height: 80px }               #a { clear: both; margin-bottom: 1px } #a:after { content: \"\"; display: table; clear: both }               #g { float: left; width: 50px; height: 55px }               #b { clear: both; position: relative; height: 10px }";
+    let laid = lay(
+        "<div id=fl></div><div id=a><div id=g></div></div><div id=b></div>",
+        css,
+    );
+    assert_eq!(rect(&laid, "a").1, 80.0);
+    assert_eq!(rect(&laid, "a").3, 55.0);
+    assert_eq!(rect(&laid, "b").1, 136.0, "a の下端 135 + margin 1");
+}
+
+#[test]
+fn clear_after_nav_with_two_floats_and_wrapper() {
+    let css = "body { margin: 0 } .c { padding: 0 10px } #l { float: left; width: 100px; height: 30px; margin: 4px 0 8px }               #r { float: right; width: 100px; height: 200px }               #n { clear: both; text-align: center; margin-bottom: 1px } #n li { display: inline-block; position: relative; height: 53px }               #n ul:after { content: \"\"; display: table; clear: both }\n               #b { clear: both; position: relative; height: 10px }";
+    let laid = lay(
+        "<div class=c><div id=l></div><div id=r></div><div id=n><ul style='margin:0;padding:0'><li>a</li><li>b</li></ul></div><div id=b></div></div>",
+        css,
+    );
+    let (n, b) = (rect(&laid, "n"), rect(&laid, "b"));
+    assert_eq!(n.1, 200.0);
+    assert!(b.1 >= n.1 + n.3, "b={b:?} n={n:?}");
+}
+
+#[test]
+fn cleared_block_containing_floats_stays_below_the_previous_sibling() {
+    let css = "body { margin: 0 } #r { float: right; width: 100px; height: 200px }               #n { clear: both; height: 55px; margin-bottom: 1px }               #b { clear: both; position: relative } #b ul { margin: 0; padding: 0; list-style: none }               #b ul:after { content: \"\"; display: table; clear: both }               #b li { float: left; width: 100%; margin-right: -100%; position: relative; height: 80px }";
+    let laid = lay(
+        "<div id=r></div><div id=n></div><div id=b><ul><li>x</li></ul></div>",
+        css,
+    );
+    assert_eq!(rect(&laid, "n").1, 200.0);
+    assert_eq!(rect(&laid, "b").1, 256.0, "n の下端 255 + margin 1");
+    assert_eq!(rect(&laid, "b").3, 80.0);
+}
+
+#[test]
+fn cleared_block_with_inner_floats_variants() {
+    let base = |b_css: &str, li_css: &str, after: &str| {
+        let css = format!(
+            "body {{ margin: 0 }} #r {{ float: right; width: 100px; height: 200px }}            #n {{ clear: both; height: 55px }} #b {{ {b_css} }} #b ul {{ margin: 0; padding: 0 }} {after}            #b li {{ {li_css} height: 80px }}"
+        );
+        let laid = lay(
+            "<div id=r></div><div id=n></div><div id=b><ul><li>x</li></ul></div>",
+            &css,
+        );
+        rect(&laid, "b").1
+    };
+    let r = [
+        base("clear: both", "float: left; width: 100%;", ""),
+        base(
+            "clear: both",
+            "float: left; width: 100%;",
+            "#b ul:after { content: \"\"; display: table; clear: both }",
+        ),
+        base("clear: both", "", ""),
+        base("", "float: left; width: 100%;", ""),
+        base("clear: both", "float: left; width: 50%;", ""),
+        base(
+            "clear: both; overflow: hidden",
+            "float: left; width: 100%;",
+            "",
+        ),
+        base(
+            "clear: both; position: relative",
+            "float: left; width: 100%; margin-right: -100%;",
+            "",
+        ),
+    ];
+    // どの組み合わせでも、直前の兄弟（#n の下端 255）の下に置かれる
+    assert!(r.iter().all(|&y| y == 255.0), "{r:?}");
+}

@@ -84,6 +84,8 @@ pub(crate) struct HostState {
     /// 最後のレイアウトでの要素の境界ボックス（要素の添字 → 文書座標）と、ページのスクロール位置
     pub geometry: HashMap<usize, crate::geometry::Rect>,
     pub scroll_y: f32,
+    /// `getComputedStyle` の提供元（Content が最後のスタイル計算の結果から答える）
+    pub style_source: Option<crate::computed_style::SharedStyleSource>,
     /// `onclick="…"` のような属性ハンドラをコンパイルした関数（要素の添字・イベント名 → 属性の本文と関数）
     pub inline_handlers: HashMap<(usize, String), (String, JsObject)>,
 }
@@ -117,6 +119,7 @@ impl Host {
             viewport: (1280.0, 800.0),
             geometry: HashMap::new(),
             scroll_y: 0.0,
+            style_source: None,
             inline_handlers: HashMap::new(),
         })))
     }

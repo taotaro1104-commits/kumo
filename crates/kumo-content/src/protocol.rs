@@ -108,6 +108,12 @@ pub enum ToContent {
     Stats {
         id: u64,
     },
+    /// 診断用：タブのページで JS の式を評価して [`FromContent::EvalResult`] を返す
+    Eval {
+        id: u64,
+        tab: TabId,
+        code: String,
+    },
     Shutdown,
 }
 
@@ -181,5 +187,10 @@ pub enum FromContent {
     Stats {
         id: u64,
         stats: ContentStats,
+    },
+    /// [`ToContent::Eval`] の結果（`Err` は例外・JS のないページ）
+    EvalResult {
+        id: u64,
+        result: Result<String, String>,
     },
 }

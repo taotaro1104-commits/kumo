@@ -349,6 +349,11 @@ impl JsRuntime {
         self.host.state_mut().viewport = viewport;
     }
 
+    /// `getComputedStyle` の提供元を差し替える（再スタイルのたびに Content が呼ぶ）。
+    pub fn set_style_source(&mut self, source: std::rc::Rc<dyn crate::StyleSource>) {
+        self.host.state_mut().style_source = Some(source);
+    }
+
     /// 最後のレイアウトの結果（要素の添字と文書座標の境界ボックス）とスクロール位置を受け取る。
     pub fn set_geometry(
         &mut self,

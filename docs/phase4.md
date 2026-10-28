@@ -19,6 +19,27 @@
 - `"fooBar" in el.dataset` は `data-foo-bar` 属性があるときだけ真。
 - `document.createRange()`（`createContextualFragment` など）と `window.getSelection()` の最小実装。
 
+## getComputedStyle
+
+- 以前は `el.style`（インラインだけ）を返していた。いまは、インラインのスタイルを優先し、なければ Content が最後に
+  スタイルを計算した結果から答える（`display`・`position`・`float`・`color`・`background-color`・`opacity`・`z-index`・
+  `font-size`・`font-weight`・`margin-*`・`padding-*`・`border-*-width` など。`width` / `height` は直近のレイアウトから）。
+- 計算値は文字列にした小さな表（`StyleSnapshot`）で JS を使うページだけが持つ。スタイル計算の一時ヒープを引き止めない。
+- 制限：クラスを変えた直後などは、次のスタイル計算まで古い値。表にないプロパティは空文字列。
+- スクリプトが作ったばかりの要素（まだスタイル計算されていない）は、`display` と `visibility` を UA の既定値で答える。
+  jQuery の `show()` は一時要素の既定の display を読み、空だと内部で例外になって `fadeIn` が止まっていた（python.org のスライドショーが出なかった原因）。
+- jQuery の `.show()` / `.hide()` / `.is(':visible')` などがスタイルシート由来の `display: none` を正しく判定できる。
+- `style.opacity` などは `.5` を `0.5` に正規化して返す（jQuery の機能検出が見る）。
+
+## taffy の clear の不具合（vendor/taffy）
+
+`clear: both` のブロックが中にフロートを持つと、直前の兄弟の下ではなく、外側のフロートの下端に置かれた
+（python.org のスライドショーがナビに重なっていた原因）。taffy 0.15.1 のブロックレイアウトが、
+要素自身の内側のフロート（自分の上マージンに隣接するもの）を取り込んだ後で「強制クリアランス」を判定していたため。
+判定を取り込む前に行うよう直した写しを `vendor/taffy` に置き、ルートの `Cargo.toml` の `[patch.crates-io]` で差し替えている
+（変更箇所は `compute/block.rs` の `Kumo patch`）。再現は `kumo-layout/tests/layout.rs` の
+`cleared_block_with_inner_floats_variants`。上流で直ったら `[patch]` と `vendor/` を外す。
+
 ## 生成コンテンツ（::before / ::after）
 
 - 以前は `::before` / `::after` の規則を読み捨てていた。いまは別の規則インデックスに入れ、要素ごとに疑似要素の計算値を作る。
@@ -27,6 +48,12 @@
   （`content: ""; display: table; clear: both`）も効く。フロートした疑似要素・flex / grid の子の疑似要素も扱う。
 - 疑似要素は生成元の要素と結びつけない匿名ボックス（クリック・幾何情報の対象にならない）。`::selection` などは無視。
 - 実装：`kumo-css`（`cascade.rs` の `generate_pseudo`、`StyleMap::pseudo`）と `kumo-layout/src/pseudo.rs`。
+
+## ヘッドレスの `--eval JS`
+
+読み込みと `--wait` の後、表示中のタブのページで JS の式を評価して `[eval] 結果` を標準出力に出す（複数指定可。
+式の間に 0.7 秒タイマーを動かす）。実サイトの DOM・スタイル・幾何情報を調べるための診断用
+（`ToContent::Eval` / `FromContent::EvalResult`）。
 
 ## ヘッドレスの `--wait MS`
 
@@ -41,7 +68,6 @@
 
 ## 未解決の観察
 
-- python.org：スライドショー（左にコード、右に説明文）が出ない。例外はなくなり、クリアフィックスと `>>>` の生成は効いたが、
-  説明文が全幅の中央寄せで、スライドの領域が重なる（フロートと幅の指定に関わる別のレイアウトの差。未調査）。
+- python.org：スライドショーとナビ・説明文の並びは実物と同じになった。右上の検索欄（GO ボタンの位置）に細かい差が残る。
 - craigslist.org：読み込めるようになったが、アプリの本体（1.3MB・760KB のスクリプト）が実行予算（512KB）を超えて走らないため、
   最初の「カーテン」（`.show-curtain` の白い覆い）が外れず白いまま。

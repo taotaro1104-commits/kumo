@@ -79,7 +79,7 @@ impl Browser {
                 self.memory_stats(&message);
                 Redraw::default()
             }
-            FromContent::Synced { .. } => Redraw::default(),
+            FromContent::Synced { .. } | FromContent::EvalResult { .. } => Redraw::default(),
         }
     }
 
@@ -248,6 +248,29 @@ impl Browser {
         self.frame_damage = None; // 下で写し終えたことを通知する
         self.content.send(ToContent::FrameDone);
         self.last_frame()
+    }
+
+    /// 診断用：表示中のタブのページで JS の式を評価する。
+    pub fn eval(&mut self, code: &str, timeout: Duration) -> Result<String, String> {
+        let Some(tab) = self.active_tab().map(|t| t.id) else {
+            return Err("タブがありません".to_owned());
+        };
+        let deadline = Instant::now() + timeout;
+        let id = self.request_id();
+        self.content.send(ToContent::Eval {
+            id,
+            tab,
+            code: code.to_owned(),
+        });
+        loop {
+            match self.recv_until(deadline) {
+                Some(FromContent::EvalResult { id: got, result }) if got == id => return result,
+                Some(other) => {
+                    self.handle(other);
+                }
+                None => return Err("時間内に結果が届きません".to_owned()),
+            }
+        }
     }
 
     /// Content の計測値を問い合わせる。

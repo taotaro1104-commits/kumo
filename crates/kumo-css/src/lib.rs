@@ -7,7 +7,9 @@
 
 mod apply;
 mod cascade;
+mod cascade_util;
 mod color;
+mod computed;
 mod decl;
 mod element;
 mod hints;
@@ -24,6 +26,7 @@ pub mod values;
 mod var;
 
 pub use cascade::{CascadeEngine, StyleEngine, StyleMap};
+pub use computed::{COMPUTED_PROPERTIES, computed_value};
 pub use decl::{ContentPart, Decl, DeclarationBlock};
 pub use element::ElementRef;
 pub use media::{Device, MediaQueryList};
