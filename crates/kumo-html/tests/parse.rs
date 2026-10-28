@@ -70,9 +70,9 @@ fn collects_stylesheets_in_document_order() {
     assert_eq!(
         stylesheets(&doc),
         vec![
-            StyleSource::External("a.css".into()),
+            StyleSource::External("a.css".into(), None),
             StyleSource::Inline("p{color:red}".into()),
-            StyleSource::External("b.css".into()),
+            StyleSource::External("b.css".into(), None),
         ]
     );
 }
@@ -82,4 +82,21 @@ fn bytes_are_decoded_lossily() {
     let doc = kumo_html::parse_html_bytes(b"<p>caf\xc3\xa9 \xff</p>");
     let p = find(&doc, "p")[0];
     assert_eq!(doc.text_content(p), "café \u{FFFD}");
+}
+
+#[test]
+fn media_attributes_wrap_stylesheets_in_media_rules() {
+    let doc = kumo_html::parse_html(
+        "<link rel=stylesheet href=p.css media=print><style media='screen and (min-width: 600px)'>p{color:red}</style>\
+         <link rel=stylesheet href=a.css media=all><style>b{}</style>",
+    );
+    assert_eq!(
+        kumo_html::stylesheets(&doc),
+        vec![
+            StyleSource::External("p.css".into(), Some("print".into())),
+            StyleSource::Inline("@media screen and (min-width: 600px) { p{color:red} }".into()),
+            StyleSource::External("a.css".into(), None),
+            StyleSource::Inline("b{}".into()),
+        ]
+    );
 }

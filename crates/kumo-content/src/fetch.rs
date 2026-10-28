@@ -105,7 +105,7 @@ fn load_stylesheets(doc: &Document, base: &Url, fetcher: &dyn Fetcher) -> Vec<St
     let external: Vec<(String, ResourceKind)> = sources
         .iter()
         .filter_map(|s| match s {
-            StyleSource::External(href) => base.join(href.trim()).ok(),
+            StyleSource::External(href, _) => base.join(href.trim()).ok(),
             StyleSource::Inline(_) => None,
         })
         .map(|url| (url.to_string(), ResourceKind::Stylesheet))
@@ -117,13 +117,20 @@ fn load_stylesheets(doc: &Document, base: &Url, fetcher: &dyn Fetcher) -> Vec<St
         .into_iter()
         .filter_map(|source| match source {
             StyleSource::Inline(css) => Some(Stylesheet::parse(&css)),
-            StyleSource::External(href) => {
+            StyleSource::External(href, media) => {
                 if base.join(href.trim()).is_err() {
                     return None;
                 }
                 match fetched.next()? {
                     Ok(response) if response.status == 200 => {
-                        Some(Stylesheet::parse(&String::from_utf8_lossy(&response.body)))
+                        let css = String::from_utf8_lossy(&response.body);
+                        // `media` 属性は @media で包んで、スタイル計算のときに表示領域で評価する
+                        Some(match media {
+                            Some(media) => {
+                                Stylesheet::parse(&format!("@media {media} {{ {css} }}"))
+                            }
+                            None => Stylesheet::parse(&css),
+                        })
                     }
                     Ok(_) | Err(FetchError::Blocked) => None,
                     Err(e) => {

@@ -284,3 +284,25 @@ fn noscript_content_is_not_displayed() {
     assert_eq!(computed(&doc, &map, "n").display, Display::None);
     assert_eq!(computed(&doc, &map, "d").display, Display::Block);
 }
+
+#[test]
+fn print_media_rules_do_not_apply_to_the_screen() {
+    let doc = kumo_html::parse_html("<p id=a>x</p>");
+    let engine = CascadeEngine::new(vec![Stylesheet::parse(
+        "@media print { p { display: none } } @media screen { p { color: #010203 } }",
+    )]);
+    let styles = engine.compute(
+        &doc,
+        &Device {
+            width: 800.0,
+            height: 600.0,
+        },
+    );
+    let a = doc
+        .descendants(doc.root())
+        .find(|&n| doc.attr(n, "id") == Some("a"))
+        .unwrap();
+    let style = styles.get(a).unwrap();
+    assert_ne!(style.display, kumo_css::keywords::Display::None);
+    assert_eq!(style.color.r, 1, "screen の規則は効く");
+}
