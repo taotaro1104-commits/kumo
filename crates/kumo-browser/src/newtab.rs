@@ -162,7 +162,7 @@ impl Browser {
                 tab,
                 nav,
                 url: url.to_string(),
-                html: crate::settings_page::settings_html(&home, self.load_level),
+                html: crate::settings_page::settings_html(&home, self.load_level, self.images),
             };
         }
         if url.as_str() == BOOKMARKS_URL {

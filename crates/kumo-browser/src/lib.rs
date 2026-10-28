@@ -10,6 +10,7 @@ mod bookmarks_page;
 mod browser;
 mod chrome;
 mod chrome_css;
+mod chrome_page;
 mod events;
 mod governor;
 mod history;

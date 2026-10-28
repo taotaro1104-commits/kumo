@@ -9,7 +9,7 @@ use kumo_content::{ContentClient, FrameReader, Notify, Page, Services, same_docu
 use kumo_net::process::Fetcher;
 use url::Url;
 
-use crate::chrome::{CHROME_HEIGHT, ChromeState, TabLabel, chrome_html};
+use crate::chrome::CHROME_HEIGHT;
 use crate::governor::TabState;
 use crate::history::HistoryDb;
 use crate::newtab::NEW_TAB_URL;
@@ -26,11 +26,11 @@ pub struct Browser {
     next_nav: u64,
     pub(crate) history: Option<HistoryDb>,
     /// ウィンドウ全体の大きさ（UI を含む）
-    window: (f32, f32),
+    pub(crate) window: (f32, f32),
     pub(crate) url_text: String,
     pub(crate) url_focused: bool,
     /// UI のページ（状態が変わったら作り直す）
-    chrome: Option<Page>,
+    pub(crate) chrome: Option<Page>,
     pub(crate) frame: FrameReader,
     /// 届いたがまだ写していないフレーム（描き直した行）
     pub(crate) frame_damage: Option<(u32, u32)>,
@@ -52,6 +52,8 @@ pub struct Browser {
     pub(crate) load_level: kumo_content::LoadLevel,
     /// スクリプトを実行するか（`--no-js`）
     pub(crate) javascript: bool,
+    /// 画像を読み込むか
+    pub(crate) images: bool,
 }
 
 /// Content を作る関数（落ちたときの作り直し用）。
@@ -90,6 +92,7 @@ impl Redraw {
 impl Browser {
     pub fn new(content: ContentClient, history: Option<HistoryDb>, window: (f32, f32)) -> Self {
         let load_level = crate::home::saved_load_level(history.as_ref());
+        let images = history.as_ref().is_none_or(HistoryDb::images_enabled);
         let browser = Self {
             content,
             chrome_services: Services::new(Arc::new(Offline)),
@@ -114,9 +117,11 @@ impl Browser {
             memory: crate::memory::MemoryState::default(),
             load_level,
             javascript: true,
+            images,
         };
         browser.send_viewport();
         browser.send_load_level();
+        browser.send_images();
         browser
     }
 
@@ -355,45 +360,5 @@ impl Browser {
     pub(crate) fn invalidate_chrome(&mut self) -> Redraw {
         self.chrome = None;
         Redraw::CHROME
-    }
-
-    /// UI のページ（必要なら作り直す）。
-    pub fn chrome_page(&mut self) -> &Page {
-        if self.chrome.is_none() {
-            let tab = self.tabs.get(self.active);
-            let state = ChromeState {
-                tabs: self
-                    .tabs
-                    .iter()
-                    .map(|t| TabLabel {
-                        title: t.title(),
-                        loading: t.is_loading(),
-                        dormant: t.state != TabState::Live,
-                    })
-                    .collect(),
-                active: self.active,
-                url_text: &self.url_text,
-                url_focused: self.url_focused,
-                can_go_back: tab.is_some_and(|t| t.session.can_go_back()),
-                can_go_forward: tab.is_some_and(|t| t.session.can_go_forward()),
-                loading: tab.is_some_and(Tab::is_loading),
-                bookmarked: tab
-                    .and_then(Tab::url)
-                    .zip(self.history.as_ref())
-                    .is_some_and(|(u, h)| h.is_bookmarked(u.as_str())),
-                content_lost: self.content_lost,
-                hover: self.chrome_hover.as_deref(),
-            };
-            let html = chrome_html(&state);
-            let url = Url::parse("about:kumo-chrome").expect("固定の URL");
-            let page = Page::from_html(
-                &html,
-                url,
-                &mut self.chrome_services,
-                (self.window.0, CHROME_HEIGHT),
-            );
-            self.chrome = Some(page);
-        }
-        self.chrome.as_ref().expect("作成済み")
     }
 }

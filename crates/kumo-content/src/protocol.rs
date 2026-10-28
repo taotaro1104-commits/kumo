@@ -43,6 +43,8 @@ pub enum ToContent {
     Settings {
         javascript: bool,
     },
+    /// 画像を読み込むか（以後に始める読み込みから効く）
+    Images(bool),
     /// 読み込みの負荷レベル（以後に始める読み込みから効く）
     LoadLevel(crate::LoadLevel),
     /// `url` を読み込む。`nav` は Browser が付ける通し番号（古い読み込みの結果を捨てるため）。

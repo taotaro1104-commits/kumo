@@ -256,3 +256,28 @@ fn load_level_is_chosen_on_the_settings_page_and_persists() {
         "保存したのはページで選んだ値"
     );
 }
+
+#[test]
+fn images_setting_is_chosen_on_the_settings_page_and_persists() {
+    let site = Site::new("images");
+    let path = site.dir.join("history.redb");
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert!(b.images_enabled(), "既定は読み込む");
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    b.follow_link("kumo:setimages?on=0", false);
+    settle(&mut b);
+    assert!(b.images_enabled(), "設定ページ以外からは変えられない");
+    b.show_settings();
+    settle(&mut b);
+    b.follow_link("kumo:setimages?on=0", false);
+    settle(&mut b);
+    assert!(!b.images_enabled());
+    b.follow_link("kumo:setimages?on=maybe", false);
+    assert!(!b.images_enabled(), "不正な値は無視");
+    drop(b);
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert!(!b.images_enabled(), "再起動後も残る");
+    b.set_images(true, false);
+    assert!(b.images_enabled());
+}

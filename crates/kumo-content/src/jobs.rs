@@ -107,6 +107,7 @@ mod tests {
             url: Url::parse("https://example.com/").unwrap(),
             post_body: None,
             level: Default::default(),
+            images: true,
         })
     }
 

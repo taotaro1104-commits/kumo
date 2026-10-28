@@ -13,7 +13,7 @@ use url::Url;
 
 use crate::frame::FrameWriter;
 use crate::page::Page;
-use crate::protocol::{ContentStats, FromContent, HoverKind, TabId, ToContent};
+use crate::protocol::{FromContent, HoverKind, TabId, ToContent};
 use crate::services::{PageImages, Services};
 use crate::work::{Done, FetchJob, Fetched, Work};
 
@@ -55,7 +55,9 @@ pub struct ContentEngine {
     javascript: bool,
     /// 読み込みの負荷レベル
     pub(crate) level: crate::LoadLevel,
-    private_bytes: fn() -> u64,
+    /// 画像を読み込むか（設定）
+    images: bool,
+    pub(crate) private_bytes: fn() -> u64,
 }
 
 impl ContentEngine {
@@ -72,6 +74,7 @@ impl ContentEngine {
             now: Duration::ZERO,
             javascript: true,
             level: crate::LoadLevel::default(),
+            images: true,
             private_bytes,
         }
     }
@@ -104,12 +107,24 @@ impl ContentEngine {
         as_f32(self.viewport)
     }
 
+    fn apply_images(&self) {
+        self.services
+            .set_images_enabled(self.images && self.level.images());
+    }
+
     /// 要求を1つ処理する。`Shutdown` はホストが扱う。
     pub fn handle(&mut self, message: ToContent) {
         match message {
             ToContent::Viewport { width, height } => self.set_viewport(width, height),
             ToContent::Settings { javascript } => self.javascript = javascript,
-            ToContent::LoadLevel(level) => self.level = level,
+            ToContent::LoadLevel(level) => {
+                self.level = level;
+                self.apply_images();
+            }
+            ToContent::Images(on) => {
+                self.images = on;
+                self.apply_images();
+            }
             ToContent::Load {
                 tab,
                 nav,
@@ -217,6 +232,7 @@ impl ContentEngine {
                 url,
                 post_body,
                 level: self.level,
+                images: self.images,
             })),
             Err(e) => {
                 let page = self.error_page(url, &FetchError::BadUrl(e.to_string()));
@@ -340,35 +356,6 @@ impl ContentEngine {
             });
         }
         self.frame.invalidate();
-    }
-
-    pub fn stats(&self) -> ContentStats {
-        let (mut dom_nodes, mut display_items, mut js_tabs, mut js_errors) = (0, 0, 0, 0);
-        let mut frozen_tabs = 0;
-        for tab in self.tabs.values() {
-            let Some(page) = tab.page.as_ref() else {
-                continue;
-            };
-            let stats = page.stats();
-            dom_nodes += stats.dom_nodes;
-            display_items += stats.display_items;
-            js_tabs += usize::from(page.has_js());
-            frozen_tabs += usize::from(page.is_frozen());
-            js_errors += tab.js_errors;
-        }
-        ContentStats {
-            tabs: self.tabs.len(),
-            dom_nodes,
-            display_items,
-            js_tabs,
-            js_errors,
-            frozen_tabs,
-            decoded_image_bytes: self.services.images.decoded_bytes() as u64,
-            compressed_image_bytes: self.services.images.compressed_bytes() as u64,
-            glyph_bytes: self.frame.raster.glyphs.bytes() as u64,
-            frame_bytes: self.frame.bytes() as u64,
-            private_bytes: (self.private_bytes)(),
-        }
     }
 }
 

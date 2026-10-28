@@ -16,6 +16,7 @@ mod level;
 mod page;
 pub mod protocol;
 mod services;
+mod stats;
 mod style_snapshot;
 mod work;
 

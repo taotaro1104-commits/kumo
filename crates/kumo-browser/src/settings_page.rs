@@ -7,6 +7,8 @@ pub const SETTINGS_URL: &str = "about:settings";
 pub(crate) const SET_HOME_ACTION: &str = "kumo:sethome";
 /// 負荷レベルを選ぶリンク（`kumo:setlevel?n=1〜5`）。
 pub(crate) const SET_LEVEL_ACTION: &str = "kumo:setlevel";
+/// 画像の読み込みを切り替えるリンク（`kumo:setimages?on=1` / `on=0`）。
+pub(crate) const SET_IMAGES_ACTION: &str = "kumo:setimages";
 /// フォームの入力欄の名前。
 pub(crate) const HOME_FIELD: &str = "home";
 
@@ -30,7 +32,17 @@ a.lvb.on { border: 2px solid #1a73e8; background: #e8f0fe; color: #1a56c4; font-
 ";
 
 /// `home` は設定済みのホーム URL（未設定なら空）。
-pub fn settings_html(home: &str, level: LoadLevel) -> String {
+pub fn settings_html(home: &str, level: LoadLevel, images: bool) -> String {
+    let image_buttons: String = [(true, "読み込む"), (false, "読み込まない")]
+        .iter()
+        .map(|(on, label)| {
+            let class = if *on == images { "lvb on" } else { "lvb" };
+            format!(
+                "<a class='{class}' href='{SET_IMAGES_ACTION}?on={}'>{label}</a>",
+                u8::from(*on)
+            )
+        })
+        .collect();
     let buttons: String = LoadLevel::ALL
         .iter()
         .map(|l| {
@@ -49,7 +61,9 @@ pub fn settings_html(home: &str, level: LoadLevel) -> String {
          <input type=text name={HOME_FIELD} value='{}' placeholder='https://example.com/'>\
          <div class=row><button type=submit>保存</button>\
          <span class=hint>空にして保存すると解除します。起動時と、ホームボタン・Alt+Home で開きます。</span></div>\
-         </form></div>\n         <div class=box><label>読み込みの負荷（低 → 高）</label><div class=lv>{buttons}</div>\n         <div class=row><span class=hint>{}。次に読み込むページから効きます。</span></div></div>\n         </div></body></html>",
+         </form></div>\n         <div class=box><label>読み込みの負荷（低 → 高）</label><div class=lv>{buttons}</div>\n         <div class=row><span class=hint>{}。次に読み込むページから効きます。</span></div></div>\n         <div class=box><label>画像</label><div class=lv>{image_buttons}</div>\
+         <div class=row><span class=hint>「読み込まない」にすると画像を取得せず、通信とメモリを節約します。負荷レベルが 2 以下のときは、この設定にかかわらず読み込みません。</span></div></div>\
+         </div></body></html>",
         escape(home),
         level.description()
     )
@@ -61,12 +75,13 @@ mod tests {
 
     #[test]
     fn form_prefills_and_escapes_the_current_value() {
-        let html = settings_html("https://a.example/?q='<x>", LoadLevel::Standard);
+        let html = settings_html("https://a.example/?q='<x>", LoadLevel::Standard, true);
         assert!(html.contains("action='kumo:sethome'"));
         assert!(html.contains("&lt;x&gt;") && !html.contains("<x>"));
-        assert!(settings_html("", LoadLevel::Standard).contains("value=''"));
-        let html = settings_html("", LoadLevel::Light);
-        assert_eq!(html.matches("class='lvb'").count(), 4);
+        assert!(settings_html("", LoadLevel::Standard, true).contains("value=''"));
+        let html = settings_html("", LoadLevel::Light, false);
+        assert_eq!(html.matches("class='lvb'").count(), 4 + 1);
+        assert!(html.contains("class='lvb on' href='kumo:setimages?on=0'"));
         assert!(html.contains("class='lvb on' href='kumo:setlevel?n=2'"));
     }
 }

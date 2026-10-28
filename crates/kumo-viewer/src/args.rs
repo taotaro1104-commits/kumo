@@ -12,6 +12,8 @@ pub struct Args {
     pub mem_report: bool,
     pub in_process: bool,
     pub no_js: bool,
+    /// 画像を読み込まない（保存はしない）
+    pub no_images: bool,
     /// 読み込みの負荷レベル（1〜5）。指定すると保存済みの設定より優先する（保存はしない）
     pub load_level: Option<kumo_browser::LoadLevel>,
     pub no_disk_cache: bool,
@@ -28,7 +30,7 @@ pub struct Args {
 }
 
 pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
-[--headless out.png] [--mem-report] [--in-process] [--no-js] [--load-level 1-5] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
+[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-images] [--load-level 1-5] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
     let mut args = Args {
@@ -40,6 +42,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         mem_report: false,
         in_process: false,
         no_js: false,
+        no_images: false,
         load_level: None,
         no_disk_cache: false,
         wait_ms: 0,
@@ -79,6 +82,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
             "--mem-report" => args.mem_report = true,
             "--in-process" => args.in_process = true,
             "--no-js" => args.no_js = true,
+            "--no-images" => args.no_images = true,
             "--load-level" => {
                 let n = value("--load-level")?;
                 args.load_level = Some(

@@ -7,6 +7,7 @@ use crate::history::{HistoryDb, HistoryError, err};
 pub(crate) const SETTINGS: TableDefinition<&str, &str> = TableDefinition::new("settings");
 const HOME_KEY: &str = "home";
 const LEVEL_KEY: &str = "load_level";
+const IMAGES_KEY: &str = "images";
 
 impl HistoryDb {
     fn setting(&self, key: &str) -> Option<String> {
@@ -35,6 +36,15 @@ impl HistoryDb {
 
     pub fn set_load_level_number(&self, n: u8) -> Result<(), HistoryError> {
         self.set_setting(LEVEL_KEY, Some(&n.to_string()))
+    }
+
+    /// 画像を読み込むか（未設定なら読み込む）。
+    pub fn images_enabled(&self) -> bool {
+        self.setting(IMAGES_KEY).is_none_or(|v| v != "off")
+    }
+
+    pub fn set_images_enabled(&self, on: bool) -> Result<(), HistoryError> {
+        self.set_setting(IMAGES_KEY, Some(if on { "on" } else { "off" }))
     }
 
     /// 設定したホーム URL（未設定なら `None`）。
@@ -66,6 +76,9 @@ mod tests {
         let db = HistoryDb::open(&path).unwrap();
         assert_eq!(db.home_url().as_deref(), Some("https://a.example/"));
         assert_eq!(db.load_level_number(), Some(5));
+        assert!(db.images_enabled(), "既定は読み込む");
+        db.set_images_enabled(false).unwrap();
+        assert!(!db.images_enabled());
         db.set_home_url(None).unwrap();
         assert_eq!(db.home_url(), None);
         drop(db);

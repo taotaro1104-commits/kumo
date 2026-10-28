@@ -115,7 +115,7 @@ impl Page {
     pub fn from_html(html: &str, url: Url, services: &mut Services, viewport: (f32, f32)) -> Self {
         let fetcher = services.fetcher.clone();
         Self::build(
-            prepare(html, url, &*fetcher, LoadLevel::Standard),
+            prepare(html, url, &*fetcher, LoadLevel::Standard, true),
             services,
             viewport,
             Some(Duration::ZERO),

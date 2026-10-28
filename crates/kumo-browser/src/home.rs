@@ -7,7 +7,9 @@ use url::Url;
 use crate::browser::{Browser, Redraw};
 use crate::chrome::parse_input;
 use crate::history::HistoryDb;
-use crate::settings_page::{HOME_FIELD, SET_HOME_ACTION, SET_LEVEL_ACTION, SETTINGS_URL};
+use crate::settings_page::{
+    HOME_FIELD, SET_HOME_ACTION, SET_IMAGES_ACTION, SET_LEVEL_ACTION, SETTINGS_URL,
+};
 
 /// 保存済みの負荷レベル（なければ既定）。
 pub(crate) fn saved_load_level(history: Option<&HistoryDb>) -> LoadLevel {
@@ -51,6 +53,27 @@ impl Browser {
         self.content.send(ToContent::LoadLevel(self.load_level));
     }
 
+    /// 画像を読み込む設定。
+    pub fn images_enabled(&self) -> bool {
+        self.images
+    }
+
+    pub(crate) fn send_images(&self) {
+        self.content.send(ToContent::Images(self.images));
+    }
+
+    /// 画像の読み込みを切り替える（以後に始める読み込みから効く）。`save` なら次の起動でも使う。
+    pub fn set_images(&mut self, on: bool, save: bool) {
+        self.images = on;
+        self.send_images();
+        if save
+            && let Some(history) = &self.history
+            && let Err(e) = history.set_images_enabled(on)
+        {
+            eprintln!("[settings] {e}");
+        }
+    }
+
     /// 負荷レベルを変える（以後に始める読み込みから効く）。`save` なら次の起動でも使う。
     pub fn set_load_level(&mut self, level: LoadLevel, save: bool) {
         self.load_level = level;
@@ -67,7 +90,8 @@ impl Browser {
     /// 入力は http(s)・file・about の URL か、空（解除）だけを保存する。
     pub(crate) fn save_home_link(&mut self, link: &Url) -> bool {
         let is_level = link.as_str().starts_with(SET_LEVEL_ACTION);
-        if !is_level && !link.as_str().starts_with(SET_HOME_ACTION) {
+        let is_images = link.as_str().starts_with(SET_IMAGES_ACTION);
+        if !is_level && !is_images && !link.as_str().starts_with(SET_HOME_ACTION) {
             return false;
         }
         let on_settings = self
@@ -76,6 +100,17 @@ impl Browser {
             .is_some_and(|u| u.as_str() == SETTINGS_URL);
         if !on_settings {
             return true; // 他のページからは操作させない
+        }
+        if is_images {
+            let on = link
+                .query_pairs()
+                .find(|(k, _)| k == "on")
+                .map(|(_, v)| v == "1");
+            if let Some(on) = on {
+                self.set_images(on, true);
+                self.reload();
+            }
+            return true;
         }
         if is_level {
             let level = link

@@ -34,6 +34,7 @@ pub fn fetch_document(
     url: &Url,
     post_body: Option<Vec<u8>>,
     level: LoadLevel,
+    images: bool,
 ) -> Result<FetchedPage, FetchError> {
     let response = match post_body {
         Some(body) => fetcher.post(url.as_str(), FORM_CONTENT_TYPE, body, None)?,
@@ -45,11 +46,17 @@ pub fn fetch_document(
     }
     let html = document_html(&response.body, response.content_type.as_deref(), &final_url);
     drop(response);
-    Ok(prepare(&html, final_url, fetcher, level))
+    Ok(prepare(&html, final_url, fetcher, level, images))
 }
 
 /// HTML をパースし、外部スタイルシートと画像を取得する。
-pub fn prepare(html: &str, url: Url, fetcher: &dyn Fetcher, level: LoadLevel) -> FetchedPage {
+pub fn prepare(
+    html: &str,
+    url: Url,
+    fetcher: &dyn Fetcher,
+    level: LoadLevel,
+    images: bool,
+) -> FetchedPage {
     let doc = {
         let _tag = scope(Subsystem::Dom);
         // パーサの一時データは専用ヒープに置き、完成した DOM だけを通常ヒープへ詰めて複製する
@@ -62,7 +69,7 @@ pub fn prepare(html: &str, url: Url, fetcher: &dyn Fetcher, level: LoadLevel) ->
         let _tag = scope(Subsystem::Style);
         load_stylesheets(&doc, &url, fetcher, level)
     };
-    let images = if level.images() {
+    let images = if images && level.images() {
         prefetch_images(&doc, &url, fetcher)
     } else {
         Vec::new()

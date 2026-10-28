@@ -18,6 +18,7 @@ pub struct FetchJob {
     pub url: Url,
     pub post_body: Option<Vec<u8>>,
     pub level: LoadLevel,
+    pub images: bool,
 }
 
 /// 文書の取得の結果。
@@ -30,7 +31,7 @@ pub struct Fetched {
 
 impl FetchJob {
     pub fn run(self, fetcher: &dyn Fetcher) -> Fetched {
-        let result = fetch_document(fetcher, &self.url, self.post_body, self.level);
+        let result = fetch_document(fetcher, &self.url, self.post_body, self.level, self.images);
         Fetched {
             tab: self.tab,
             nav: self.nav,

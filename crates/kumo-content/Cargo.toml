@@ -21,5 +21,8 @@ url = "2.5"
 percent-encoding = "2"
 serde = { version = "1", features = ["derive"] }
 
+[dev-dependencies]
+image.workspace = true
+
 [lints]
 workspace = true

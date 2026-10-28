@@ -102,6 +102,9 @@ fn run(args: Args) -> Result<(), String> {
     );
     browser.set_content_restart(processes.restart);
     browser.set_javascript(!args.no_js);
+    if args.no_images {
+        browser.set_images(false, false);
+    }
     if let Some(level) = args.load_level {
         browser.set_load_level(level, false);
     }
