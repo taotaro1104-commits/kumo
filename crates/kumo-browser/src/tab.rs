@@ -4,6 +4,8 @@ use std::time::Instant;
 
 use url::Url;
 
+use kumo_content::Lang;
+use kumo_content::i18n::ui::Ui;
 use kumo_content::protocol::{HoverKind, TabId};
 
 use crate::governor::TabState;
@@ -132,10 +134,15 @@ impl Tab {
     }
 
     pub fn title(&self) -> String {
+        self.title_in(Lang::default())
+    }
+
+    /// 見出し。題名がなければ URL から作り、URL もなければ「新しいタブ」（`lang` の言語）。
+    pub fn title_in(&self, lang: Lang) -> String {
         match (&self.title, self.session.current()) {
             (Some(title), _) => title.clone(),
             (None, Some(url)) => short_label(url),
-            (None, None) => "新しいタブ".to_owned(),
+            (None, None) => Ui::NewTab.t(lang).to_owned(),
         }
     }
 

@@ -261,6 +261,7 @@ impl ContentEngine {
             forms::build_submission(&page.document(), page.url(), form, submitter)
         };
         let Some(submission) = submission else { return };
+        self.report_login(id, form);
         self.blur(id);
         self.out.push(FromContent::Navigate {
             tab: id,
@@ -289,7 +290,7 @@ impl ContentEngine {
     }
 
     /// DOM を変更し、次の描画前に（まとめて1回）再レイアウトさせる。
-    fn edit(&mut self, id: TabId, edit: impl FnOnce(&mut Document)) {
+    pub(crate) fn edit(&mut self, id: TabId, edit: impl FnOnce(&mut Document)) {
         let Some(tab) = self.tabs.get_mut(&id) else {
             return;
         };

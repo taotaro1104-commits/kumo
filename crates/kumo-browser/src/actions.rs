@@ -21,6 +21,9 @@ impl Browser {
             ChromeAction::ToggleBookmark => self.toggle_bookmark(),
             ChromeAction::ShowBookmarks => self.show_bookmarks(),
             ChromeAction::Home => self.go_home(),
+            ChromeAction::SaveLogin => self.save_pending_login(),
+            ChromeAction::DismissLogin => self.dismiss_login_prompt(),
+            ChromeAction::NeverSaveLogin => self.never_save_pending_login(),
         }
     }
 
@@ -60,7 +63,11 @@ impl Browser {
         if url.scheme() != "kumo" {
             return false;
         }
-        if index == self.active && (self.remove_bookmark_link(url) || self.save_home_link(url)) {
+        if index == self.active
+            && (self.remove_bookmark_link(url)
+                || self.save_home_link(url)
+                || self.password_link(url))
+        {
             return true;
         }
         if index == self.active {

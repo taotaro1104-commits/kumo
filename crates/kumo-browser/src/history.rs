@@ -62,6 +62,8 @@ impl HistoryDb {
         txn.open_table(VISITS).map_err(err)?;
         txn.open_table(crate::bookmarks::BOOKMARKS).map_err(err)?;
         txn.open_table(crate::settings::SETTINGS).map_err(err)?;
+        txn.open_table(crate::logins::LOGINS).map_err(err)?;
+        txn.open_table(crate::logins::NEVER_SAVE).map_err(err)?;
         txn.commit().map_err(err)?;
         Ok(Self { db })
     }

@@ -105,6 +105,9 @@ fn run(args: Args) -> Result<(), String> {
     if args.no_images {
         browser.set_images(false, false);
     }
+    if let Some(lang) = args.lang {
+        browser.set_language(lang, false);
+    }
     if let Some(level) = args.load_level {
         browser.set_load_level(level, false);
     }

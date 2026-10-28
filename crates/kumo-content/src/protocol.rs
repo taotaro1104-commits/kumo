@@ -43,6 +43,8 @@ pub enum ToContent {
     Settings {
         javascript: bool,
     },
+    /// 表示言語（以後に作るエラーページから効く）
+    Language(crate::i18n::Lang),
     /// 画像を読み込むか（以後に始める読み込みから効く）
     Images(bool),
     /// 読み込みの負荷レベル（以後に始める読み込みから効く）
@@ -118,6 +120,13 @@ pub enum ToContent {
         tab: TabId,
         code: String,
     },
+    /// 保存したログイン情報をページに入れる（ページがまだ `url` のときだけ）
+    Autofill {
+        tab: TabId,
+        url: String,
+        username: String,
+        password: String,
+    },
     Shutdown,
 }
 
@@ -156,6 +165,13 @@ pub enum FromContent {
         url: String,
         post_body: Option<Vec<u8>>,
         new_tab: bool,
+    },
+    /// ログインのフォームを送信した（`url` は送信したページ）。保存を確かめるのは Browser
+    LoginSubmitted {
+        tab: TabId,
+        url: String,
+        username: String,
+        password: String,
     },
     /// 入力欄へのフォーカスが変わった（キー入力の振り分け用）
     FieldFocus {

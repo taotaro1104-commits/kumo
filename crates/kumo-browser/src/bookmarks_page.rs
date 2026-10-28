@@ -1,6 +1,7 @@
 //! `about:bookmarks`：ブックマークの一覧ページ。削除は `kumo:unbookmark?u=URL` のリンクで行う。
 
-use kumo_content::escape;
+use kumo_content::i18n::pages::Pg;
+use kumo_content::{Lang, escape};
 use url::form_urlencoded;
 
 use crate::bookmarks::Bookmark;
@@ -24,14 +25,16 @@ a.rm { flex: none; padding: 4px 10px; border-radius: 12px; color: #b3261e; font-
          border: 1px dashed #d5d9de; border-radius: 12px; }
 ";
 
-pub fn bookmarks_html(list: &[Bookmark]) -> String {
+pub fn bookmarks_html(list: &[Bookmark], lang: Lang) -> String {
+    let title = Pg::Bookmarks.t(lang);
     let mut html = format!(
-        "<html><head><title>ブックマーク</title><style>{CSS}</style></head><body><div class=wrap><h1>ブックマーク</h1>"
+        "<html><head><title>{title}</title><style>{CSS}</style></head><body><div class=wrap><h1>{title}</h1>"
     );
     if list.is_empty() {
-        html.push_str(
-            "<div class=empty>まだありません。ページを開いて Ctrl+D（または ☆）で追加できます。</div>",
-        );
+        html.push_str(&format!(
+            "<div class=empty>{}</div>",
+            Pg::BookmarksEmpty.t(lang)
+        ));
     } else {
         html.push_str("<div class=box>");
         for b in list {
@@ -43,9 +46,10 @@ pub fn bookmarks_html(list: &[Bookmark]) -> String {
             let enc: String = form_urlencoded::byte_serialize(b.url.as_bytes()).collect();
             html.push_str(&format!(
                 "<div class=row><div class=main><a class=t href='{url}'>{title}</a><div class=u>{url}</div></div>\
-                 <a class=rm href='{UNBOOKMARK_PREFIX}{enc}'>削除</a></div>",
+                 <a class=rm href='{UNBOOKMARK_PREFIX}{enc}'>{delete}</a></div>",
                 url = escape(&b.url),
                 title = escape(title),
+                delete = Pg::Delete.t(lang),
             ));
         }
         html.push_str("</div>");
@@ -60,18 +64,21 @@ mod tests {
 
     #[test]
     fn lists_escaped_entries_with_remove_links() {
-        let html = bookmarks_html(&[
-            Bookmark {
-                url: "https://a.example/?q=1&r=<2>".into(),
-                title: "A <b>".into(),
-                added: 1,
-            },
-            Bookmark {
-                url: "https://b.example/".into(),
-                title: String::new(),
-                added: 0,
-            },
-        ]);
+        let html = bookmarks_html(
+            &[
+                Bookmark {
+                    url: "https://a.example/?q=1&r=<2>".into(),
+                    title: "A <b>".into(),
+                    added: 1,
+                },
+                Bookmark {
+                    url: "https://b.example/".into(),
+                    title: String::new(),
+                    added: 0,
+                },
+            ],
+            Lang::Ja,
+        );
         assert!(html.contains("A &lt;b&gt;"));
         assert!(!html.contains("<b>"));
         assert!(html.contains("kumo:unbookmark?u=https%3A%2F%2Fb.example%2F"));
@@ -80,6 +87,7 @@ mod tests {
 
     #[test]
     fn empty_state_guides() {
-        assert!(bookmarks_html(&[]).contains("Ctrl+D"));
+        assert!(bookmarks_html(&[], Lang::Ja).contains("Ctrl+D"));
+        assert!(bookmarks_html(&[], Lang::Es).contains("Aún no hay"));
     }
 }

@@ -1,6 +1,8 @@
 //! `about:memory`：メモリの使用量と各タブの状態（凍結・破棄）を一覧するページ。開いた時点の値で、再読み込みで更新する。
 
-use kumo_content::escape;
+use kumo_content::i18n::{fill, pages::Pg};
+use kumo_content::{Lang, escape};
+use kumo_mem::Pressure;
 
 use crate::governor::{Policy, TabState};
 
@@ -11,7 +13,7 @@ pub struct MemoryReport {
     pub browser_bytes: u64,
     pub content_bytes: u64,
     pub policy: Policy,
-    pub pressure: &'static str,
+    pub pressure: Pressure,
     pub tabs: Vec<TabRow>,
     pub frozen_total: u32,
     pub discarded_total: u32,
@@ -52,43 +54,57 @@ fn row(key: &str, value: &str) -> String {
     format!("<div class=row><span class=k>{key}</span><span class=v>{value}</span></div>")
 }
 
-pub fn memory_html(report: &MemoryReport) -> String {
+pub fn memory_html(report: &MemoryReport, lang: Lang) -> String {
+    let t = |m: Pg| m.t(lang);
     let total = report.browser_bytes + report.content_bytes;
+    let seconds = |n: u64| fill(t(Pg::Seconds), &[&n.to_string()]);
+    let pressure = match report.pressure {
+        Pressure::None => Pg::PressureNone,
+        Pressure::Moderate => Pg::PressureModerate,
+        Pressure::Critical => Pg::PressureCritical,
+    };
     let mut html = format!(
-        "<html><head><title>メモリ</title><style>{CSS}</style></head><body><div class=wrap><h1>メモリ</h1>"
+        "<html><head><title>{0}</title><style>{CSS}</style></head><body><div class=wrap><h1>{0}</h1>",
+        t(Pg::MemoryTitle)
     );
-    html.push_str("<h2>使用量</h2><div class=box>");
-    html.push_str(&row("Browser プロセス", &mb(report.browser_bytes)));
-    html.push_str(&row("Content プロセス", &mb(report.content_bytes)));
-    html.push_str(&row("合計（予算の対象）", &mb(total)));
-    html.push_str(&row("予算", &mb(report.policy.budget)));
-    html.push_str(&row("OS のメモリ圧迫", report.pressure));
-    html.push_str("</div><h2>方針</h2><div class=box>");
+    html.push_str(&format!("<h2>{}</h2><div class=box>", t(Pg::Usage)));
+    html.push_str(&row(t(Pg::BrowserProcess), &mb(report.browser_bytes)));
+    html.push_str(&row(t(Pg::ContentProcess), &mb(report.content_bytes)));
+    html.push_str(&row(t(Pg::Total), &mb(total)));
+    html.push_str(&row(t(Pg::Budget), &mb(report.policy.budget)));
+    html.push_str(&row(t(Pg::Pressure), t(pressure)));
+    html.push_str(&format!("</div><h2>{}</h2><div class=box>", t(Pg::Policy)));
     html.push_str(&row(
-        "背景に回って凍結するまで",
-        &format!("{} 秒", report.policy.freeze_after.as_secs()),
+        t(Pg::FreezeAfter),
+        &seconds(report.policy.freeze_after.as_secs()),
     ));
     html.push_str(&row(
-        "見なくなって破棄するまで",
-        &format!("{} 秒", report.policy.discard_after.as_secs()),
+        t(Pg::DiscardAfter),
+        &seconds(report.policy.discard_after.as_secs()),
     ));
     html.push_str(&row(
-        "これまでの降格",
-        &format!(
-            "凍結 {} 回 / 破棄 {} 回",
-            report.frozen_total, report.discarded_total
+        t(Pg::Demotions),
+        &fill(
+            t(Pg::DemotionCount),
+            &[
+                &report.frozen_total.to_string(),
+                &report.discarded_total.to_string(),
+            ],
         ),
     ));
-    html.push_str("</div><h2>タブ</h2><div class=box>");
+    html.push_str(&format!(
+        "</div><h2>{}</h2><div class=box>",
+        t(Pg::TabsTitle)
+    ));
     for tab in &report.tabs {
         let state = tab.state.label();
-        let marker = if tab.active { "（表示中）" } else { "" };
+        let marker = if tab.active { t(Pg::Showing) } else { "" };
         html.push_str(&format!(
-            "<div class=row><span class=t>{}{marker}<br><span class=u>{} ・ {} 秒前</span></span>\
+            "<div class=row><span class=t>{}{marker}<br><span class=u>{} ・ {}</span></span>\
              <span class='st {state}'>{state}</span></div>",
             escape(&tab.title),
             escape(&tab.url),
-            tab.idle_secs
+            fill(t(Pg::SecondsAgo), &[&tab.idle_secs.to_string()])
         ));
     }
     html.push_str("</div></div></body></html>");
@@ -104,7 +120,7 @@ mod tests {
             browser_bytes: 8 * 1024 * 1024,
             content_bytes: 40 * 1024 * 1024,
             policy: Policy::default(),
-            pressure: "なし",
+            pressure: Pressure::None,
             tabs: vec![
                 TabRow {
                     title: "<b>x</b>".into(),
@@ -128,7 +144,7 @@ mod tests {
 
     #[test]
     fn shows_totals_budget_and_states() {
-        let html = memory_html(&report());
+        let html = memory_html(&report(), Lang::Ja);
         assert!(html.contains("48.0 MB"), "合計");
         assert!(html.contains("200.0 MB"), "予算");
         assert!(html.contains("class='st frozen'>frozen"));
@@ -138,8 +154,16 @@ mod tests {
 
     #[test]
     fn escapes_page_titles() {
-        let html = memory_html(&report());
+        let html = memory_html(&report(), Lang::Ja);
         assert!(html.contains("&lt;b&gt;x&lt;/b&gt;"));
         assert!(!html.contains("<b>x</b>"));
+    }
+
+    #[test]
+    fn labels_follow_the_chosen_language() {
+        let html = memory_html(&report(), Lang::En);
+        assert!(html.contains("Browser process") && html.contains("Frozen 3 / discarded 1"));
+        assert!(html.contains("90 s ago") && html.contains("(showing)"));
+        assert!(!html.contains("凍結"));
     }
 }

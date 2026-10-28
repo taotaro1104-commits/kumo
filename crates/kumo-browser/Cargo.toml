@@ -14,6 +14,13 @@ percent-encoding = "2"
 redb = "4"
 serde = { version = "1", features = ["derive"] }
 postcard = { version = "1", features = ["use-std"] }
+chacha20poly1305 = "0.11"
+getrandom = "0.4"
+
+# 暗号鍵は OS の資格情報ストアに置く（いまは Windows の資格情報マネージャ）
+[target.'cfg(windows)'.dependencies]
+keyring-core = "1"
+windows-native-keyring-store = { version = "1", default-features = false }
 
 [lints]
 workspace = true

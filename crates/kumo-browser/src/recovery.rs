@@ -62,6 +62,7 @@ impl Browser {
             javascript: self.javascript,
         });
         self.send_load_level();
+        self.send_language();
         self.send_images();
         for index in 0..self.tabs.len() {
             let tab = &mut self.tabs[index];

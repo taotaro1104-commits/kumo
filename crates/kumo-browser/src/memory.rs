@@ -148,22 +148,17 @@ impl Browser {
     /// `about:memory` に出す数値。
     pub(crate) fn memory_report(&self) -> MemoryReport {
         let now = Instant::now();
-        let pressure = match kumo_mem::memory_pressure() {
-            Pressure::None => "なし",
-            Pressure::Moderate => "中（背景のタブを凍結）",
-            Pressure::Critical => "危険（背景のタブを破棄）",
-        };
         MemoryReport {
             browser_bytes: kumo_mem::process_memory().map_or(0, |m| m.primary as u64),
             content_bytes: self.memory.content_bytes,
             policy: self.memory.policy,
-            pressure,
+            pressure: kumo_mem::memory_pressure(),
             tabs: self
                 .tabs
                 .iter()
                 .enumerate()
                 .map(|(i, t)| TabRow {
-                    title: t.title(),
+                    title: t.title_in(self.lang),
                     url: t.url().map(ToString::to_string).unwrap_or_default(),
                     state: t.state,
                     active: i == self.active,

@@ -60,11 +60,12 @@ fn new_tab_page_lists_frequent_sites() {
         &HistoryDb::open(&site.dir.join("h2.redb"))
             .unwrap()
             .search("", 8),
+        kumo_content::Lang::Ja,
     );
     assert!(html.contains("まだ履歴がありません"), "履歴がなければ案内");
     drop(b);
     let history = HistoryDb::open(&history_path).unwrap();
-    let html = kumo_browser::new_tab_html(&history.search("", 8));
+    let html = kumo_browser::new_tab_html(&history.search("", 8), kumo_content::Lang::Ja);
     assert!(html.contains("Page A") && html.contains(&site.url("a.html").to_string()));
 }
 
@@ -280,4 +281,37 @@ fn images_setting_is_chosen_on_the_settings_page_and_persists() {
     assert!(!b.images_enabled(), "再起動後も残る");
     b.set_images(true, false);
     assert!(b.images_enabled());
+}
+
+#[test]
+fn language_is_chosen_on_the_settings_page_and_changes_the_screens() {
+    use kumo_browser::Lang;
+    let site = Site::new("lang");
+    let path = site.dir.join("history.redb");
+    let mut b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert_eq!(b.language(), Lang::Ja, "既定は日本語");
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    b.follow_link("kumo:setlang?c=en", false);
+    assert_eq!(b.language(), Lang::Ja, "設定ページ以外からは変えられない");
+    b.show_settings();
+    settle(&mut b);
+    assert_eq!(title(&b), "設定");
+    b.follow_link("kumo:setlang?c=en", false);
+    settle(&mut b);
+    assert_eq!(b.language(), Lang::En);
+    assert_eq!(title(&b), "Settings", "開いている設定ページも作り直す");
+    b.follow_link("kumo:setlang?c=xx", false);
+    assert_eq!(b.language(), Lang::En, "不明な言語は無視");
+    // 新しいタブの題名・UI・エラーページも新しい言語になる
+    b.open_tab(None, true);
+    settle(&mut b);
+    assert_eq!(title(&b), "New tab");
+    b.open_tab(Some(site.url("missing.html")), true);
+    settle(&mut b);
+    assert_eq!(title(&b), "Can't load the page");
+    drop(b);
+    // 再起動後も残る
+    let b = browser(Some(HistoryDb::open(&path).unwrap()));
+    assert_eq!(b.language(), Lang::En);
 }

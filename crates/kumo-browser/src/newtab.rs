@@ -1,7 +1,8 @@
 //! 新しいタブのページ：何をすればよいかの案内と、よく見るページのカード。
 
-use kumo_content::escape;
+use kumo_content::i18n::pages::Pg;
 use kumo_content::protocol::{TabId, ToContent};
+use kumo_content::{Lang, escape};
 use url::Url;
 
 use crate::about_memory::ABOUT_MEMORY_URL;
@@ -40,16 +41,18 @@ h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #4a5058; }
 ";
 
 /// 使い方の早見（キーと説明）。
-const SHORTCUTS: [(&str, &str); 8] = [
-    ("Alt+Home", "ホームへ"),
-    ("Ctrl+D", "ブックマーク"),
-    ("Ctrl+B", "ブックマーク一覧"),
-    ("Ctrl+L", "URL 欄へ"),
-    ("Ctrl+T", "新しいタブ"),
-    ("Ctrl+W", "タブを閉じる"),
-    ("Alt+←", "戻る"),
-    ("Ctrl+クリック", "リンクを背景のタブで開く"),
-];
+fn shortcuts(lang: Lang) -> [(&'static str, &'static str); 8] {
+    [
+        ("Alt+Home", Pg::KeyHome.t(lang)),
+        ("Ctrl+D", Pg::KeyBookmark.t(lang)),
+        ("Ctrl+B", Pg::KeyBookmarks.t(lang)),
+        ("Ctrl+L", Pg::KeyUrlBar.t(lang)),
+        ("Ctrl+T", Pg::KeyNewTab.t(lang)),
+        ("Ctrl+W", Pg::KeyCloseTab.t(lang)),
+        ("Alt+←", Pg::KeyBack.t(lang)),
+        (Pg::KeyClickLabel.t(lang), Pg::KeyClick.t(lang)),
+    ]
+}
 
 /// カードの題名の幅（半角1・全角2で数える）。CSS の text-overflow は使えないので先に切る。
 const CARD_TITLE_WIDTH: usize = 19;
@@ -97,11 +100,15 @@ fn card(entry: &HistoryEntry) -> String {
 }
 
 /// 新しいタブのページの HTML。`frequent` はよく見るページ（多い順）。
-pub fn new_tab_html(frequent: &[HistoryEntry]) -> String {
+pub fn new_tab_html(frequent: &[HistoryEntry], lang: Lang) -> String {
+    let t = |m: Pg| m.t(lang);
     let mut html = format!(
-        "<html><head><title>新しいタブ</title><style>{CSS}</style></head><body><div class=wrap>\
-         <h1>Kumo</h1><div class=lead><span>上の欄に URL か調べたい言葉を入力してください</span><span class=key>Ctrl+L</span></div>\
-         <h2>よく見るページ</h2>"
+        "<html><head><title>{}</title><style>{CSS}</style></head><body><div class=wrap>\
+         <h1>Kumo</h1><div class=lead><span>{}</span><span class=key>Ctrl+L</span></div>\
+         <h2>{}</h2>",
+        t(Pg::NewTab),
+        t(Pg::Lead),
+        t(Pg::Frequent)
     );
     let cards: Vec<String> = frequent
         .iter()
@@ -110,23 +117,27 @@ pub fn new_tab_html(frequent: &[HistoryEntry]) -> String {
         .map(card)
         .collect();
     if cards.is_empty() {
-        html.push_str(
-            "<div class=empty>まだ履歴がありません。開いたページがここに並びます。</div>",
-        );
+        html.push_str(&format!("<div class=empty>{}</div>", t(Pg::NoHistory)));
     } else {
         html.push_str("<div class=grid>");
         html.push_str(&cards.concat());
         html.push_str("</div>");
     }
     html.push_str("<div class=keys>");
-    for (key, label) in SHORTCUTS {
+    for (key, label) in shortcuts(lang) {
         html.push_str(&format!(
             "<span class=k><span class=key>{key}</span><span>{label}</span></span>"
         ));
     }
-    html.push_str(
-        "</div><div class=keys><a class=set href='about:settings'>設定</a>         <a class=set href='about:bookmarks'>ブックマーク</a>         <a class=set href='about:memory'>メモリ</a></div></div></body></html>",
-    );
+    html.push_str(&format!(
+        "</div><div class=keys><a class=set href='about:settings'>{}</a> \
+         <a class=set href='about:bookmarks'>{}</a> <a class=set href='about:passwords'>{}</a> \
+         <a class=set href='about:memory'>{}</a></div></div></body></html>",
+        t(Pg::Settings),
+        t(Pg::Bookmarks),
+        t(Pg::Passwords),
+        t(Pg::Memory)
+    ));
     html
 }
 
@@ -149,7 +160,7 @@ impl Browser {
                 tab,
                 nav,
                 url: url.to_string(),
-                html: new_tab_html(&frequent),
+                html: new_tab_html(&frequent, self.lang),
             };
         }
         if url.as_str() == SETTINGS_URL {
@@ -162,7 +173,21 @@ impl Browser {
                 tab,
                 nav,
                 url: url.to_string(),
-                html: crate::settings_page::settings_html(&home, self.load_level, self.images),
+                html: crate::settings_page::settings_html(
+                    &home,
+                    self.load_level,
+                    self.images,
+                    self.passwords,
+                    self.lang,
+                ),
+            };
+        }
+        if url.as_str() == crate::passwords_page::PASSWORDS_URL {
+            return ToContent::LoadHtml {
+                tab,
+                nav,
+                url: url.to_string(),
+                html: self.passwords_html(),
             };
         }
         if url.as_str() == BOOKMARKS_URL {
@@ -175,7 +200,7 @@ impl Browser {
                 tab,
                 nav,
                 url: url.to_string(),
-                html: crate::bookmarks_page::bookmarks_html(&list),
+                html: crate::bookmarks_page::bookmarks_html(&list, self.lang),
             };
         }
         if url.as_str() == ABOUT_MEMORY_URL {
@@ -183,7 +208,7 @@ impl Browser {
                 tab,
                 nav,
                 url: url.to_string(),
-                html: crate::about_memory::memory_html(&self.memory_report()),
+                html: crate::about_memory::memory_html(&self.memory_report(), self.lang),
             };
         }
         ToContent::Load {
@@ -213,11 +238,14 @@ mod tests {
 
     #[test]
     fn cards_show_title_domain_and_initial() {
-        let html = new_tab_html(&[
-            entry("https://www.rust-lang.org/learn", "Learn <Rust>"),
-            entry("https://example.com/", ""),
-            entry("about:blank", "skip"),
-        ]);
+        let html = new_tab_html(
+            &[
+                entry("https://www.rust-lang.org/learn", "Learn <Rust>"),
+                entry("https://example.com/", ""),
+                entry("about:blank", "skip"),
+            ],
+            Lang::Ja,
+        );
         assert!(html.contains("<div class=ic>R</div>"), "ドメインの頭文字");
         assert!(html.contains("Learn &lt;Rust&gt;"));
         assert!(html.contains("<div class=u>rust-lang.org</div>"));
@@ -227,6 +255,15 @@ mod tests {
         );
         assert!(!html.contains("skip"), "about: は並べない");
         assert!(html.contains("Ctrl+T"));
+    }
+
+    #[test]
+    fn the_page_follows_the_chosen_language() {
+        let en = new_tab_html(&[], Lang::En);
+        assert!(en.contains("<title>New tab</title>") && en.contains("No history yet"));
+        assert!(en.contains(">Settings<") && en.contains("Ctrl+click"));
+        let zh = new_tab_html(&[], Lang::Zh);
+        assert!(zh.contains("新标签页") && !zh.contains("まだ履歴"));
     }
 
     #[test]
@@ -245,7 +282,7 @@ mod tests {
             .map(|i| entry(&format!("https://s{i}.example/"), "x"))
             .collect();
         assert_eq!(
-            new_tab_html(&many).matches("class=card").count(),
+            new_tab_html(&many, Lang::Ja).matches("class=card").count(),
             FREQUENT_SITES
         );
     }

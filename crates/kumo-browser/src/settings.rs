@@ -8,6 +8,8 @@ pub(crate) const SETTINGS: TableDefinition<&str, &str> = TableDefinition::new("s
 const HOME_KEY: &str = "home";
 const LEVEL_KEY: &str = "load_level";
 const IMAGES_KEY: &str = "images";
+const PASSWORDS_KEY: &str = "passwords";
+const LANGUAGE_KEY: &str = "language";
 
 impl HistoryDb {
     fn setting(&self, key: &str) -> Option<String> {
@@ -47,6 +49,24 @@ impl HistoryDb {
         self.set_setting(IMAGES_KEY, Some(if on { "on" } else { "off" }))
     }
 
+    /// パスワードを保存・自動入力するか（未設定なら使う）。
+    pub fn passwords_enabled(&self) -> bool {
+        self.setting(PASSWORDS_KEY).is_none_or(|v| v != "off")
+    }
+
+    pub fn set_passwords_enabled(&self, on: bool) -> Result<(), HistoryError> {
+        self.set_setting(PASSWORDS_KEY, Some(if on { "on" } else { "off" }))
+    }
+
+    /// 保存した表示言語（未設定・不明なら `None`）。
+    pub fn language(&self) -> Option<kumo_content::Lang> {
+        kumo_content::Lang::from_code(&self.setting(LANGUAGE_KEY)?)
+    }
+
+    pub fn set_language(&self, lang: kumo_content::Lang) -> Result<(), HistoryError> {
+        self.set_setting(LANGUAGE_KEY, Some(lang.code()))
+    }
+
     /// 設定したホーム URL（未設定なら `None`）。
     pub fn home_url(&self) -> Option<String> {
         self.setting(HOME_KEY).filter(|u| !u.is_empty())
@@ -77,6 +97,9 @@ mod tests {
         assert_eq!(db.home_url().as_deref(), Some("https://a.example/"));
         assert_eq!(db.load_level_number(), Some(5));
         assert!(db.images_enabled(), "既定は読み込む");
+        assert_eq!(db.language(), None);
+        db.set_language(kumo_content::Lang::Ko).unwrap();
+        assert_eq!(db.language(), Some(kumo_content::Lang::Ko));
         db.set_images_enabled(false).unwrap();
         assert!(!db.images_enabled());
         db.set_home_url(None).unwrap();

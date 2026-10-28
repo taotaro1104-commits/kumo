@@ -57,6 +57,8 @@ pub struct ContentEngine {
     pub(crate) level: crate::LoadLevel,
     /// 画像を読み込むか（設定）
     images: bool,
+    /// エラーページの言語
+    lang: crate::i18n::Lang,
     pub(crate) private_bytes: fn() -> u64,
 }
 
@@ -75,6 +77,7 @@ impl ContentEngine {
             javascript: true,
             level: crate::LoadLevel::default(),
             images: true,
+            lang: crate::i18n::Lang::default(),
             private_bytes,
         }
     }
@@ -121,6 +124,7 @@ impl ContentEngine {
                 self.level = level;
                 self.apply_images();
             }
+            ToContent::Language(lang) => self.lang = lang,
             ToContent::Images(on) => {
                 self.images = on;
                 self.apply_images();
@@ -175,6 +179,12 @@ impl ContentEngine {
                 let result = self.eval(tab, &code);
                 self.out.push(FromContent::EvalResult { id, result });
             }
+            ToContent::Autofill {
+                tab,
+                url,
+                username,
+                password,
+            } => self.autofill(tab, &url, &username, &password),
             ToContent::Shutdown => {}
         }
     }
@@ -273,7 +283,7 @@ impl ContentEngine {
     }
 
     fn error_page(&mut self, url: &str, error: &FetchError) -> Page {
-        let html = crate::error_page::error_html(url, error);
+        let html = crate::error_page::error_html(self.lang, url, error);
         let base =
             Url::parse(url).unwrap_or_else(|_| Url::parse("about:blank").expect("固定の URL"));
         Page::from_html(&html, base, &mut self.services, as_f32(self.viewport))

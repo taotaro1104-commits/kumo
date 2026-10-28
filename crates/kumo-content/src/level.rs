@@ -8,6 +8,8 @@
 //! | 4 | 高負荷 | 同上 | 2 倍 |
 //! | 5 | 最大 | 同上、スクリプトの数も 2 倍 | 4 倍 |
 
+use crate::i18n::Lang;
+use crate::i18n::pages::Pg;
 use kumo_js::ScriptLimits;
 use serde::{Deserialize, Serialize};
 
@@ -45,26 +47,26 @@ impl LoadLevel {
         }
     }
 
-    pub fn label(self) -> &'static str {
+    pub fn label(self, lang: Lang) -> &'static str {
         match self {
-            Self::Minimal => "最軽量",
-            Self::Light => "軽量",
-            Self::Standard => "標準",
-            Self::Heavy => "高負荷",
-            Self::Maximum => "最大",
+            Self::Minimal => Pg::Level1,
+            Self::Light => Pg::Level2,
+            Self::Standard => Pg::Level3,
+            Self::Heavy => Pg::Level4,
+            Self::Maximum => Pg::Level5,
         }
+        .t(lang)
     }
 
-    pub fn description(self) -> &'static str {
+    pub fn description(self, lang: Lang) -> &'static str {
         match self {
-            Self::Minimal => {
-                "HTML と埋め込みの CSS だけ。外部の CSS・画像・スクリプトは取得しません"
-            }
-            Self::Light => "外部の CSS まで取得します。画像とスクリプトは使いません",
-            Self::Standard => "画像とスクリプトも使います（既定）",
-            Self::Heavy => "スクリプトの大きさ・実行時間の予算を 2 倍にします",
-            Self::Maximum => "予算を 4 倍にし、取得するスクリプトの数も増やします",
+            Self::Minimal => Pg::Level1Hint,
+            Self::Light => Pg::Level2Hint,
+            Self::Standard => Pg::Level3Hint,
+            Self::Heavy => Pg::Level4Hint,
+            Self::Maximum => Pg::Level5Hint,
         }
+        .t(lang)
     }
 
     /// 外部スタイルシートを取得するか。

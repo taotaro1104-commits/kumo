@@ -2,33 +2,33 @@
 
 use kumo_net::protocol::FetchError;
 
+use crate::i18n::errors::Er;
+use crate::i18n::{Lang, fill};
 use crate::page::escape;
 
-/// エラーの見出しと、次にすること。
+/// エラーの見出しと、次にすること（日本語）。
 pub fn describe_error(error: &FetchError) -> (&'static str, &'static str) {
+    describe_error_in(Lang::Ja, error)
+}
+
+/// エラーの見出しと、次にすること。
+pub fn describe_error_in(lang: Lang, error: &FetchError) -> (&'static str, &'static str) {
+    let (head, hint) = classify(error);
+    (head.t(lang), hint.t(lang))
+}
+
+fn classify(error: &FetchError) -> (Er, Er) {
     match error {
-        FetchError::Blocked => (
-            "このページはブロックされました",
-            "コンテンツブロックのフィルタに一致したため、読み込みませんでした。",
-        ),
-        FetchError::BadUrl(_) => (
-            "URL が正しくありません",
-            "アドレスの綴りを確認してください。",
-        ),
-        FetchError::UnsupportedScheme(_) => (
-            "この種類のアドレスは開けません",
-            "Kumo が開けるのは http・https・file のページです。",
-        ),
-        FetchError::TooLarge => ("ページが大きすぎます", "32MB を超えるページは開けません。"),
-        FetchError::Disconnected => (
-            "通信を担当するプロセスが止まりました",
-            "ブラウザを起動し直してください。",
-        ),
-        FetchError::Network(message) => describe_network(message),
+        FetchError::Blocked => (Er::BlockedHead, Er::BlockedHint),
+        FetchError::BadUrl(_) => (Er::BadUrlHead, Er::BadUrlHint),
+        FetchError::UnsupportedScheme(_) => (Er::SchemeHead, Er::SchemeHint),
+        FetchError::TooLarge => (Er::TooLargeHead, Er::TooLargeHint),
+        FetchError::Disconnected => (Er::DisconnectedHead, Er::DisconnectedHint),
+        FetchError::Network(message) => classify_network(message),
     }
 }
 
-fn describe_network(message: &str) -> (&'static str, &'static str) {
+fn classify_network(message: &str) -> (Er, Er) {
     let m = message.to_lowercase();
     let has = |words: &[&str]| words.iter().any(|w| m.contains(w));
     if has(&[
@@ -37,10 +37,7 @@ fn describe_network(message: &str) -> (&'static str, &'static str) {
         "no such file",
         "見つかりません",
     ]) {
-        (
-            "ファイルが見つかりません",
-            "パスが正しいか、ファイルが移動・削除されていないか確認してください。",
-        )
+        (Er::FileMissingHead, Er::FileMissingHint)
     } else if has(&[
         "lookup",
         "resolve",
@@ -49,30 +46,15 @@ fn describe_network(message: &str) -> (&'static str, &'static str) {
         "os error 11001",
         "name or service",
     ]) {
-        (
-            "サーバーが見つかりません",
-            "アドレスの綴りと、インターネットへの接続を確認してください。",
-        )
+        (Er::HostMissingHead, Er::HostMissingHint)
     } else if has(&["timed out", "timeout"]) {
-        (
-            "応答がありません",
-            "サーバーが混んでいる可能性があります。時間をおいて再読み込みしてください。",
-        )
+        (Er::TimeoutHead, Er::TimeoutHint)
     } else if has(&["refused", "os error 10061", "os error 111)"]) {
-        (
-            "接続が拒否されました",
-            "サーバーが動いていないか、接続を受け付けていません。",
-        )
+        (Er::RefusedHead, Er::RefusedHint)
     } else if has(&["certificate", "tls", "handshake"]) {
-        (
-            "安全な接続を確立できません",
-            "サーバーの証明書に問題があるため、安全のため読み込みを中止しました。",
-        )
+        (Er::TlsHead, Er::TlsHint)
     } else {
-        (
-            "ページを読み込めませんでした",
-            "インターネットへの接続を確認して、再読み込みしてください。",
-        )
+        (Er::OtherHead, Er::OtherHint)
     }
 }
 
@@ -94,18 +76,21 @@ h1 { margin: 20px 0 8px; font-size: 22px; font-weight: 600; }
 .detail { margin-top: 24px; color: #80868b; font-size: 12px; }
 ";
 
-/// エラーページの HTML。題名は「読み込めません」（タブの見出しになる）。
-pub fn error_html(url: &str, error: &FetchError) -> String {
-    let (headline, hint) = describe_error(error);
+/// エラーページの HTML。題名（「読み込めません」）はタブの見出しになる。
+pub fn error_html(lang: Lang, url: &str, error: &FetchError) -> String {
+    let (headline, hint) = describe_error_in(lang, error);
     format!(
-        "<html><head><title>読み込めません</title><style>{CSS}</style></head><body><div class=card>\
+        "<html><head><title>{}</title><style>{CSS}</style></head><body><div class=card>\
          <div class=icon>!</div><h1>{headline}</h1><p class=hint>{hint}</p>\
          <div class=url>{}</div>\
-         <div class=actions><a class='btn primary' href='kumo:reload'>再読み込み</a>\
-         <a class='btn secondary' href='kumo:back'>戻る</a></div>\
-         <div class=detail>詳細: {}</div></div></body></html>",
+         <div class=actions><a class='btn primary' href='kumo:reload'>{}</a>\
+         <a class='btn secondary' href='kumo:back'>{}</a></div>\
+         <div class=detail>{}</div></div></body></html>",
+        Er::PageTitle.t(lang),
         escape(url),
-        escape(&error.to_string())
+        Er::Reload.t(lang),
+        Er::Back.t(lang),
+        escape(&fill(Er::Detail.t(lang), &[&error.to_string()]))
     )
 }
 
@@ -116,6 +101,7 @@ mod tests {
     #[test]
     fn error_html_escapes_and_offers_actions() {
         let html = error_html(
+            Lang::Ja,
             "https://a.example/<x>",
             &FetchError::Network("<oops>".into()),
         );
@@ -135,7 +121,7 @@ mod tests {
                 .contains("プロセス")
         );
         assert_eq!(
-            describe_network("C:\\a.html: (os error 2)").0,
+            classify_network("C:\\a.html: (os error 2)").0.t(Lang::Ja),
             "ファイルが見つかりません"
         );
     }

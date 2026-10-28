@@ -1,5 +1,7 @@
 //! URL の見せ方：安全性の表示と、ドメインを強調した表記（URL 欄・リンク先の吹き出し・新しいタブで使う）。
 
+use kumo_content::Lang;
+use kumo_content::i18n::ui::Ui;
 use url::Url;
 
 /// 通信の安全性。
@@ -17,11 +19,11 @@ pub enum Security {
 
 impl Security {
     /// URL 欄の左に出す印と言葉、CSS のクラス。
-    pub fn chip(self) -> Option<(&'static str, &'static str)> {
+    pub fn chip(self, lang: Lang) -> Option<(&'static str, &'static str)> {
         match self {
             Self::Secure => Some(("secure", "🔒")),
-            Self::Insecure => Some(("insecure", "⚠ 保護されていない通信")),
-            Self::File => Some(("file", "🗋 ファイル")),
+            Self::Insecure => Some(("insecure", Ui::Insecure.t(lang))),
+            Self::File => Some(("file", Ui::File.t(lang))),
             Self::None => None,
         }
     }
@@ -126,7 +128,7 @@ mod tests {
         );
         assert!(
             Security::Insecure
-                .chip()
+                .chip(Lang::Ja)
                 .unwrap()
                 .1
                 .contains("保護されていない")
@@ -140,6 +142,6 @@ mod tests {
         assert!(file.rest.ends_with("a b.html"), "{}", file.rest);
         assert_eq!(format_url("about:blank").security, Security::None);
         assert_eq!(format_url("not a url").rest, "not a url");
-        assert_eq!(Security::None.chip(), None);
+        assert_eq!(Security::None.chip(Lang::Ja), None);
     }
 }

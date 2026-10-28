@@ -1,14 +1,15 @@
 //! ホーム URL：ホームボタン・起動時・設定ページからの保存。
 
-use kumo_content::LoadLevel;
 use kumo_content::protocol::ToContent;
+use kumo_content::{Lang, LoadLevel};
 use url::Url;
 
 use crate::browser::{Browser, Redraw};
 use crate::chrome::parse_input;
 use crate::history::HistoryDb;
 use crate::settings_page::{
-    HOME_FIELD, SET_HOME_ACTION, SET_IMAGES_ACTION, SET_LEVEL_ACTION, SETTINGS_URL,
+    HOME_FIELD, SET_HOME_ACTION, SET_IMAGES_ACTION, SET_LANGUAGE_ACTION, SET_LEVEL_ACTION,
+    SET_PASSWORDS_ACTION, SETTINGS_URL,
 };
 
 /// 保存済みの負荷レベル（なければ既定）。
@@ -53,6 +54,28 @@ impl Browser {
         self.content.send(ToContent::LoadLevel(self.load_level));
     }
 
+    /// 表示言語。
+    pub fn language(&self) -> Lang {
+        self.lang
+    }
+
+    pub(crate) fn send_language(&self) {
+        self.content.send(ToContent::Language(self.lang));
+    }
+
+    /// 表示言語を変える（開いている内部ページは作り直すまで前の言語のまま）。`save` なら次の起動でも使う。
+    pub fn set_language(&mut self, lang: Lang, save: bool) {
+        self.lang = lang;
+        self.send_language();
+        self.invalidate_chrome();
+        if save
+            && let Some(history) = &self.history
+            && let Err(e) = history.set_language(lang)
+        {
+            eprintln!("[settings] {e}");
+        }
+    }
+
     /// 画像を読み込む設定。
     pub fn images_enabled(&self) -> bool {
         self.images
@@ -91,7 +114,14 @@ impl Browser {
     pub(crate) fn save_home_link(&mut self, link: &Url) -> bool {
         let is_level = link.as_str().starts_with(SET_LEVEL_ACTION);
         let is_images = link.as_str().starts_with(SET_IMAGES_ACTION);
-        if !is_level && !is_images && !link.as_str().starts_with(SET_HOME_ACTION) {
+        let is_passwords = link.as_str().starts_with(SET_PASSWORDS_ACTION);
+        let is_language = link.as_str().starts_with(SET_LANGUAGE_ACTION);
+        if !is_level
+            && !is_images
+            && !is_passwords
+            && !is_language
+            && !link.as_str().starts_with(SET_HOME_ACTION)
+        {
             return false;
         }
         let on_settings = self
@@ -101,13 +131,28 @@ impl Browser {
         if !on_settings {
             return true; // 他のページからは操作させない
         }
-        if is_images {
+        if is_language {
+            let lang = link
+                .query_pairs()
+                .find(|(k, _)| k == "c")
+                .and_then(|(_, v)| Lang::from_code(&v));
+            if let Some(lang) = lang {
+                self.set_language(lang, true);
+                self.reload();
+            }
+            return true;
+        }
+        if is_images || is_passwords {
             let on = link
                 .query_pairs()
                 .find(|(k, _)| k == "on")
                 .map(|(_, v)| v == "1");
             if let Some(on) = on {
-                self.set_images(on, true);
+                if is_passwords {
+                    self.set_passwords_enabled(on, true);
+                } else {
+                    self.set_images(on, true);
+                }
                 self.reload();
             }
             return true;

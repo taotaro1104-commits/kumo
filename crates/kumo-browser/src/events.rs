@@ -48,6 +48,15 @@ impl Browser {
                 self.load(index, url, true, false, post_body);
                 self.invalidate_chrome()
             }
+            FromContent::LoginSubmitted {
+                tab,
+                url,
+                username,
+                password,
+            } => {
+                self.login_submitted(tab, &url, username, password);
+                Redraw::default()
+            }
             FromContent::FieldFocus { tab, focused } => {
                 if let Some(index) = self.tab_index(tab) {
                     self.tabs[index].field_focused = focused;
@@ -84,6 +93,7 @@ impl Browser {
     }
 
     fn loaded(&mut self, tab: u64, nav: u64, url: &str, title: String) -> Redraw {
+        let tab_id = tab;
         let Some(index) = self.tab_index(tab) else {
             return Redraw::default();
         };
@@ -109,6 +119,7 @@ impl Browser {
             tab.shown_url = Some(final_url);
         }
         tab.title = Some(title);
+        self.login_page_loaded(tab_id, url);
         self.restore_scroll(index);
         self.invalidate_chrome()
     }

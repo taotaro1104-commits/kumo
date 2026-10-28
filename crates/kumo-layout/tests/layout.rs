@@ -146,6 +146,31 @@ fn table_cells_form_grid_with_spans() {
 }
 
 #[test]
+fn percent_side_columns_keep_the_middle_cell_centered() {
+    // google.com の検索欄：25% / 自動 / 25% の表を <center> に置く
+    let html = "<center><table id=t><tr><td width=25%>&nbsp;</td>                <td id=m><div style='width:200px;height:10px'></div></td>                <td width=25% id=r>opt</td></tr></table></center>";
+    let laid = lay(
+        html,
+        "body { margin: 0 } table { border-spacing: 0 } td { padding: 0 }",
+    );
+    let (mx, _, mw, _) = rect(&laid, "m");
+    assert!(
+        ((mx + mw / 2.0) - W / 2.0).abs() < 1.0,
+        "中央の列は中央: x={mx} w={mw}"
+    );
+}
+
+#[test]
+fn table_directly_inside_center_is_centered() {
+    let laid = lay(
+        "<center><table id=t><tr><td>x</td></tr></table></center>",
+        "body { margin: 0 } td { padding: 0 }",
+    );
+    let (tx, _, tw, _) = rect(&laid, "t");
+    assert!(((tx + tw / 2.0) - W / 2.0).abs() < 1.0, "x={tx} w={tw}");
+}
+
+#[test]
 fn inline_block_and_image_are_atomic() {
     let html = "<p id=p>before <img id=i width=40 height=30> after <span id=s style='display:inline-block;width:50px;height:10px'></span></p>";
     let laid = lay(html, RESET);

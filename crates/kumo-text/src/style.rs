@@ -81,8 +81,10 @@ const GENERIC: [&str; 9] = [
     "ui-monospace",
 ];
 
-/// 記号用のフォールバックフォント（Windows・Linux の代表的なもの）。
-const SYMBOL_FALLBACK: &str = ", \"Segoe UI Symbol\", \"Noto Sans Symbols 2\", \"DejaVu Sans\"";
+/// 記号用と、簡体字・ハングルのフォールバックフォント（Windows・Linux の代表的なもの）。
+/// 既定のフォールバックは日本語の字形のフォントを選び、簡体字だけの字（请・页 など）が欠けるため、
+/// 簡体字のフォントも後ろに並べる（先に並べたフォントに字があればそちらが使われる）。
+const SYMBOL_FALLBACK: &str = ", \"Segoe UI Symbol\", \"Noto Sans Symbols 2\", \"DejaVu Sans\",      \"Microsoft YaHei\", \"Noto Sans CJK SC\", \"Malgun Gothic\", \"Noto Sans CJK KR\"";
 
 impl TextStyleSpec {
     /// CSS の font-family リスト表記を作る（固有名は引用符で囲む）。

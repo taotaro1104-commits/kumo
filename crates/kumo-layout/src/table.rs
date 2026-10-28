@@ -23,6 +23,8 @@ const MAX_ROWS: usize = 30_000;
 #[derive(Default)]
 struct Occupancy {
     rows: Vec<Vec<bool>>,
+    /// 列ごとの幅の指定（セルの `width="25%"` の最大値。なければ 0）
+    percents: Vec<f32>,
 }
 
 impl Occupancy {
@@ -45,6 +47,20 @@ impl Occupancy {
             }
             line[col..col + cols].iter_mut().for_each(|c| *c = true);
         }
+    }
+
+    /// colspan=1 のセルのパーセント幅を列に記録する。
+    fn note_percent(&mut self, col: usize, width: LengthPctAuto) {
+        let LengthPctAuto::LengthPct(w) = width else {
+            return;
+        };
+        if w.px != 0.0 || w.pct <= 0.0 {
+            return;
+        }
+        if self.percents.len() <= col {
+            self.percents.resize(col + 1, 0.0);
+        }
+        self.percents[col] = self.percents[col].max(w.pct);
     }
 
     fn column_count(&self) -> usize {
@@ -94,8 +110,23 @@ impl Builder<'_> {
         for (r, row) in rows.into_iter().take(MAX_ROWS).enumerate() {
             self.place_row(index, row, r, caption_rows, &mut occupancy);
         }
-        self.finish_table_style(index, &style, occupancy.column_count());
+        self.finish_table_style(index, &style, &occupancy);
+        self.center_in_center_element(index, node);
         index
+    }
+
+    /// `<center>` の直下の表は、中央に寄せる（`text-align: -webkit-center` 相当）。
+    fn center_in_center_element(&mut self, table: usize, node: DomId) {
+        let in_center = self
+            .doc
+            .parent(node)
+            .and_then(|p| self.doc.element(p))
+            .is_some_and(|e| e.is_html("center"));
+        if in_center {
+            let margin = &mut self.boxes[table].style.margin;
+            margin.left = LengthPercentageAuto::auto();
+            margin.right = LengthPercentageAuto::auto();
+        }
     }
 
     fn row_children(&self, group: DomId) -> Vec<DomId> {
@@ -136,6 +167,9 @@ impl Builder<'_> {
                 .min(MAX_ROWS - r);
             let colspan = span_attr(self, cell, "colspan").min(MAX_COLUMNS - col);
             occ.take(r, col, rowspan, colspan);
+            if colspan == 1 {
+                occ.note_percent(col, cell_style.width);
+            }
             let cell_style = inherit_row_background(cell_style, row_style.as_deref());
             let item = self.build_element(cell, cell_style.clone());
             let taffy_style = &mut self.boxes[item].style;
@@ -158,20 +192,28 @@ impl Builder<'_> {
         }
     }
 
-    fn finish_table_style(&mut self, table: usize, style: &ComputedStyle, columns: usize) {
+    fn finish_table_style(&mut self, table: usize, style: &ComputedStyle, occ: &Occupancy) {
+        let columns = occ.column_count();
         let spacing = match style.border_collapse {
             BorderCollapse::Separate => style.border_spacing,
             BorderCollapse::Collapse => 0.0,
         };
         let taffy_style = &mut self.boxes[table].style;
         taffy_style.display = Display::Grid;
-        taffy_style.grid_template_columns = auto_columns(columns);
+        let percent = (style.width == LengthPctAuto::Auto)
+            .then(|| percent_columns(columns, &occ.percents))
+            .flatten();
+        taffy_style.grid_template_columns =
+            percent.clone().unwrap_or_else(|| auto_columns(columns));
         taffy_style.gap = Size {
             width: LengthPercentage::length(spacing),
             height: LengthPercentage::length(spacing),
         };
         // 表は内容に合わせて縮む（shrink-to-fit）
-        if style.width == LengthPctAuto::Auto {
+        if percent.is_some() {
+            // 割合の列と自動の列が混ざる表は、割合が効くよう幅いっぱいに広げる
+            taffy_style.size.width = Dimension::percent(1.0);
+        } else if style.width == LengthPctAuto::Auto {
             taffy_style.size.width = Dimension::fit_content();
         }
         taffy_style.justify_content = taffy::style::AlignContent::START;
@@ -194,4 +236,27 @@ fn inherit_row_background(
         }
         _ => cell,
     }
+}
+
+/// パーセント指定の列と自動の列が混ざるとき、割合を `fr` にして比率を保つ。自動の列は残りの割合を
+/// 等分する。割合の指定がない、または全部の列に指定があるときは `None`（全部 `auto` のまま）。
+fn percent_columns(
+    columns: usize,
+    percents: &[f32],
+) -> Option<Vec<GridTemplateComponent<Arc<str>>>> {
+    let percent_of = |c: usize| percents.get(c).copied().unwrap_or(0.0);
+    let specified: f32 = percents.iter().sum();
+    let unspecified = (0..columns).filter(|&c| percent_of(c) <= 0.0).count();
+    if specified <= 0.0 || unspecified == 0 {
+        return None;
+    }
+    let share = ((100.0 - specified) / unspecified as f32).max(1.0);
+    Some(
+        (0..columns)
+            .map(|c| match percent_of(c) {
+                p if p > 0.0 => GridTemplateComponent::Single(fr(p)),
+                _ => GridTemplateComponent::Single(fr(share)),
+            })
+            .collect(),
+    )
 }

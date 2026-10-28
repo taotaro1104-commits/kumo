@@ -33,6 +33,12 @@ a.star { flex: none; width: 30px; height: 30px; line-height: 30px; border-radius
           color: #5f6368; text-decoration: none; font-size: 17px; }
 a.star.on { color: #f9ab00; }
 a.star.hover { background: #eceef1; }
+.ask { flex: 1; overflow: hidden; white-space: nowrap; font-size: 13px; color: #1f2328; }
+a.askbtn { flex: none; height: 28px; line-height: 28px; padding: 0 12px; border-radius: 14px; background: #f1f3f4;
+           color: #1f2328; font-size: 12px; text-decoration: none; }
+a.askbtn.main { background: #1a73e8; color: #ffffff; }
+a.askbtn.hover { background: #e0e3e6; }
+a.askbtn.main.hover { background: #1765cc; }
 a.url.focused { background: #ffffff; border: 2px solid #1a73e8; padding-left: 12px; }
 .chip { flex: none; height: 22px; line-height: 22px; padding: 0 8px; margin-right: 4px; border-radius: 11px;
         font-size: 12px; color: #4a5058; }

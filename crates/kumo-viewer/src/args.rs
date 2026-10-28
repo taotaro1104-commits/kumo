@@ -16,6 +16,8 @@ pub struct Args {
     pub no_images: bool,
     /// 読み込みの負荷レベル（1〜5）。指定すると保存済みの設定より優先する（保存はしない）
     pub load_level: Option<kumo_browser::LoadLevel>,
+    /// 表示言語（ja・en・zh・ko・es）。指定すると保存済みの設定より優先する（保存はしない）
+    pub lang: Option<kumo_browser::Lang>,
     pub no_disk_cache: bool,
     /// ヘッドレスで、読み込み後にタイマーを動かしながら待つ時間（ms）
     pub wait_ms: u64,
@@ -30,7 +32,7 @@ pub struct Args {
 }
 
 pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
-[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-images] [--load-level 1-5] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
+[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-images] [--load-level 1-5] [--lang ja|en|zh|ko|es] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
     let mut args = Args {
@@ -44,6 +46,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         no_js: false,
         no_images: false,
         load_level: None,
+        lang: None,
         no_disk_cache: false,
         wait_ms: 0,
         eval: Vec::new(),
@@ -92,6 +95,13 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
                         .ok_or_else(|| format!("--load-level は 1〜5: {n}"))?,
                 );
             }
+            "--lang" => {
+                let code = value("--lang")?;
+                args.lang = Some(
+                    kumo_browser::Lang::from_code(&code)
+                        .ok_or_else(|| format!("--lang は ja・en・zh・ko・es: {code}"))?,
+                );
+            }
             "--no-disk-cache" => args.no_disk_cache = true,
             "-h" | "--help" => return Err(USAGE.to_owned()),
             other if other.starts_with("--") => {
@@ -123,6 +133,16 @@ mod tests {
 
     fn args(list: &[&str]) -> Result<Args, String> {
         parse(list.iter().map(|s| s.to_string()))
+    }
+
+    #[test]
+    fn lang_takes_a_language_code() {
+        assert_eq!(
+            args(&["--lang", "en"]).unwrap().lang,
+            Some(kumo_browser::Lang::En)
+        );
+        assert!(args(&[]).unwrap().lang.is_none());
+        assert!(args(&["--lang", "fr"]).is_err());
     }
 
     #[test]

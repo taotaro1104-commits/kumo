@@ -12,13 +12,14 @@ impl Browser {
     /// UI のページ（必要なら作り直す）。
     pub fn chrome_page(&mut self) -> &Page {
         if self.chrome.is_none() {
+            let login_prompt = self.login_prompt();
             let tab = self.tabs.get(self.active);
             let state = ChromeState {
                 tabs: self
                     .tabs
                     .iter()
                     .map(|t| TabLabel {
-                        title: t.title(),
+                        title: t.title_in(self.lang),
                         loading: t.is_loading(),
                         dormant: t.state != TabState::Live,
                     })
@@ -35,6 +36,8 @@ impl Browser {
                     .is_some_and(|(u, h)| h.is_bookmarked(u.as_str())),
                 content_lost: self.content_lost,
                 hover: self.chrome_hover.as_deref(),
+                login_prompt: login_prompt.as_deref(),
+                lang: self.lang,
             };
             let html = chrome_html(&state);
             let url = Url::parse("about:kumo-chrome").expect("固定の URL");

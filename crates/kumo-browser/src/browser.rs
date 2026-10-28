@@ -54,6 +54,16 @@ pub struct Browser {
     pub(crate) javascript: bool,
     /// 画像を読み込むか
     pub(crate) images: bool,
+    /// パスワードを保存・自動入力するか
+    pub(crate) passwords: bool,
+    /// 表示言語（UI・内部ページ・エラーページ）
+    pub(crate) lang: kumo_content::Lang,
+    /// パスワードの暗号鍵（必要になってから OS の資格情報ストアで得る）
+    pub(crate) vault: Option<crate::vault::Vault>,
+    /// 保存を確認中のログイン情報
+    pub(crate) pending_login: Option<crate::login_actions::PendingLogin>,
+    /// 一覧ページでパスワードを表示している組（origin, ユーザー名）
+    pub(crate) revealed: Option<(String, String)>,
 }
 
 /// Content を作る関数（落ちたときの作り直し用）。
@@ -93,6 +103,11 @@ impl Browser {
     pub fn new(content: ContentClient, history: Option<HistoryDb>, window: (f32, f32)) -> Self {
         let load_level = crate::home::saved_load_level(history.as_ref());
         let images = history.as_ref().is_none_or(HistoryDb::images_enabled);
+        let lang = history
+            .as_ref()
+            .and_then(HistoryDb::language)
+            .unwrap_or_default();
+        let passwords = history.as_ref().is_some_and(HistoryDb::passwords_enabled);
         let browser = Self {
             content,
             chrome_services: Services::new(Arc::new(Offline)),
@@ -118,10 +133,16 @@ impl Browser {
             load_level,
             javascript: true,
             images,
+            passwords,
+            lang,
+            vault: None,
+            pending_login: None,
+            revealed: None,
         };
         browser.send_viewport();
         browser.send_load_level();
         browser.send_images();
+        browser.send_language();
         browser
     }
 
