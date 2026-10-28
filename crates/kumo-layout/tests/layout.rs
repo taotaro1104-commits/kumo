@@ -167,6 +167,14 @@ fn inline_block_and_image_are_atomic() {
 }
 
 #[test]
+fn image_with_only_width_keeps_aspect_ratio() {
+    // 固有サイズが無いときの縦横比は 1:1。幅だけ指定した画像の高さが 0 に潰れていた
+    let laid = lay("<img id=i width=40>", RESET);
+    let (_, _, w, h) = rect(&laid, "i");
+    assert_eq!((w, h), (40.0, 40.0));
+}
+
+#[test]
 fn list_items_get_markers() {
     let laid = lay("<ol><li id=a>x</li><li>y</li></ol><ul><li>z</li></ul>", "");
     let markers = laid

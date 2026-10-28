@@ -26,6 +26,14 @@ pub fn parse_color<'i>(input: &mut Parser<'i>) -> ParseResult<ColorValue> {
         }
         Token::Function(ref name) => {
             let name = name.to_ascii_lowercase();
+            if name == "light-dark" {
+                // 明るい配色だけを描くので、第 1 引数（light）を採る
+                return input.parse_nested_block(|i| {
+                    let light = parse_color(i)?;
+                    while i.next().is_ok() {}
+                    Ok(light)
+                });
+            }
             return input
                 .parse_nested_block(|i| parse_color_function(&name, i))
                 .map(ColorValue::Rgba);
@@ -137,5 +145,9 @@ mod tests {
             Some(ColorValue::CurrentColor)
         );
         assert_eq!(parse("nope", parse_color), None);
+        assert_eq!(
+            parse("light-dark(#f00, rgb(0 0 255))", parse_color),
+            rgba(255, 0, 0, 255)
+        );
     }
 }

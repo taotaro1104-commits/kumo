@@ -38,6 +38,7 @@ mimalloc = { version = "0.1", default-features = false, features = ["v2"] }
 winit = "0.30"
 softbuffer = "0.4"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif"] }
+resvg = { version = "0.45", default-features = false }
 ureq = "3"
 
 [workspace.lints.rust]

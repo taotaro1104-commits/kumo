@@ -137,10 +137,10 @@ where
     };
 
     // Measure node
+    // Kumo patch: スタイルで決まった幅（height:auto の画像など）を計測関数へ渡し、縦横比を保てるようにする
     let measured_size = measure_function(
         match run_mode {
-            RunMode::ComputeSize => known_dimensions,
-            RunMode::PerformLayout => Size::NONE,
+            RunMode::ComputeSize | RunMode::PerformLayout => known_dimensions.or(node_size),
             RunMode::PerformHiddenLayout => unreachable!(),
         },
         available_space,

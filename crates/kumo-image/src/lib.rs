@@ -1,6 +1,8 @@
 //! 画像：圧縮データを保持し、表示サイズでデコードしたビットマップを予算付き LRU で持つ。
 #![forbid(unsafe_code)]
 
+mod svg;
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io::Cursor;
@@ -95,6 +97,9 @@ impl<L: ImageLoader> ImageStore<L> {
     /// ヘッダだけを読んで固有サイズを返す（全体はデコードしない）。
     pub fn intrinsic_size(&self, src: &str) -> Option<(f32, f32)> {
         let data = self.source(src)?;
+        if svg::is_svg(&data) {
+            return svg::size(&data);
+        }
         let reader = image::ImageReader::new(Cursor::new(&*data))
             .with_guessed_format()
             .ok()?;
@@ -104,6 +109,15 @@ impl<L: ImageLoader> ImageStore<L> {
 
     fn decode(&self, src: &str, width: u32, height: u32) -> Option<ImageBitmap> {
         let data = self.source(src)?;
+        if svg::is_svg(&data) {
+            let (w, h) = (width.min(MAX_DIMENSION), height.min(MAX_DIMENSION));
+            let data = svg::render(&data, w, h)?;
+            return Some(ImageBitmap {
+                width: w,
+                height: h,
+                data,
+            });
+        }
         let image = image::load_from_memory(&data).ok()?;
         let (w, h) = (width.min(MAX_DIMENSION), height.min(MAX_DIMENSION));
         let resized = if image.width() == w && image.height() == h {
