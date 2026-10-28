@@ -11,6 +11,7 @@ mod document_extras;
 mod element_api;
 mod element_html;
 mod events;
+mod geometry;
 mod host;
 mod natives;
 mod node_api;

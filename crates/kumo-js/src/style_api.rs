@@ -184,8 +184,27 @@ fn style_set(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsVal
     Ok(JsValue::from(true))
 }
 
+/// `"MozAppearance" in el.style` のような機能検出に正しく答える：
+/// ほかのエンジンの接頭辞（Moz・ms・O）の付いたプロパティは持たない。
 fn style_has(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    Ok(JsValue::from(args.get(1).and_then(prop_name).is_some()))
+    let supported = args.get(1).and_then(prop_name).is_some_and(|name| {
+        let foreign = ["Moz", "ms", "O"].iter().any(|prefix| {
+            name.strip_prefix(prefix)
+                .is_some_and(|rest| rest.starts_with(|c: char| c.is_ascii_uppercase()))
+        });
+        !foreign
+    });
+    Ok(JsValue::from(supported))
+}
+
+/// `"fooBar" in el.dataset` は `data-foo-bar` 属性があるときだけ真。
+fn dataset_has(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+    let (Some(target), Some(name)) = (args.first(), args.get(1).and_then(prop_name)) else {
+        return Ok(JsValue::from(false));
+    };
+    let id = this_node(target)?;
+    let present = read(ctx, |d| d.attr(id, &data_attr(&name)).is_some());
+    Ok(JsValue::from(present))
 }
 
 fn style_delete(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
@@ -202,7 +221,11 @@ fn make_proxy(ctx: &mut Context, proto: &str, id: NodeId) -> JsResult<JsValue> {
     let proxy = JsProxy::builder(target)
         .get(style_get_for(proto))
         .set(style_set_for(proto))
-        .has(style_has)
+        .has(if proto == "css_style" {
+            style_has
+        } else {
+            dataset_has
+        })
         .delete_property(style_delete_for(proto))
         .build(ctx)?;
     Ok(proxy.into())

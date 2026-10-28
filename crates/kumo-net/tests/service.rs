@@ -293,3 +293,34 @@ fn anonymous_requests_send_no_cookies_skip_the_cache_and_expose_cors_headers() {
         "通常の1回 + 資格情報なしの2回（キャッシュを使わない）"
     );
 }
+
+#[test]
+fn redirects_are_followed_hop_by_hop_with_limits() {
+    let server = TestServer::start();
+    let service = NetworkService::new(&NetworkConfig::default());
+    let chained = service
+        .fetch(&request(
+            &server.url("/redirect-chain"),
+            ResourceKind::Document,
+        ))
+        .unwrap();
+    assert!(
+        chained.final_url.ends_with("/fresh.css"),
+        "{}",
+        chained.final_url
+    );
+    assert_eq!(chained.status, 200);
+    // 終わらない転送は上限で止める
+    assert!(matches!(
+        service.fetch(&request(&server.url("/loop"), ResourceKind::Document)),
+        Err(FetchError::Network(_))
+    ));
+    // http(s) 以外へは移動しない
+    assert!(matches!(
+        service.fetch(&request(
+            &server.url("/redirect-to-file"),
+            ResourceKind::Document
+        )),
+        Err(FetchError::Network(_))
+    ));
+}

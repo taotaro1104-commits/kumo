@@ -13,6 +13,8 @@ pub struct Args {
     pub in_process: bool,
     pub no_js: bool,
     pub no_disk_cache: bool,
+    /// ヘッドレスで、読み込み後にタイマーを動かしながら待つ時間（ms）
+    pub wait_ms: u64,
     /// メモリの予算（MB）。超えたら背景のタブを降格する
     pub memory_budget_mb: Option<u64>,
     /// 背景に回って凍結するまで・見なくなって破棄するまでの秒数
@@ -22,7 +24,7 @@ pub struct Args {
 }
 
 pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
-[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-disk-cache] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
+[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-disk-cache] [--wait MS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
     let mut args = Args {
@@ -35,6 +37,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         in_process: false,
         no_js: false,
         no_disk_cache: false,
+        wait_ms: 0,
         memory_budget_mb: None,
         freeze_after_secs: None,
         discard_after_secs: None,
@@ -65,6 +68,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
                 args.discard_after_secs =
                     Some(parse_count("--discard-after", &value("--discard-after")?)?)
             }
+            "--wait" => args.wait_ms = parse_count("--wait", &value("--wait")?)?,
             "--mem-report" => args.mem_report = true,
             "--in-process" => args.in_process = true,
             "--no-js" => args.no_js = true,

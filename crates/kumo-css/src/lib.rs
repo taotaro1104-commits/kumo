@@ -24,7 +24,7 @@ pub mod values;
 mod var;
 
 pub use cascade::{CascadeEngine, StyleEngine, StyleMap};
-pub use decl::{Decl, DeclarationBlock};
+pub use decl::{ContentPart, Decl, DeclarationBlock};
 pub use element::ElementRef;
 pub use media::{Device, MediaQueryList};
 pub use properties::parse_property;

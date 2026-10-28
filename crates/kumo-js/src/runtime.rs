@@ -349,6 +349,17 @@ impl JsRuntime {
         self.host.state_mut().viewport = viewport;
     }
 
+    /// 最後のレイアウトの結果（要素の添字と文書座標の境界ボックス）とスクロール位置を受け取る。
+    pub fn set_geometry(
+        &mut self,
+        boxes: impl IntoIterator<Item = (usize, [f32; 4])>,
+        scroll_y: f32,
+    ) {
+        let mut state = self.host.state_mut();
+        state.geometry = boxes.into_iter().collect();
+        state.scroll_y = scroll_y;
+    }
+
     /// `location` が今指す URL（`history.pushState` で変わりうる）。
     pub fn url(&self) -> Url {
         self.host.state().url.clone()

@@ -89,6 +89,11 @@ fn is_visible(tree: &BoxTree, index: usize) -> bool {
 fn paint_own_background(tree: &BoxTree, placed: Placed, list: &mut DisplayList) {
     let b = &tree.boxes[placed.index];
     let is_root_element = tree.boxes[0].children.first() == Some(&placed.index);
+    if list.record_hits
+        && let Some(node) = b.dom
+    {
+        list.add_geometry(node.index(), placed.rect);
+    }
     if let Some(name) = &b.anchor {
         list.anchors.push((name.clone(), placed.rect.y));
     }

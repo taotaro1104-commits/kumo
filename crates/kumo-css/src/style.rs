@@ -176,6 +176,8 @@ pub struct ComputedStyle {
     pub order: i32,
     /// `None` は `auto`
     pub z_index: Option<i32>,
+    /// `content`（疑似要素 ::before / ::after のときだけ意味を持つ。継承しない）
+    pub content: Option<Arc<[crate::decl::ContentPart]>>,
     pub grid: Box<GridStyle>,
     // ---- 表 ----
     pub border_collapse: BorderCollapse,
@@ -249,6 +251,7 @@ impl ComputedStyle {
             column_gap: LengthPct::ZERO,
             order: 0,
             z_index: None,
+            content: None,
             grid: Box::default(),
             border_collapse: BorderCollapse::Separate,
             border_spacing: 0.0,

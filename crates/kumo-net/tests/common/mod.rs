@@ -140,10 +140,19 @@ fn respond(path: &str, if_none_match: Option<&str>) -> String {
             "text/plain",
             "set",
         ),
+        "/loop" => redirect("302 Found", "/loop"),
+        "/redirect-chain" => redirect("301 Moved", "/redirect"),
+        "/redirect-to-file" => redirect("302 Found", "file:///etc/passwd"),
         "/redirect" => {
             "HTTP/1.1 302 Found\r\nLocation: /fresh.css\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
                 .to_owned()
         }
         _ => "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".to_owned(),
     }
+}
+
+fn redirect(status: &str, location: &str) -> String {
+    format!(
+        "HTTP/1.1 {status}\r\nLocation: {location}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+    )
 }

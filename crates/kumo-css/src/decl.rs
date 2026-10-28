@@ -8,6 +8,14 @@ use crate::keywords::*;
 use crate::style::Side;
 use crate::values::{ColorValue, Length, LengthOrAuto};
 
+/// `content` の部品。
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentPart {
+    Text(Arc<str>),
+    /// `attr(name)`：生成元の要素の属性値
+    Attr(Arc<str>),
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SizeProp {
     Width,
@@ -124,6 +132,8 @@ pub enum Decl {
     ListStyleType(ListStyleType),
     ListStylePosition(ListStylePosition),
     Visibility(Visibility),
+    /// `content`（`None` は none / normal）
+    Content(Option<Arc<[ContentPart]>>),
     TextDecorationLine(u8),
     VerticalAlign(VerticalAlign),
     /// `--name: value`

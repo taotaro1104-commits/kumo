@@ -388,3 +388,27 @@ fn background_tabs_are_throttled_and_pages_without_scripts_have_no_runtime() {
     advance(&mut e, 1_020);
     assert_ne!(count(&e), "0");
 }
+
+#[test]
+fn geometry_is_available_to_load_handlers_and_later_scripts() {
+    let site = Site::new("js-geometry");
+    let e = open(
+        &site,
+        &[(
+            "g.html",
+            "<html><body style='margin:0'><div id=box style='width:120px;height:40px'></div>\
+             <p id=out>-</p><script>\
+               var early = document.getElementById('box').offsetWidth;\
+               document.addEventListener('DOMContentLoaded', function () {\
+                 var b = document.getElementById('box');\
+                 var r = b.getBoundingClientRect();\
+                 document.getElementById('out').textContent =\
+                   early + '|' + b.offsetWidth + 'x' + b.offsetHeight + '|' + r.width + '|' + r.top;\
+               });\
+             </script></body></html>",
+        )],
+        "g.html",
+    );
+    // 最初のレイアウトの前は 0、読み込み完了の時点では測った値
+    assert_eq!(text(&e), "0|120x40|120|0");
+}

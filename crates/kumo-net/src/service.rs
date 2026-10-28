@@ -240,22 +240,60 @@ impl NetworkService {
         })
     }
 
+    /// GET を送り、リダイレクトは1段ずつ自分でたどる。サーバーが閉じていた再利用の接続に当たったとき
+    /// （close_notify なしの切断など）は、その段だけ新しい接続でやり直す
+    /// （ureq の内部でたどると、途中の段の失敗でやり直しが最初からになり、同じ接続にまた当たってしまう）。
+    fn get_following_redirects(
+        &self,
+        request: &FetchRequest,
+        url: &Url,
+        stale: Option<&CachedEntry>,
+    ) -> Result<ureq::http::Response<ureq::Body>, FetchError> {
+        let mut target = url.clone();
+        for hop in 0..=MAX_REDIRECTS {
+            let send = || {
+                let mut builder = self.agent_for(request).get(target.as_str());
+                if hop == 0
+                    && let Some(entry) = stale
+                {
+                    if let Some(etag) = &entry.meta.etag {
+                        builder = builder.header("If-None-Match", etag.as_str());
+                    }
+                    if let Some(modified) = &entry.meta.last_modified {
+                        builder = builder.header("If-Modified-Since", modified.as_str());
+                    }
+                }
+                builder.config().max_redirects(0).build().call()
+            };
+            let response = match send() {
+                Err(e) if is_stale_connection(&e) => send(),
+                result => result,
+            }
+            .map_err(network_error)?;
+            let location = matches!(response.status().as_u16(), 301 | 302 | 303 | 307 | 308)
+                .then(|| header(response.headers(), "location"))
+                .flatten();
+            let Some(location) = location else {
+                return Ok(response);
+            };
+            target = target
+                .join(&location)
+                .ok()
+                .filter(|next| matches!(next.scheme(), "http" | "https"))
+                .ok_or_else(|| {
+                    FetchError::Network(format!("リダイレクト先が不正です: {location}"))
+                })?;
+        }
+        Err(FetchError::Network("リダイレクトが多すぎます".to_owned()))
+    }
+
     fn fetch_network(
         &self,
         request: &FetchRequest,
         url: &Url,
         stale: Option<CachedEntry>,
     ) -> Result<FetchResponse, FetchError> {
-        let mut builder = self.agent_for(request).get(url.as_str());
-        if let Some(entry) = &stale {
-            if let Some(etag) = &entry.meta.etag {
-                builder = builder.header("If-None-Match", etag.as_str());
-            }
-            if let Some(modified) = &entry.meta.last_modified {
-                builder = builder.header("If-Modified-Since", modified.as_str());
-            }
-        }
-        let mut response = builder.call().map_err(network_error)?;
+        let mut response = self.get_following_redirects(request, url, stale.as_ref())?;
         let status = response.status().as_u16();
         let headers = cache_headers(response.headers());
         let now = SystemTime::now();
@@ -300,6 +338,19 @@ impl NetworkService {
             allow_origin,
         })
     }
+}
+
+/// 使い回した接続がすでに閉じられていたことを示すエラーか（GET なら安全にやり直せる）。
+fn is_stale_connection(e: &ureq::Error) -> bool {
+    let text = e.to_string();
+    text.contains("close_notify")
+        || matches!(e, ureq::Error::Io(io) if matches!(
+            io.kind(),
+            std::io::ErrorKind::UnexpectedEof
+                | std::io::ErrorKind::ConnectionReset
+                | std::io::ErrorKind::ConnectionAborted
+                | std::io::ErrorKind::BrokenPipe
+        ))
 }
 
 fn network_error(e: ureq::Error) -> FetchError {
@@ -367,14 +418,37 @@ fn read_response(
     let final_url = ureq::ResponseExt::get_uri(&*response).to_string();
     let content_type = header(response.headers(), "content-type");
     let allow_origin = header(response.headers(), "access-control-allow-origin");
-    let body = response
-        .body_mut()
-        .with_config()
-        .limit(MAX_BODY_BYTES)
-        .read_to_vec()
-        .map_err(|e| match e {
-            ureq::Error::BodyExceedsLimit(_) => FetchError::TooLarge,
-            other => network_error(other),
-        })?;
+    let declared = header(response.headers(), "content-length").and_then(|v| v.parse::<u64>().ok());
+    let body = read_body(response.body_mut(), declared)?;
     Ok((final_url, content_type, allow_origin, body))
+}
+
+/// 本文を読む。サーバーが TLS の close_notify を送らずに接続を閉じた場合（rustls は異常終了とみなす）は、
+/// 長さが宣言されていない（接続の終わりが本文の終わり）か、宣言どおり揃っているときだけ、そこまでを本文とする。
+fn read_body(body: &mut ureq::Body, declared: Option<u64>) -> Result<Vec<u8>, FetchError> {
+    use std::io::Read;
+    let mut reader = body.with_config().limit(MAX_BODY_BYTES).reader();
+    let mut out = Vec::new();
+    let mut chunk = [0u8; 16 * 1024];
+    loop {
+        match reader.read(&mut chunk) {
+            Ok(0) => return Ok(out),
+            Ok(n) => out.extend_from_slice(&chunk[..n]),
+            Err(e)
+                if missing_close_notify(&e) && declared.is_none_or(|n| n == out.len() as u64) =>
+            {
+                return Ok(out);
+            }
+            Err(e) => {
+                return Err(match ureq::Error::from(e) {
+                    ureq::Error::BodyExceedsLimit(_) => FetchError::TooLarge,
+                    other => network_error(other),
+                });
+            }
+        }
+    }
+}
+
+fn missing_close_notify(e: &std::io::Error) -> bool {
+    e.kind() == std::io::ErrorKind::UnexpectedEof && e.to_string().contains("close_notify")
 }

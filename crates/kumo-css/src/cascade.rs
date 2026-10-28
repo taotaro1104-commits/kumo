@@ -12,13 +12,14 @@ use selectors::context::{
 use selectors::matching::matches_selector;
 
 use crate::apply::{ResolveContext, apply_decl};
-use crate::decl::{Decl, DeclarationBlock};
+use crate::decl::{ContentPart, Decl, DeclarationBlock};
 use crate::element::ElementRef;
 use crate::hints::presentational_hints;
 use crate::index::{IndexEntry, RuleIndex};
 use crate::keywords::{Display, Float, Position};
 use crate::media::Device;
 use crate::properties::parse_property;
+use crate::selector::PseudoElement;
 use crate::style::ComputedStyle;
 use crate::stylesheet::{StyleRule, Stylesheet, parse_declaration_block};
 use crate::var::substitute;
@@ -27,11 +28,24 @@ use crate::var::substitute;
 #[derive(Debug, Default)]
 pub struct StyleMap {
     styles: Vec<Option<Arc<ComputedStyle>>>,
+    /// 疑似要素 ::before / ::after の計算値と、`content` を解決した文字列（キーは 要素の添字 * 2 + (after なら 1)）
+    pseudo: HashMap<usize, PseudoStyle>,
     /// 共有されずに新規作成された計算値の数（計測用）
     pub unique_styles: usize,
 }
 
+/// 疑似要素の計算値と生成された文字列。
+pub type PseudoStyle = (Arc<ComputedStyle>, Arc<str>);
+
 impl StyleMap {
+    /// 要素の ::before（`after` が偽）または ::after が生成するもの。
+    pub fn pseudo(&self, node: NodeId, after: bool) -> Option<&PseudoStyle> {
+        if self.pseudo.is_empty() {
+            return None;
+        }
+        self.pseudo.get(&(node.index() * 2 + usize::from(after)))
+    }
+
     pub fn get(&self, node: NodeId) -> Option<&Arc<ComputedStyle>> {
         self.styles.get(node.index())?.as_ref()
     }
@@ -53,6 +67,8 @@ enum Origin {
 pub struct CascadeEngine {
     rules: Vec<(Origin, StyleRule)>,
     index: RuleIndex,
+    /// ::before（0）と ::after（1）の規則
+    pseudo: [RuleIndex; 2],
 }
 
 const UA_CSS: &str = include_str!("ua.css");
@@ -65,24 +81,31 @@ impl CascadeEngine {
             .chain(author_sheets.into_iter().map(|s| (Origin::Author, s)));
         let mut rules = Vec::new();
         let mut index = RuleIndex::default();
+        let mut pseudo = [RuleIndex::default(), RuleIndex::default()];
         for (origin, sheet) in sheets {
             for rule in sheet.rules {
                 let rule_id = u32::try_from(rules.len()).expect("規則数が多すぎる");
                 for (i, selector) in rule.selectors.slice().iter().enumerate() {
-                    if selector.has_pseudo_element() {
-                        continue; // ::before 等は Phase 0 では描画しない
-                    }
                     let entry = IndexEntry {
                         rule: rule_id,
                         selector: u16::try_from(i).unwrap_or(u16::MAX),
                         specificity: selector.specificity(),
                     };
-                    index.insert(selector, entry);
+                    match selector.pseudo_element() {
+                        None => index.insert(selector, entry),
+                        Some(PseudoElement::Before) => pseudo[0].insert(selector, entry),
+                        Some(PseudoElement::After) => pseudo[1].insert(selector, entry),
+                        Some(PseudoElement::Other) => {} // ::selection など：描画に関わらない
+                    }
                 }
                 rules.push((origin, rule));
             }
         }
-        Self { rules, index }
+        Self {
+            rules,
+            index,
+            pseudo,
+        }
     }
 
     pub fn rule_count(&self) -> usize {
@@ -112,6 +135,7 @@ impl StyleEngine for CascadeEngine {
             share: HashMap::new(),
             map: StyleMap {
                 styles: vec![None; doc.len()],
+                pseudo: HashMap::new(),
                 unique_styles: 0,
             },
             root_font_size: crate::style::DEFAULT_FONT_SIZE,
@@ -146,6 +170,7 @@ impl CascadeRun<'_> {
                 if style.display == Display::None {
                     continue;
                 }
+                self.generate_pseudo(node, &style);
                 style
             } else {
                 parent_style
@@ -157,8 +182,31 @@ impl CascadeRun<'_> {
         }
     }
 
+    /// ::before と ::after の計算値を作る（`content` が文字列を生成するものだけ）。
+    fn generate_pseudo(&mut self, node: NodeId, style: &Arc<ComputedStyle>) {
+        for after in [false, true] {
+            let which = usize::from(after);
+            let engine = self.engine;
+            if engine.pseudo[which].is_empty() {
+                continue;
+            }
+            let matched = self.matched_rules(node, Some(which));
+            if matched.is_empty() {
+                continue;
+            }
+            let computed = Arc::new(self.cascade(&matched, &[], None, style, false));
+            let Some(parts) = computed.content.clone() else {
+                continue;
+            };
+            let text = resolve_content(&parts, self.doc, node);
+            self.map
+                .pseudo
+                .insert(node.index() * 2 + which, (computed, Arc::from(text)));
+        }
+    }
+
     fn style_for(&mut self, node: NodeId, parent: &Arc<ComputedStyle>) -> Arc<ComputedStyle> {
-        let matched = self.matched_rules(node);
+        let matched = self.matched_rules(node, None);
         let element = self.doc.element(node).expect("要素");
         let inline = element.attr("style").map(Box::from);
         let hints = presentational_hints(element);
@@ -186,20 +234,28 @@ impl CascadeRun<'_> {
     }
 
     /// 一致した (規則番号, 一致セレクタの最大詳細度) を規則番号の昇順で返す。
-    fn matched_rules(&mut self, node: NodeId) -> Vec<(u32, u32)> {
+    fn matched_rules(&mut self, node: NodeId, pseudo: Option<usize>) -> Vec<(u32, u32)> {
         let element = ElementRef::new(self.doc, node);
         let data = self.doc.element(node).expect("要素");
+        // 疑似要素の規則は、生成元の要素に対して「疑似要素を除いた部分」を照合する
+        let mode = if pseudo.is_some() {
+            MatchingMode::ForStatelessPseudoElement
+        } else {
+            MatchingMode::Normal
+        };
         let mut ctx = MatchingContext::new(
-            MatchingMode::Normal,
+            mode,
             None,
             &mut self.caches,
             QuirksMode::NoQuirks,
             NeedsSelectorFlags::No,
             MatchingForInvalidation::No,
         );
-        let mut matched: Vec<(u32, u32)> = self
-            .engine
-            .index
+        let index = match pseudo {
+            Some(which) => &self.engine.pseudo[which],
+            None => &self.engine.index,
+        };
+        let mut matched: Vec<(u32, u32)> = index
             .candidates(data)
             .filter(|e| self.active[e.rule as usize])
             .filter(|e| {
@@ -371,4 +427,16 @@ fn fixup(style: &mut ComputedStyle, is_root: bool) {
     if is_root || out_of_flow || style.float != Float::None {
         style.display = style.display.blockify();
     }
+}
+
+/// `content` の部品をつないで文字列にする（`attr()` は生成元の要素の属性値）。
+fn resolve_content(parts: &[ContentPart], doc: &Document, node: NodeId) -> String {
+    let mut out = String::new();
+    for part in parts {
+        match part {
+            ContentPart::Text(text) => out.push_str(text),
+            ContentPart::Attr(name) => out.push_str(doc.attr(node, name).unwrap_or("")),
+        }
+    }
+    out
 }

@@ -65,6 +65,16 @@ fn fast_forward(browser: &mut Browser, args: &Args) {
     browser.settle(LOAD_TIMEOUT);
 }
 
+/// ヘッドレスの `--wait`：タイマー（アニメーションなど）を動かしながら待ってから描画する。
+fn wait_for_timers(browser: &mut Browser, args: &Args) {
+    let deadline = std::time::Instant::now() + Duration::from_millis(args.wait_ms);
+    while std::time::Instant::now() < deadline {
+        browser.pump();
+        browser.settle(Duration::from_millis(500));
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
+
 /// 既定の方針に、引数で指定された分を上書きする。
 fn memory_policy(args: &Args) -> Policy {
     let mut policy = Policy::default();
@@ -112,6 +122,7 @@ fn run(args: Args) -> Result<(), String> {
                 started.elapsed().as_secs_f64() * 1000.0
             );
             fast_forward(&mut browser, &args);
+            wait_for_timers(&mut browser, &args);
             headless::render(&mut browser, &*processes.network, &args, out)
         }
         None => window::run(browser, processes.network, args.mem_report),

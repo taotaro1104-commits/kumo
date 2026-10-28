@@ -9,6 +9,7 @@ mod grid;
 mod inline;
 mod inline_break;
 mod inline_builder;
+mod pseudo;
 mod table;
 mod text_style;
 mod tree;

@@ -153,10 +153,11 @@ impl Element for ElementRef<'_> {
 
     fn match_pseudo_element(
         &self,
-        _pe: &PseudoElement,
+        pe: &PseudoElement,
         _context: &mut MatchingContext<KumoSelectors>,
     ) -> bool {
-        false
+        // 疑似要素のセレクタは、生成元の要素に対して照合する（::before / ::after だけ。ほかは作らない）
+        matches!(pe, PseudoElement::Before | PseudoElement::After)
     }
 
     fn apply_selector_flags(&self, _flags: ElementSelectorFlags) {}

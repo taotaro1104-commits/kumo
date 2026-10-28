@@ -81,8 +81,30 @@ impl Page {
             frozen: false,
         };
         page.refresh_title();
+        // 文書の読み込みの完了（DOMContentLoaded・load）は最初のレイアウトの後に送る：
+        // スクリプトの初期化が `offsetWidth` などの幾何情報を読めるように
+        if let Some(js) = &mut page.js {
+            js.take_dirty();
+        }
         page.relayout(viewport, services);
+        page.finish_load(services);
         page
+    }
+
+    /// `DOMContentLoaded` と `load` を送る。スクリプトが DOM を変えたら再レイアウトする。
+    fn finish_load(&mut self, services: &mut Services) {
+        let Some(js) = &mut self.js else { return };
+        js.set_ready_state("interactive");
+        js.fire_dom_content_loaded();
+        js.set_ready_state("complete");
+        js.fire_load();
+        // スクリプトの一時データ（構文木・中間表現）を回収して、ページが保持するメモリを小さくする
+        js.collect_garbage();
+        let dirty = js.take_dirty();
+        if dirty {
+            self.relayout(self.viewport, services);
+        }
+        kumo_mem::release_free_memory();
     }
 
     /// HTML 文字列から作る（ブラウザ UI やエラーページ用）。外部 CSS と画像はその場で取得する。
@@ -205,6 +227,15 @@ impl Page {
             (list, tree.into_text_system(), boxes, styles.unique_styles)
         });
         services.return_text(text);
+        let mut list = list;
+        // 幾何情報は JS ランタイムへ渡して、描画命令側には残さない
+        let geometry = std::mem::take(&mut list.geometry);
+        if let Some(js) = &mut self.js {
+            js.set_geometry(
+                geometry.iter().map(|&(n, r)| (n, [r.x, r.y, r.w, r.h])),
+                0.0,
+            );
+        }
         self.list = list;
         self.boxes = boxes;
         self.unique_styles = unique_styles;
@@ -269,13 +300,6 @@ fn start_js(
             );
         }
     }
-    js.set_ready_state("interactive");
-    js.fire_dom_content_loaded();
-    js.set_ready_state("complete");
-    js.fire_load();
-    // スクリプトの一時データ（構文木・中間表現）を回収して、ページが保持するメモリを小さくする
-    js.collect_garbage();
-    kumo_mem::release_free_memory();
     Some(js)
 }
 

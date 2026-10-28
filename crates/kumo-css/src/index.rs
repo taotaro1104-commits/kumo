@@ -51,6 +51,13 @@ fn bucket_for(selector: &Selector) -> Bucket {
 }
 
 impl RuleIndex {
+    pub fn is_empty(&self) -> bool {
+        self.by_id.is_empty()
+            && self.by_class.is_empty()
+            && self.by_tag.is_empty()
+            && self.universal.is_empty()
+    }
+
     pub fn insert(&mut self, selector: &Selector, entry: IndexEntry) {
         let list = match bucket_for(selector) {
             Bucket::Id(id) => self.by_id.entry(id).or_default(),

@@ -93,7 +93,7 @@ WARN の内訳：
 
 - `<script type=module>`・`import`・動的 `import()`、`async`/`defer` の区別（すべて文書順に実行）。
 - `window.id` のような id による名前付きアクセス、`iframe`、`canvas`、Shadow DOM、`contentEditable`。
-- `getBoundingClientRect`・`offsetWidth` などの幾何情報（常に 0）、`IntersectionObserver` は先頭の 40 回まで「見えている」と答える。
+- `getBoundingClientRect`・`offsetWidth` などの幾何情報は直近のレイアウトの値（[phase4.md](phase4.md)）。`IntersectionObserver` は先頭の 40 回まで「見えている」と答える。
 - `localStorage`・`document.cookie` はページを閉じると消える。Cookie は Network プロセスが管理し、JS からは見えない。
 - Content が落ちて作り直すと、ページは読み込み直しになる（スクリプトの状態は失われる）。
 - JS ヒープの上限は設けていない（巨大な配列や文字列を作るスクリプトで Content のメモリが増える）。

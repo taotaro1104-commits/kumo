@@ -119,6 +119,8 @@ pub struct DisplayList {
     pub controls: Vec<(RectF, usize)>,
     /// 要素の当たり判定の領域（描画順。後ろほど手前）。JS のイベント対象を決めるため、JS を使うページだけ記録する
     pub hits: Vec<(RectF, usize)>,
+    /// 要素ごとの境界ボックス（文書座標、クリップなし）。`getBoundingClientRect` などの幾何情報用。`record_hits` のときだけ記録する
+    pub geometry: Vec<(usize, RectF)>,
     /// `hits` を記録するか
     pub record_hits: bool,
 }
@@ -177,6 +179,26 @@ impl DisplayList {
             .rev()
             .find(|(r, _)| x >= r.x && x < r.right() && y >= r.y && y < r.bottom())
             .map(|&(_, node)| node)
+    }
+
+    /// 要素の境界ボックスを記録する（同じ要素の複数のボックスは範囲を合わせる）。
+    pub fn add_geometry(&mut self, node: usize, rect: RectF) {
+        match self
+            .geometry
+            .iter_mut()
+            .rev()
+            .take(8)
+            .find(|(n, _)| *n == node)
+        {
+            Some((_, existing)) => {
+                let x = existing.x.min(rect.x);
+                let y = existing.y.min(rect.y);
+                let r = existing.right().max(rect.right());
+                let b = existing.bottom().max(rect.bottom());
+                *existing = RectF::new(x, y, r - x, b - y);
+            }
+            None => self.geometry.push((node, rect)),
+        }
     }
 
     /// 当たり判定の領域を記録する（`record_hits` のときだけ）。

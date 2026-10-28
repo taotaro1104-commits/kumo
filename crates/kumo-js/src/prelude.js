@@ -150,6 +150,25 @@
     addListener: noop, removeListener: noop, addEventListener: noop, removeEventListener: noop, dispatchEvent: () => false,
   });
 
+  // ---- Range（選択範囲の実体はなく、機能検出と HTML 片の生成に使われる分だけ） ----
+  document.createRange = () => ({
+    startContainer: document, endContainer: document, startOffset: 0, endOffset: 0, collapsed: true,
+    commonAncestorContainer: document,
+    setStart() {}, setEnd() {}, setStartBefore() {}, setStartAfter() {}, setEndBefore() {}, setEndAfter() {},
+    selectNode() {}, selectNodeContents() {}, collapse() {}, detach() {},
+    cloneContents: () => document.createDocumentFragment(),
+    createContextualFragment(html) {
+      const holder = document.createElement('div');
+      holder.innerHTML = html;
+      const fragment = document.createDocumentFragment();
+      while (holder.firstChild) fragment.appendChild(holder.firstChild);
+      return fragment;
+    },
+    getBoundingClientRect: () => ({ x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 }),
+    getClientRects: () => [],
+  });
+  g.getSelection = () => ({ rangeCount: 0, isCollapsed: true, toString: () => '', removeAllRanges() {}, addRange() {}, getRangeAt: () => document.createRange() });
+
   // ---- 監視 API ----
   g.MutationObserver = class MutationObserver { constructor(cb) { this._cb = cb; } observe() {} disconnect() {} takeRecords() { return []; } };
   g.ResizeObserver = class ResizeObserver { constructor(cb) { this._cb = cb; } observe() {} unobserve() {} disconnect() {} };

@@ -337,3 +337,29 @@ fn legacy_web_apis_are_available() {
         "IMG,3,4,<option value=\"v\" selected=\"\">T</option>"
     );
 }
+
+#[test]
+fn feature_detection_on_style_and_dataset_is_truthful() {
+    let a = "document.getElementById('a')";
+    assert_eq!(run(&format!("'MozAppearance' in {a}.style")), "false");
+    assert_eq!(run(&format!("'msTransform' in {a}.style")), "false");
+    assert_eq!(run(&format!("'color' in {a}.style")), "true");
+    assert_eq!(run(&format!("'fooBar' in {a}.dataset")), "true"); // data-foo-bar がある
+    assert_eq!(run(&format!("'nothing' in {a}.dataset")), "false");
+}
+
+#[test]
+fn create_range_supports_contextual_fragments() {
+    assert_eq!(
+        run(
+            "var f = document.createRange().createContextualFragment('<b>x</b><i>y</i>'); \
+             f.childNodes.length + f.firstChild.tagName"
+        ),
+        "2B"
+    );
+    assert_eq!(
+        run("typeof document.createRange().compareNode"),
+        "undefined"
+    );
+    assert_eq!(run("window.getSelection().toString()"), "");
+}

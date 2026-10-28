@@ -181,9 +181,11 @@ impl Builder<'_> {
                 if style.display == CssDisplay::ListItem {
                     self.add_marker(index, node, &style, &mut ifc);
                 }
+                self.emit_pseudo(index, node, false, &mut ifc);
                 for child in self.doc.children(node).collect::<Vec<_>>() {
                     self.flow_child(index, child, &mut ifc);
                 }
+                self.emit_pseudo(index, node, true, &mut ifc);
                 self.flush(index, &mut ifc, &style);
             }
         }
@@ -214,6 +216,7 @@ impl Builder<'_> {
     /// flex / grid コンテナの子：要素はそれぞれアイテム、連続テキストは匿名アイテム。
     fn build_item_children(&mut self, parent: usize, node: DomId, style: &Arc<ComputedStyle>) {
         let mut ifc = InlineBuilder::new(style.clone(), Some(node), self.current_link());
+        self.emit_pseudo(parent, node, false, &mut ifc);
         let mut stack: Vec<DomId> = self.doc.children(node).collect();
         stack.reverse();
         while let Some(child) = stack.pop() {
@@ -240,6 +243,7 @@ impl Builder<'_> {
                 _ => {}
             }
         }
+        self.emit_pseudo(parent, node, true, &mut ifc);
         self.flush(parent, &mut ifc, style);
     }
 
@@ -264,9 +268,11 @@ impl Builder<'_> {
                         self.depth += 1;
                         let entered = self.enter_link(child);
                         ifc.open(style, child, self.current_link());
+                        self.emit_pseudo(parent, child, false, ifc);
                         for grandchild in self.doc.children(child).collect::<Vec<_>>() {
                             self.flow_child(parent, grandchild, ifc);
                         }
+                        self.emit_pseudo(parent, child, true, ifc);
                         ifc.close();
                         if entered {
                             self.links.pop();

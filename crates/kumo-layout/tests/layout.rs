@@ -340,3 +340,61 @@ fn tall_line_avoids_float_that_starts_mid_line() {
         "行全体の高さで重なるフロートを避ける: {first:?}"
     );
 }
+
+#[test]
+fn clearfix_after_pseudo_element_contains_floats() {
+    let css = "body { margin: 0 } #wrap:after { content: \"\"; display: table; clear: both }\
+               #f { float: left; width: 100px; height: 60px } #next { height: 10px }";
+    let laid = lay(
+        "<div id=wrap><div id=f></div></div><div id=next></div>",
+        css,
+    );
+    // ::after がフロートを囲み、wrap の高さが 60、次の要素は 60 から始まる
+    assert_eq!(rect(&laid, "wrap").3, 60.0);
+    assert_eq!(rect(&laid, "next").1, 60.0);
+}
+
+#[test]
+fn before_content_adds_inline_text_and_attr() {
+    let css = "body { margin: 0 } p { margin: 0 } #a { font-size: 20px; line-height: 20px }\
+               #a:before { content: \"ab\" attr(data-x) }";
+    let with = lay("<p id=a data-x=cd>x</p>", css);
+    let without = lay(
+        "<p id=a data-x=cd>x</p>",
+        "body{margin:0} p{margin:0} #a{font-size:20px;line-height:20px}",
+    );
+    // 疑似要素のテキスト（"ab" + 属性 "cd"）が段落に入る：高さは同じで 1 行のまま
+    assert_eq!(rect(&with, "a").3, rect(&without, "a").3);
+    assert_eq!(
+        inline_text_len(&with, "a"),
+        inline_text_len(&without, "a") + 4
+    );
+}
+
+#[test]
+fn pseudo_without_content_or_with_none_is_not_generated() {
+    let css = "body { margin: 0 } #a { height: 10px } #a:after { display: block; height: 50px }\
+               #b { height: 10px } #b:after { content: none; display: block; height: 50px }";
+    let laid = lay("<div id=a></div><div id=b></div>", css);
+    assert_eq!(rect(&laid, "a").3, 10.0);
+    assert_eq!(rect(&laid, "b").1, 10.0);
+}
+
+fn inline_text_len(laid: &Laid, id: &str) -> usize {
+    fn find(laid: &Laid, index: usize, id: &str) -> Option<usize> {
+        let b = &laid.tree.boxes[index];
+        if b.dom.and_then(|d| laid.doc.attr(d, "id")) == Some(id) {
+            return Some(index);
+        }
+        b.children.iter().find_map(|&c| find(laid, c, id))
+    }
+    let index = find(laid, 0, id).expect("要素");
+    laid.tree.boxes[index]
+        .children
+        .iter()
+        .filter_map(|&c| match &laid.tree.boxes[c].kind {
+            BoxKind::Inline(content) => Some(content.text.chars().count()),
+            _ => None,
+        })
+        .sum()
+}

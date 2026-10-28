@@ -81,6 +81,7 @@ fn parse_declaration<'i>(
         "text-align" => keyword!(input, out, TextAlign, TextAlign),
         "text-transform" => keyword!(input, out, TextTransform, TextTransform),
         "white-space" | "white-space-collapse" => keyword!(input, out, WhiteSpace, WhiteSpace),
+        "content" => parse_content(input).map(|c| out.push(Decl::Content(c))),
         "list-style-type" => keyword!(input, out, ListStyleType, ListStyleType),
         "list-style-position" => keyword!(input, out, ListStylePosition, ListStylePosition),
         "visibility" => keyword!(input, out, Visibility, Visibility),
@@ -350,4 +351,43 @@ fn parse_text_decoration<'i>(input: &mut Parser<'i>) -> ParseResult<u8> {
         }
     }
     if any { Ok(bits) } else { invalid() }
+}
+
+/// `content`：`none` / `normal`、文字列、`attr(x)`、`open-quote` / `close-quote` の並び。
+/// カウンターや `url()` などは無視する（その部品は空）。
+fn parse_content<'i>(input: &mut Parser<'i>) -> ParseResult<Option<Arc<[ContentPart]>>> {
+    let mut parts: Vec<ContentPart> = Vec::new();
+    let mut first = true;
+    while !input.is_exhausted() {
+        let token = input.next()?.clone();
+        match token {
+            Token::Ident(ident) if first && ident.eq_ignore_ascii_case("none") => {
+                return Ok(None);
+            }
+            Token::Ident(ident) if first && ident.eq_ignore_ascii_case("normal") => {
+                return Ok(None);
+            }
+            Token::Ident(ident)
+                if ident.eq_ignore_ascii_case("open-quote")
+                    || ident.eq_ignore_ascii_case("close-quote") =>
+            {
+                parts.push(ContentPart::Text(Arc::from("\"")));
+            }
+            Token::QuotedString(text) => parts.push(ContentPart::Text(Arc::from(&*text))),
+            Token::Function(name) => {
+                let is_attr = name.eq_ignore_ascii_case("attr");
+                let argument: ParseResult<Option<Arc<str>>> = input.parse_nested_block(|i| {
+                    let found = i.try_parse(|i| i.expect_ident().map(|s| Arc::from(&**s)));
+                    while i.next().is_ok() {}
+                    Ok(found.ok())
+                });
+                if let (true, Ok(Some(attr))) = (is_attr, argument) {
+                    parts.push(ContentPart::Attr(attr));
+                }
+            }
+            _ => {}
+        }
+        first = false;
+    }
+    Ok(Some(Arc::from(parts)))
 }

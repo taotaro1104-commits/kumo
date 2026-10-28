@@ -81,6 +81,9 @@ pub(crate) struct HostState {
     pub current_script: Option<NodeId>,
     /// 表示領域の大きさ（`innerWidth` / `matchMedia`）
     pub viewport: (f32, f32),
+    /// 最後のレイアウトでの要素の境界ボックス（要素の添字 → 文書座標）と、ページのスクロール位置
+    pub geometry: HashMap<usize, crate::geometry::Rect>,
+    pub scroll_y: f32,
     /// `onclick="…"` のような属性ハンドラをコンパイルした関数（要素の添字・イベント名 → 属性の本文と関数）
     pub inline_handlers: HashMap<(usize, String), (String, JsObject)>,
 }
@@ -112,6 +115,8 @@ impl Host {
             ready_state: "loading".to_owned(),
             current_script: None,
             viewport: (1280.0, 800.0),
+            geometry: HashMap::new(),
+            scroll_y: 0.0,
             inline_handlers: HashMap::new(),
         })))
     }

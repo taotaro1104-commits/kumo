@@ -178,20 +178,6 @@ fn get_local_name(this: &JsValue, _: &[JsValue], ctx: &mut Context) -> JsResult<
 
 // ---- 位置と大きさ（レイアウトの結果は JS に渡さないので 0） ----
 
-fn bounding_rect(_: &JsValue, _: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
-    let rect = JsObject::with_object_proto(ctx.intrinsics());
-    for key in [
-        "x", "y", "width", "height", "top", "left", "right", "bottom",
-    ] {
-        rect.set(JsString::from(key), 0, false, ctx)?;
-    }
-    Ok(rect.into())
-}
-
-fn zero(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    Ok(JsValue::from(0))
-}
-
 fn null(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     Ok(JsValue::null())
 }
@@ -232,7 +218,7 @@ const BOOL_ATTRS: [(&str, &str); 9] = [
 
 pub(crate) fn install(ctx: &mut Context, element: &JsObject, html_element: &JsObject) {
     install_parent_node(ctx, element);
-    let methods: [(&str, Native, usize); 18] = [
+    let methods: [(&str, Native, usize); 17] = [
         ("getAttribute", get_attribute, 1),
         ("setAttribute", set_attribute, 2),
         ("removeAttribute", remove_attribute, 1),
@@ -247,7 +233,6 @@ pub(crate) fn install(ctx: &mut Context, element: &JsObject, html_element: &JsOb
         ("after", after, 0),
         ("remove", remove, 0),
         ("replaceWith", replace_with, 0),
-        ("getBoundingClientRect", bounding_rect, 0),
         ("scrollIntoView", noop, 0),
         ("focus", noop, 0),
         ("blur", noop, 0),
@@ -255,30 +240,17 @@ pub(crate) fn install(ctx: &mut Context, element: &JsObject, html_element: &JsOb
     for (name, f, n) in methods {
         define_method(ctx, element, name, f, n);
     }
-    let getters: [(&str, Native); 8] = [
+    let getters: [(&str, Native); 5] = [
         ("tagName", get_tag_name),
         ("localName", get_local_name),
         ("nextElementSibling", get_next_element_sibling),
         ("previousElementSibling", get_previous_element_sibling),
-        ("offsetWidth", zero),
-        ("offsetHeight", zero),
-        ("clientWidth", zero),
         ("offsetParent", null),
     ];
     for (name, g) in getters {
         define_accessor(ctx, element, name, Some(g), None);
     }
-    for name in [
-        "clientHeight",
-        "scrollTop",
-        "scrollLeft",
-        "scrollWidth",
-        "scrollHeight",
-        "offsetTop",
-        "offsetLeft",
-    ] {
-        define_accessor(ctx, element, name, Some(zero), Some(noop));
-    }
+    crate::geometry::install(ctx, element);
     define_accessor(
         ctx,
         element,
