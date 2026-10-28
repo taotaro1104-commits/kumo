@@ -10,7 +10,7 @@ mimalloc = { workspace = true }
 libmimalloc-sys = { version = "0.1", default-features = false, features = ["extended", "v2"] }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61", features = ["Win32_System_ProcessStatus", "Win32_System_Threading"] }
+windows-sys = { version = "0.61", features = ["Win32_System_ProcessStatus", "Win32_System_Threading", "Win32_System_SystemInformation"] }
 
 [lints.clippy]
 all = { level = "warn", priority = -1 }

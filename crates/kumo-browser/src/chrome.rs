@@ -49,6 +49,8 @@ impl ChromeAction {
 pub struct TabLabel {
     pub title: String,
     pub loading: bool,
+    /// 凍結または破棄されている（見出しを薄くして印を付ける）
+    pub dormant: bool,
 }
 
 /// UI の描画に必要な状態。
@@ -75,6 +77,7 @@ html, body { margin: 0; background: #e3e6ea; color: #1f2328;
 .tab.hover { background: #d4d8de; }
 .tab.active { background: #ffffff; }
 .tab a.title { flex: 1; color: #4a5058; text-decoration: none; white-space: nowrap; overflow: hidden; }
+.tab.dormant a.title { color: #8a9099; }
 .tab.active a.title { color: #1f2328; font-weight: 600; }
 .dot { display: inline-block; width: 14px; color: #1a73e8; font-size: 10px; }
 .tab a.close { flex: none; width: 20px; height: 20px; line-height: 20px; border-radius: 10px; text-align: center;
@@ -130,16 +133,18 @@ fn tabs_html(state: &ChromeState<'_>, html: &mut String) {
     html.push_str("<div class=tabs>");
     for (i, tab) in state.tabs.iter().enumerate() {
         let href = format!("kumo:tab/{i}");
-        let base = if i == state.active {
-            "tab active"
-        } else {
-            "tab"
+        let base = match (i == state.active, tab.dormant) {
+            (true, _) => "tab active",
+            (false, true) => "tab dormant",
+            (false, false) => "tab",
         };
         let class = class_for(state, base, &href);
         let close_href = format!("kumo:close/{i}");
         let close = class_for(state, "close", &close_href);
         let dot = if tab.loading {
             "<span class=dot>●</span>"
+        } else if tab.dormant {
+            "<span class=dot>○</span>"
         } else {
             ""
         };
@@ -246,10 +251,12 @@ mod tests {
                 TabLabel {
                     title: "<script>".into(),
                     loading: true,
+                    dormant: false,
                 },
                 TabLabel {
                     title: "x".repeat(40),
                     loading: false,
+                    dormant: false,
                 },
             ],
             active: 1,

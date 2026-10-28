@@ -75,7 +75,11 @@ impl Browser {
                 self.tabs[index].title = Some(title);
                 self.invalidate_chrome()
             }
-            FromContent::Synced { .. } | FromContent::Stats { .. } => Redraw::default(),
+            FromContent::Stats { .. } => {
+                self.memory_stats(&message);
+                Redraw::default()
+            }
+            FromContent::Synced { .. } => Redraw::default(),
         }
     }
 
@@ -105,6 +109,7 @@ impl Browser {
             tab.shown_url = Some(final_url);
         }
         tab.title = Some(title);
+        self.restore_scroll(index);
         self.invalidate_chrome()
     }
 
@@ -174,7 +179,7 @@ impl Browser {
         }
     }
 
-    fn request_id(&mut self) -> u64 {
+    pub(crate) fn request_id(&mut self) -> u64 {
         let id = self.next_request;
         self.next_request += 1;
         id

@@ -10,8 +10,10 @@ use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 
 use mimalloc::MiMalloc;
 
+mod pressure;
 mod process;
 
+pub use pressure::{Pressure, classify, memory_pressure};
 pub use process::{ProcessMemory, process_memory};
 
 /// 計上先のサブシステム。

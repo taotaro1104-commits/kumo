@@ -155,6 +155,15 @@ impl JsRuntime {
         boa_gc::force_collect();
     }
 
+    /// ランタイムを捨てて、そのオブジェクトを回収する。Boa のヒープは文脈を捨てただけでは返らず
+    /// （8 ページ分で 46MB が残った）、回収して初めて OS へ返せる。ページを閉じるときに必ず呼ぶ。
+    pub fn shutdown(self) {
+        let Self { ctx, host, .. } = self;
+        drop(ctx);
+        drop(host);
+        boa_gc::force_collect();
+    }
+
     fn run_script_unchecked(
         &mut self,
         source: &str,

@@ -78,7 +78,9 @@ pub fn pump(engine: &mut ContentEngine, fetch: bool) -> Vec<FromContent> {
         }
         for job in jobs {
             if fetch {
-                engine.done(job.run(&*fetcher));
+                if let Some(done) = job.run(&*fetcher) {
+                    engine.done(done);
+                }
             } else {
                 held.push(job);
             }

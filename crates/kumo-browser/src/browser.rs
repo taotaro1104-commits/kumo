@@ -10,6 +10,7 @@ use kumo_net::process::Fetcher;
 use url::Url;
 
 use crate::chrome::{CHROME_HEIGHT, ChromeState, TabLabel, chrome_html};
+use crate::governor::TabState;
 use crate::history::HistoryDb;
 use crate::newtab::NEW_TAB_URL;
 use crate::offline::Offline;
@@ -45,6 +46,8 @@ pub struct Browser {
     pub(crate) chrome_hover: Option<String>,
     /// リンク先の吹き出し
     pub(crate) bubble: Option<crate::pointer::BubbleCache>,
+    /// メモリ管理（凍結・破棄の方針と状態）
+    pub(crate) memory: crate::memory::MemoryState,
 }
 
 /// Content を作る関数（落ちたときの作り直し用）。
@@ -103,6 +106,7 @@ impl Browser {
             notify: None,
             chrome_hover: None,
             bubble: None,
+            memory: crate::memory::MemoryState::default(),
         };
         browser.send_viewport();
         browser
@@ -184,13 +188,20 @@ impl Browser {
     }
 
     pub fn activate(&mut self, index: usize) -> Redraw {
-        let Some(tab) = self.tabs.get(index) else {
+        let Some(id) = self.tabs.get(index).map(|t| t.id) else {
             return Redraw::default();
         };
-        self.content.send(ToContent::Show { tab: tab.id });
+        self.content.send(ToContent::Show { tab: id });
+        let now = std::time::Instant::now();
+        self.leave(self.active, now);
         self.active = index;
         self.url_focused = false;
-        self.url_text = tab.url().map(Url::to_string).unwrap_or_default();
+        self.url_text = self.tabs[index]
+            .url()
+            .map(Url::to_string)
+            .unwrap_or_default();
+        // 破棄したタブはここで読み込み直す（URL 欄は読み込む URL に合わせる）
+        self.wake(index, now);
         // 前のタブのフレームは使わない（新しいタブのフレームが届くまで待つ）
         self.discard_frame();
         self.invalidate_chrome()
@@ -272,6 +283,8 @@ impl Browser {
             tab.session.push(url.clone());
         }
         tab.loading = Some(nav);
+        tab.state = TabState::Live;
+        tab.posted = post_body.is_some();
         tab.hover_link = None;
         tab.hover_kind = kumo_content::protocol::HoverKind::None;
         tab.field_focused = false;
@@ -347,6 +360,7 @@ impl Browser {
                     .map(|t| TabLabel {
                         title: t.title(),
                         loading: t.is_loading(),
+                        dormant: t.state != TabState::Live,
                     })
                     .collect(),
                 active: self.active,

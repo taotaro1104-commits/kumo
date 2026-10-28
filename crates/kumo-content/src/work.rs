@@ -179,6 +179,9 @@ impl SubJob {
 pub enum Work {
     Document(FetchJob),
     Sub(SubJob),
+    /// 取得スレッドのヒープを回収する。DOM などは取得スレッドで確保されるので、別スレッドで捨てても
+    /// 確保元が回収するまで OS に返らない（タブの破棄・凍結の後に送る）
+    Trim,
 }
 
 /// 仕事の結果。
@@ -192,13 +195,16 @@ impl Work {
         match self {
             Self::Document(job) => job.tab,
             Self::Sub(job) => job.tab,
+            Self::Trim => 0, // タブ番号は 1 から
         }
     }
 
-    pub fn run(self, fetcher: &dyn Fetcher) -> Done {
+    /// 仕事を実行する。結果を返さない仕事（[`Work::Trim`]）は `None`。
+    pub fn run(self, fetcher: &dyn Fetcher) -> Option<Done> {
         match self {
-            Self::Document(job) => Done::Document(Box::new(job.run(fetcher))),
-            Self::Sub(job) => Done::Sub(job.run(fetcher)),
+            Self::Document(job) => Some(Done::Document(Box::new(job.run(fetcher)))),
+            Self::Sub(job) => Some(Done::Sub(job.run(fetcher))),
+            Self::Trim => None,
         }
     }
 }

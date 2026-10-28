@@ -20,7 +20,7 @@ mod window;
 use std::sync::Arc;
 use std::time::Duration;
 
-use kumo_browser::{Browser, HistoryDb, parse_input};
+use kumo_browser::{Browser, HistoryDb, Policy, parse_input};
 use kumo_content::CONTENT_PROCESS_ARG;
 use kumo_mem::TaggedAllocator;
 use kumo_net::process::{Fetcher, NetworkClient, listen_name, parse_config, serve_listener};
@@ -55,6 +55,31 @@ fn open_history(args: &Args) -> Option<HistoryDb> {
     }
 }
 
+/// ヘッドレスの計測用：`--freeze-after` / `--discard-after` が指定されていたら、その時間が経ったことにして
+/// 背景のタブを降格し、反映を待つ（凍結・破棄したときのメモリを測れる）。
+fn fast_forward(browser: &mut Browser, args: &Args) {
+    let skip = args.discard_after_secs.or(args.freeze_after_secs);
+    let Some(secs) = skip else { return };
+    let later = std::time::Instant::now() + Duration::from_secs(secs + 1);
+    browser.govern(0, kumo_mem::Pressure::None, later);
+    browser.settle(LOAD_TIMEOUT);
+}
+
+/// 既定の方針に、引数で指定された分を上書きする。
+fn memory_policy(args: &Args) -> Policy {
+    let mut policy = Policy::default();
+    if let Some(mb) = args.memory_budget_mb {
+        policy.budget = mb * 1024 * 1024;
+    }
+    if let Some(s) = args.freeze_after_secs {
+        policy.freeze_after = Duration::from_secs(s);
+    }
+    if let Some(s) = args.discard_after_secs {
+        policy.discard_after = Duration::from_secs(s);
+    }
+    policy
+}
+
 /// 起動時に開いたタブの読み込みを待つ上限（ヘッドレス）。
 const LOAD_TIMEOUT: Duration = Duration::from_secs(120);
 
@@ -67,6 +92,7 @@ fn run(args: Args) -> Result<(), String> {
     );
     browser.set_content_restart(processes.restart);
     browser.set_javascript(!args.no_js);
+    browser.set_memory_policy(memory_policy(&args));
     let started = std::time::Instant::now();
     if args.targets.is_empty() {
         browser.open_tab(None, true);
@@ -85,6 +111,7 @@ fn run(args: Args) -> Result<(), String> {
                 args.targets.len(),
                 started.elapsed().as_secs_f64() * 1000.0
             );
+            fast_forward(&mut browser, &args);
             headless::render(&mut browser, &*processes.network, &args, out)
         }
         None => window::run(browser, processes.network, args.mem_report),

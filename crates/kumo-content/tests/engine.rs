@@ -97,7 +97,7 @@ fn stale_loads_are_discarded_and_errors_show_a_page() {
     e.handle(load(2, &site.url("missing.html")));
     let fetcher = e.fetcher();
     for job in first {
-        e.done(job.run(&*fetcher));
+        e.done(job.run(&*fetcher).expect("結果のある仕事"));
     }
     assert!(
         loaded_titles(&e.take_output()).is_empty(),

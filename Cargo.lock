@@ -1716,6 +1716,7 @@ name = "kumo-browser"
 version = "0.1.0"
 dependencies = [
  "kumo-content",
+ "kumo-mem",
  "kumo-net",
  "kumo-paint",
  "percent-encoding",

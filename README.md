@@ -1,12 +1,12 @@
-# Kumo — Rust製・省メモリブラウザ（Phase 2：JavaScript）
+# Kumo — Rust製・省メモリブラウザ（Phase 3：メモリ管理）
 
-設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 2 までの実装です。
+設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 3 までの実装です。
 HTML/CSS → アリーナDOM → カスケード → Taffy + Parley レイアウト → tiny-skia 描画。
 タブ・履歴・Network プロセス（rustls・HTTPキャッシュ・コンテンツブロック・Cookie 永続化）を備え、
 ページの処理は Content プロセスで非同期に行います（Browser / Content / Network の3プロセス）。
 フォーム送信とページ内アンカーにも対応しています。
 計画と計測結果は [docs/phase1.md](docs/phase1.md)、プロセス分離は [docs/phase1b.md](docs/phase1b.md)、
-JavaScript（Boa）は [docs/phase2.md](docs/phase2.md)。
+JavaScript（Boa）は [docs/phase2.md](docs/phase2.md)、メモリ管理（凍結・破棄・about:memory）は [docs/phase3.md](docs/phase3.md)。
 
 ```
 Browser（タブ・履歴・UI）──stdin/stdout──▶ Content（全タブのページ、共有フレームへ描画）
@@ -65,7 +65,7 @@ target/release/kumo-viewer tests/fixtures/basic.html --headless out.png --width 
 - ページの `border-radius`（角丸の背景・枠線）に対応。フォーム部品も角を丸めて描く。
 
 オプション：`--no-js`（スクリプトを実行しない）、`--in-process`（Content・Network を別プロセスにせずスレッドで動かす）、`--no-disk-cache`（キャッシュ・履歴を保存しない）、
-`--filter-list FILE`（EasyList などを追加）。キャッシュと履歴は `%LOCALAPPDATA%\Kumo`（Linux は `~/.cache/kumo`）。
+`--memory-budget MB` / `--freeze-after 秒` / `--discard-after 秒`（メモリ管理の方針）、`--filter-list FILE`（EasyList などを追加）。キャッシュと履歴は `%LOCALAPPDATA%\Kumo`（Linux は `~/.cache/kumo`）。
 `KUMO_ALLOC_STATS=1` で mimalloc の内部統計も、`KUMO_JS_LOG=1` でスクリプトのコンソール出力・例外・実行時間も出力します。
 
 ## 検証

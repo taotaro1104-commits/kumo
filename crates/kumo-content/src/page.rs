@@ -27,6 +27,14 @@ pub struct Page {
     boxes: usize,
     unique_styles: usize,
     js: Option<JsRuntime>,
+    /// 凍結中（スクリプトと描画命令を捨てている）
+    frozen: bool,
+}
+
+impl Drop for Page {
+    fn drop(&mut self) {
+        self.stop_js();
+    }
 }
 
 /// 計測用の各段階の数値。
@@ -70,6 +78,7 @@ impl Page {
             boxes: 0,
             unique_styles: 0,
             js,
+            frozen: false,
         };
         page.refresh_title();
         page.relayout(viewport, services);
@@ -98,6 +107,28 @@ impl Page {
 
     pub fn js_mut(&mut self) -> Option<&mut JsRuntime> {
         self.js.as_mut()
+    }
+
+    /// スクリプトを止めて、そのメモリを返す。
+    fn stop_js(&mut self) {
+        if let Some(js) = self.js.take() {
+            js.shutdown();
+        }
+    }
+
+    pub fn is_frozen(&self) -> bool {
+        self.frozen
+    }
+
+    /// 凍結する：スクリプトと描画命令を捨てて DOM とスタイルシートだけ残す。
+    /// 戻すには [`Page::relayout`]（スクリプトは戻らない。静的な文書として表示する）。
+    pub fn freeze(&mut self) {
+        self.stop_js();
+        self.list = DisplayList::default();
+        self.boxes = 0;
+        self.unique_styles = 0;
+        self.frozen = true;
+        kumo_mem::release_free_memory();
     }
 
     pub fn has_js(&self) -> bool {
@@ -141,6 +172,7 @@ impl Page {
     pub fn relayout(&mut self, viewport: (f32, f32), services: &mut Services) {
         let (width, height) = viewport;
         self.viewport = viewport;
+        self.frozen = false;
         if let Some(js) = &mut self.js {
             js.set_viewport(viewport);
         }

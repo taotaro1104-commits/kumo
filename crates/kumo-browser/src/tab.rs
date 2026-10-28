@@ -1,8 +1,12 @@
 //! タブとセッション履歴（戻る・進む）。ページ本体は Content プロセスが持ち、ここには表示用の状態だけを置く。
 
+use std::time::Instant;
+
 use url::Url;
 
 use kumo_content::protocol::{HoverKind, TabId};
+
+use crate::governor::TabState;
 
 /// タブ内の移動履歴。
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -81,6 +85,14 @@ pub struct Tab {
     /// マウスの下のリンク先と種類（Content が知らせる）
     pub hover_link: Option<String>,
     pub hover_kind: HoverKind,
+    /// メモリ管理による状態
+    pub state: TabState,
+    /// 最後に表示を離れた（または作られた）時刻。背景に回ってからの時間の基準
+    pub(crate) last_active: Instant,
+    /// POST で開いたページ（読み込み直すと同じにならないので破棄しない）
+    pub(crate) posted: bool,
+    /// 破棄から戻すときに、読み込み後に戻すスクロール位置
+    pub(crate) restore_scroll: Option<f32>,
 }
 
 /// 題名が届く前のタブ見出し：ドメイン、ファイルならファイル名。
@@ -112,6 +124,10 @@ impl Tab {
             loads: 0,
             hover_link: None,
             hover_kind: HoverKind::None,
+            state: TabState::Live,
+            last_active: Instant::now(),
+            posted: false,
+            restore_scroll: None,
         }
     }
 

@@ -129,6 +129,7 @@ mod tests {
             let w = queue.pop().unwrap();
             let tag = match &w {
                 Work::Document(j) => j.nav,
+                Work::Trim => 0,
                 Work::Sub(j) => match j.kind {
                     SubKind::Api(id) => 1000 + id,
                     SubKind::Script(_) => 2000,

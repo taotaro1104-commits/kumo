@@ -13,11 +13,16 @@ pub struct Args {
     pub in_process: bool,
     pub no_js: bool,
     pub no_disk_cache: bool,
+    /// メモリの予算（MB）。超えたら背景のタブを降格する
+    pub memory_budget_mb: Option<u64>,
+    /// 背景に回って凍結するまで・見なくなって破棄するまでの秒数
+    pub freeze_after_secs: Option<u64>,
+    pub discard_after_secs: Option<u64>,
     pub filter_lists: Vec<PathBuf>,
 }
 
 pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
-[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-disk-cache] [--filter-list FILE ...]";
+[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-disk-cache] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
     let mut args = Args {
@@ -30,6 +35,9 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         in_process: false,
         no_js: false,
         no_disk_cache: false,
+        memory_budget_mb: None,
+        freeze_after_secs: None,
+        discard_after_secs: None,
         filter_lists: Vec::new(),
     };
     let mut raw = raw.peekable();
@@ -45,6 +53,18 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
             }
             "--headless" => args.headless = Some(value("--headless")?),
             "--filter-list" => args.filter_lists.push(value("--filter-list")?.into()),
+            "--memory-budget" => {
+                args.memory_budget_mb =
+                    Some(parse_count("--memory-budget", &value("--memory-budget")?)?)
+            }
+            "--freeze-after" => {
+                args.freeze_after_secs =
+                    Some(parse_count("--freeze-after", &value("--freeze-after")?)?)
+            }
+            "--discard-after" => {
+                args.discard_after_secs =
+                    Some(parse_count("--discard-after", &value("--discard-after")?)?)
+            }
             "--mem-report" => args.mem_report = true,
             "--in-process" => args.in_process = true,
             "--no-js" => args.no_js = true,
@@ -57,6 +77,13 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         }
     }
     Ok(args)
+}
+
+fn parse_count(name: &str, s: &str) -> Result<u64, String> {
+    match s.parse::<u64>() {
+        Ok(v) if v > 0 => Ok(v),
+        _ => Err(format!("{name} は 1 以上の整数: {s}")),
+    }
 }
 
 fn parse_dim(s: &str) -> Result<u32, String> {
@@ -103,5 +130,25 @@ mod tests {
         assert!(args(&["x", "--bogus"]).is_err());
         assert!(args(&["x", "--width"]).is_err());
         assert!(args(&["--scroll", "abc"]).is_err());
+        assert!(args(&["--memory-budget", "0"]).is_err());
+    }
+
+    #[test]
+    fn parses_memory_policy_options() {
+        let a = args(&[
+            "--memory-budget",
+            "150",
+            "--freeze-after",
+            "30",
+            "--discard-after",
+            "300",
+        ])
+        .unwrap();
+        assert_eq!(a.memory_budget_mb, Some(150));
+        assert_eq!(
+            (a.freeze_after_secs, a.discard_after_secs),
+            (Some(30), Some(300))
+        );
+        assert_eq!(args(&[]).unwrap().memory_budget_mb, None);
     }
 }

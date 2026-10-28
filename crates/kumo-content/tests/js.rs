@@ -327,7 +327,7 @@ fn stale_results_are_dropped_and_script_errors_are_counted() {
     let fetcher = e.fetcher();
     // 文書の取得だけ済ませ、`fetch` の取得は保留にしておく
     for job in e.take_jobs() {
-        e.done(job.run(&*fetcher));
+        e.done(job.run(&*fetcher).expect("結果のある仕事"));
     }
     assert_eq!(
         text_of(&e, 1, "log"),
@@ -345,7 +345,7 @@ fn stale_results_are_dropped_and_script_errors_are_counted() {
         post_body: None,
     });
     for job in pending {
-        e.done(job.run(&*fetcher));
+        e.done(job.run(&*fetcher).expect("結果のある仕事"));
     }
     pump(&mut e, true);
     assert_eq!(text_of(&e, 1, "other"), "q");

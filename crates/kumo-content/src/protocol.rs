@@ -65,6 +65,14 @@ pub enum ToContent {
     Show {
         tab: TabId,
     },
+    /// 背景のタブを凍結する（スクリプトと描画データを捨て、DOM だけ残す。表示すると再レイアウトする）
+    Freeze {
+        tab: TabId,
+    },
+    /// 背景のタブを破棄する（ページを丸ごと捨てる。表示するには読み込み直す）
+    Discard {
+        tab: TabId,
+    },
     ScrollBy {
         tab: TabId,
         dy: f32,
@@ -113,6 +121,8 @@ pub struct ContentStats {
     pub js_tabs: usize,
     /// スクリプトの未捕捉の例外の数
     pub js_errors: usize,
+    /// 凍結しているタブの数
+    pub frozen_tabs: usize,
     pub decoded_image_bytes: u64,
     pub compressed_image_bytes: u64,
     pub glyph_bytes: u64,

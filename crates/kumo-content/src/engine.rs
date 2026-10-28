@@ -136,6 +136,8 @@ impl ContentEngine {
                 self.tabs.entry(tab).or_default();
                 self.frame.invalidate();
             }
+            ToContent::Freeze { tab } => self.freeze(tab),
+            ToContent::Discard { tab } => self.discard(tab),
             ToContent::ScrollBy { tab, dy } => self.scroll_by(tab, dy),
             ToContent::ScrollToFragment { tab, url } => self.scroll_to_fragment(tab, &url),
             ToContent::Click { tab, x, y, new_tab } => self.click(tab, x, y, new_tab),
@@ -152,6 +154,32 @@ impl ContentEngine {
             }
             ToContent::Shutdown => {}
         }
+    }
+
+    /// 背景のタブを凍結する。表示中のタブは対象にしない。
+    fn freeze(&mut self, id: TabId) {
+        if self.active == Some(id) {
+            return;
+        }
+        if let Some(page) = self.tabs.get_mut(&id).and_then(|t| t.page.as_mut()) {
+            page.freeze();
+            self.jobs.push(Work::Trim);
+        }
+    }
+
+    /// 背景のタブを破棄する（ページを捨てる。Browser が表示するときに読み込み直す）。
+    fn discard(&mut self, id: TabId) {
+        if self.active == Some(id) {
+            return;
+        }
+        self.blur(id);
+        if let Some(tab) = self.tabs.get_mut(&id) {
+            tab.page = None;
+            tab.hover = None;
+        }
+        self.jobs.retain(|job| job.tab() != id);
+        self.jobs.push(Work::Trim);
+        kumo_mem::release_free_memory();
     }
 
     fn set_viewport(&mut self, width: u32, height: u32) {
@@ -282,7 +310,10 @@ impl ContentEngine {
         let Some(tab) = self.tabs.get_mut(&id) else {
             return;
         };
-        let stale = tab.page.as_ref().is_some_and(|p| p.viewport() != viewport);
+        let stale = tab
+            .page
+            .as_ref()
+            .is_some_and(|p| p.is_frozen() || p.viewport() != viewport);
         if !(tab.needs_layout || stale) {
             return;
         }
@@ -303,6 +334,7 @@ impl ContentEngine {
 
     pub fn stats(&self) -> ContentStats {
         let (mut dom_nodes, mut display_items, mut js_tabs, mut js_errors) = (0, 0, 0, 0);
+        let mut frozen_tabs = 0;
         for tab in self.tabs.values() {
             let Some(page) = tab.page.as_ref() else {
                 continue;
@@ -311,6 +343,7 @@ impl ContentEngine {
             dom_nodes += stats.dom_nodes;
             display_items += stats.display_items;
             js_tabs += usize::from(page.has_js());
+            frozen_tabs += usize::from(page.is_frozen());
             js_errors += tab.js_errors;
         }
         ContentStats {
@@ -319,6 +352,7 @@ impl ContentEngine {
             display_items,
             js_tabs,
             js_errors,
+            frozen_tabs,
             decoded_image_bytes: self.services.images.decoded_bytes() as u64,
             compressed_image_bytes: self.services.images.compressed_bytes() as u64,
             glyph_bytes: self.frame.raster.glyphs.bytes() as u64,

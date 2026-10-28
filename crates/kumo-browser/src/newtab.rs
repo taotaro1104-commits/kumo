@@ -4,6 +4,7 @@ use kumo_content::escape;
 use kumo_content::protocol::{TabId, ToContent};
 use url::Url;
 
+use crate::about_memory::ABOUT_MEMORY_URL;
 use crate::browser::Browser;
 use crate::history::HistoryEntry;
 use crate::url_display::format_url;
@@ -141,6 +142,14 @@ impl Browser {
                 nav,
                 url: url.to_string(),
                 html: new_tab_html(&frequent),
+            };
+        }
+        if url.as_str() == ABOUT_MEMORY_URL {
+            return ToContent::LoadHtml {
+                tab,
+                nav,
+                url: url.to_string(),
+                html: crate::about_memory::memory_html(&self.memory_report()),
             };
         }
         ToContent::Load {

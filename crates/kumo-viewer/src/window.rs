@@ -4,6 +4,7 @@
 use std::num::NonZeroU32;
 use std::rc::Rc;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use kumo_browser::{Browser, CHROME_HEIGHT, FrameView, Pointer, Redraw};
 use kumo_net::process::Fetcher;
@@ -11,11 +12,14 @@ use kumo_paint::{CpuRasterizer, NoImageProvider, RectF, ScrollRenderer};
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalPosition;
 use winit::event::{ElementState, MouseScrollDelta, WindowEvent};
-use winit::event_loop::{ActiveEventLoop, EventLoop};
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::keyboard::ModifiersState;
 use winit::window::{Window, WindowId};
 
 use crate::input::{self, LINE_SCROLL, Outcome};
+
+/// メモリ管理の事務を呼ぶ間隔（ウィンドウのイベントがなくても起きる）。
+const MEMORY_CHECK_INTERVAL: Duration = Duration::from_secs(2);
 
 /// Content から通知が届いた。
 #[derive(Clone, Copy, Debug)]
@@ -264,6 +268,13 @@ impl ApplicationHandler<ContentWake> for Viewer {
                 event_loop.exit();
             }
         }
+    }
+
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        let now = Instant::now();
+        let redraw = self.browser.maintain_memory(now);
+        self.mark(redraw);
+        event_loop.set_control_flow(ControlFlow::WaitUntil(now + MEMORY_CHECK_INTERVAL));
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ContentWake) {

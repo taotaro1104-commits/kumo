@@ -125,8 +125,9 @@ impl FetchWorkers {
             let (queue, fetcher, events) = (queue.clone(), fetcher.clone(), events.clone());
             spawn_thread("kumo-fetch", FETCH_STACK_BYTES, move || {
                 while let Some(job) = queue.pop() {
-                    let done = job.run(&*fetcher);
-                    if events.send(Event::Done(Box::new(done))).is_err() {
+                    if let Some(done) = job.run(&*fetcher)
+                        && events.send(Event::Done(Box::new(done))).is_err()
+                    {
                         return;
                     }
                     // パースの一時データで空いたこのスレッドのページを OS へ返す
