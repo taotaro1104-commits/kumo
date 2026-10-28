@@ -17,6 +17,9 @@ pub struct ResolveContext<'a> {
 
 impl ResolveContext<'_> {
     fn length(&self, l: Length, font_size: f32) -> LengthPct {
+        if let Some(expr) = crate::math::lookup(l.expr) {
+            return self.evaluate(&expr, font_size);
+        }
         LengthPct {
             px: l.px
                 + l.em * font_size
@@ -24,6 +27,44 @@ impl ResolveContext<'_> {
                 + l.vw * self.viewport_width / 100.0
                 + l.vh * self.viewport_height / 100.0,
             pct: l.pct,
+        }
+    }
+}
+
+impl ResolveContext<'_> {
+    /// `min()` / `max()` / `clamp()` を評価する。パーセントは包含ブロックが分からないので、
+    /// 比較のときだけ表示領域の幅を基準にし、勝った引数の値（パーセントのまま）を返す。
+    fn evaluate(&self, expr: &crate::math::MathExpr, font_size: f32) -> LengthPct {
+        use crate::math::MathExpr;
+        let basis = self.viewport_width;
+        let value = |l: &LengthPct| l.resolve(basis);
+        let all = |args: &[Length]| -> Vec<LengthPct> {
+            args.iter().map(|a| self.length(*a, font_size)).collect()
+        };
+        let pick = |args: Vec<LengthPct>, smallest: bool| -> LengthPct {
+            args.into_iter()
+                .reduce(|best, next| {
+                    let better = if smallest {
+                        value(&next) < value(&best)
+                    } else {
+                        value(&next) > value(&best)
+                    };
+                    if better { next } else { best }
+                })
+                .unwrap_or(LengthPct::ZERO)
+        };
+        match expr {
+            MathExpr::Min(args) => pick(all(args), true),
+            MathExpr::Max(args) => pick(all(args), false),
+            MathExpr::Clamp(lo, mid, hi) => {
+                let (lo, mid, hi) = (
+                    self.length(*lo, font_size),
+                    self.length(*mid, font_size),
+                    self.length(*hi, font_size),
+                );
+                // max(lo, min(mid, hi))
+                pick(vec![lo, pick(vec![mid, hi], true)], false)
+            }
         }
     }
 }

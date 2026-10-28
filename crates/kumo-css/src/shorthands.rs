@@ -1,14 +1,12 @@
 //! ショートハンドと論理プロパティの展開。
 
-use std::sync::Arc;
-
 use cssparser::Parser;
 
 use crate::decl::*;
+use crate::grid_shorthands::{parse_grid_area, parse_grid_line_pair};
 use crate::keywords::*;
 use crate::properties::{
     non_negative, parse_font_family, parse_font_size, parse_font_weight, parse_line_height,
-    rest_of_input,
 };
 use crate::style::Side;
 use crate::values::*;
@@ -348,52 +346,5 @@ fn parse_list_style<'i>(input: &mut Parser<'i>, out: &mut Vec<Decl>) -> ParseRes
         }
     }
     out.extend([Decl::ListStyleType(ty), Decl::ListStylePosition(pos)]);
-    Ok(())
-}
-
-fn grid_value(s: &str) -> Option<Arc<str>> {
-    let trimmed = s.trim();
-    (!trimmed.is_empty()).then(|| Arc::from(trimmed))
-}
-
-/// `grid-column: 1 / 3` を start / end に分ける。
-fn parse_grid_line_pair<'i>(
-    input: &mut Parser<'i>,
-    out: &mut Vec<Decl>,
-    start: GridProp,
-    end: GridProp,
-) -> ParseResult<()> {
-    let raw = rest_of_input(input);
-    let mut parts = raw.splitn(2, '/');
-    let first = parts.next().and_then(grid_value);
-    let second = parts.next().and_then(grid_value);
-    out.push(Decl::Grid(start, first.clone()));
-    out.push(Decl::Grid(end, second));
-    Ok(())
-}
-
-/// `grid-area: name` または `row-start / column-start / row-end / column-end`。
-fn parse_grid_area<'i>(input: &mut Parser<'i>, out: &mut Vec<Decl>) -> ParseResult<()> {
-    let raw = rest_of_input(input);
-    let parts: Vec<Option<Arc<str>>> = raw.split('/').map(grid_value).collect();
-    let first = parts.first().cloned().flatten();
-    // 省略された値は対になる start 側（さらに無ければ先頭）の名前を使う
-    let get = |i: usize| {
-        parts
-            .get(i)
-            .cloned()
-            .flatten()
-            .or_else(|| {
-                i.checked_sub(2)
-                    .and_then(|j| parts.get(j).cloned().flatten())
-            })
-            .or_else(|| first.clone())
-    };
-    out.extend([
-        Decl::Grid(GridProp::RowStart, get(0)),
-        Decl::Grid(GridProp::ColumnStart, get(1)),
-        Decl::Grid(GridProp::RowEnd, get(2)),
-        Decl::Grid(GridProp::ColumnEnd, get(3)),
-    ]);
     Ok(())
 }

@@ -1,5 +1,6 @@
 //! CSS の値型（色・長さ）とそのパーサ。
 
+use crate::math::MathExpr;
 use cssparser::{Parser, Token};
 
 pub use crate::color::parse_color;
@@ -52,6 +53,9 @@ pub struct Length {
     pub vh: f32,
     /// パーセント値（50% → 50.0）
     pub pct: f32,
+    /// `min()` / `max()` / `clamp()` の式の番号（0 は式なし）。式があるとき、上の線形結合は
+    /// 近似の代表値で、適用時に式を評価し直す。足し算・拡大縮小に混ぜると式は失われ代表値になる
+    pub expr: u32,
 }
 
 impl Length {
@@ -62,6 +66,7 @@ impl Length {
         vw: 0.0,
         vh: 0.0,
         pct: 0.0,
+        expr: 0,
     };
 
     pub fn px(px: f32) -> Self {
@@ -84,6 +89,7 @@ impl Length {
             vw: self.vw + o.vw,
             vh: self.vh + o.vh,
             pct: self.pct + o.pct,
+            expr: 0,
         }
     }
 
@@ -95,6 +101,7 @@ impl Length {
             vw: self.vw * k,
             vh: self.vh * k,
             pct: self.pct * k,
+            expr: 0,
         }
     }
 
@@ -108,18 +115,41 @@ impl Length {
                 ..Self::ZERO
             },
             "ex" | "ch" => Self::em(value * 0.5),
-            "vw" => Self {
+            // small / large / dynamic viewport は区別しない（表示領域は一定）。vi / vb は横書きの vw / vh
+            "vw" | "svw" | "lvw" | "dvw" | "vi" | "svi" | "lvi" | "dvi" => Self {
                 vw: value,
                 ..Self::ZERO
             },
-            "vh" => Self {
+            "vh" | "svh" | "lvh" | "dvh" | "vb" | "svb" | "lvb" | "dvb" => Self {
                 vh: value,
                 ..Self::ZERO
             },
-            "vmin" | "vmax" => Self {
-                vw: value,
-                ..Self::ZERO
-            },
+            "vmin" | "svmin" | "lvmin" | "dvmin" => {
+                let (w, h) = (
+                    Self {
+                        vw: value,
+                        ..Self::ZERO
+                    },
+                    Self {
+                        vh: value,
+                        ..Self::ZERO
+                    },
+                );
+                math_length(MathExpr::Min(vec![w, h]), w)
+            }
+            "vmax" | "svmax" | "lvmax" | "dvmax" => {
+                let (w, h) = (
+                    Self {
+                        vw: value,
+                        ..Self::ZERO
+                    },
+                    Self {
+                        vh: value,
+                        ..Self::ZERO
+                    },
+                );
+                math_length(MathExpr::Max(vec![w, h]), w)
+            }
             "pt" => Self::px(value * 4.0 / 3.0),
             "pc" => Self::px(value * 16.0),
             "in" => Self::px(value * 96.0),
@@ -129,6 +159,14 @@ impl Length {
             _ => return None,
         };
         Some(l)
+    }
+}
+
+/// 式を登録し、近似の代表値 `approx` に式の番号を付けた長さにする。
+pub(crate) fn math_length(expr: MathExpr, approx: Length) -> Length {
+    Length {
+        expr: crate::math::intern(expr),
+        ..approx
     }
 }
 
@@ -176,12 +214,17 @@ fn parse_math_function<'i>(name: &str, input: &mut Parser<'i>) -> ParseResult<Le
         "calc" => parse_sum(input),
         _ => {
             let args = input.parse_comma_separated(parse_sum)?;
-            let pick = match name {
-                "clamp" => args.get(1),
-                "max" => args.last(),
-                _ => args.first(),
+            let (expr, pick) = match (name, args.as_slice()) {
+                ("clamp", [lo, mid, hi]) => (MathExpr::Clamp(*lo, *mid, *hi), *mid),
+                ("max", [.., last]) => (MathExpr::Max(args.clone()), *last),
+                ("min", [first, ..]) => (MathExpr::Min(args.clone()), *first),
+                _ => return invalid(),
             };
-            pick.copied().map_or_else(invalid, Ok)
+            // 引数が 1 つなら式にするまでもない
+            if args.len() == 1 {
+                return Ok(pick);
+            }
+            Ok(math_length(expr, pick))
         }
     }
 }
@@ -288,9 +331,11 @@ mod tests {
         );
         let nested = parse("calc((10px + 2px) * 2)", parse_length).unwrap();
         assert_eq!(nested, Length::px(24.0));
-        assert_eq!(
-            parse("clamp(1px, 2px, 3px)", parse_length),
-            Some(Length::px(2.0))
-        );
+        // clamp() は式として持つ（代表値は中央の引数、評価は適用時）
+        let clamp = parse("clamp(1px, 2px, 3px)", parse_length).unwrap();
+        assert_eq!(clamp.px, 2.0);
+        assert!(clamp.expr != 0);
+        // 引数が 1 つの min() / max() は式にしない
+        assert_eq!(parse("min(5px)", parse_length), Some(Length::px(5.0)));
     }
 }

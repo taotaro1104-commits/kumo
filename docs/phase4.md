@@ -40,6 +40,21 @@
 （変更箇所は `compute/block.rs` の `Kumo patch`）。再現は `kumo-layout/tests/layout.rs` の
 `cleared_block_with_inner_floats_variants`。上流で直ったら `[patch]` と `vendor/` を外す。
 
+## 数学関数と表示領域の単位
+
+- `min()` / `max()` / `clamp()` は、以前は代表値（`max` は最後の引数など）で近似していた。いまは式として保持し
+  （`kumo-css/src/math.rs`、`Length::expr`）、フォントサイズ・表示領域が分かる適用時に評価する。
+  パーセントを含む比較は表示領域の幅を基準にし、勝った引数をそのまま使う（包含ブロックの幅による厳密な評価は未対応）。
+- 単位：`svh` / `lvh` / `dvh` / `svw` / `lvw` / `dvw` / `vi` / `vb` を `vh` / `vw` として扱う（表示領域は一定）。
+  `vmin` / `vmax`（と `s`・`l`・`d` 付き）は `min` / `max` の式で正しく求める（以前は両方 `vw` だった）。
+- MDN のサイドバー（`max(var(..), calc(50vw - 720px + 1rem))` の余白）が左に切れていたのが直った。
+
+## グリッドの `grid-column: 名前`
+
+`grid-column: content` のように名前だけを書いたとき、終わりも同じ名前（`content-start` から `content-end` まで）にする
+（以前は終わりが空で 1 トラックだけになっていた）。The Guardian のようにグリッドの名前付きラインで組んだページが、
+細い 1 列に押し込まれていたのが直った。
+
 ## 生成コンテンツ（::before / ::after）
 
 - 以前は `::before` / `::after` の規則を読み捨てていた。いまは別の規則インデックスに入れ、要素ごとに疑似要素の計算値を作る。

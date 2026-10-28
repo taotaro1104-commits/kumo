@@ -493,3 +493,41 @@ fn cleared_block_with_inner_floats_variants() {
     // どの組み合わせでも、直前の兄弟（#n の下端 255）の下に置かれる
     assert!(r.iter().all(|&y| y == 255.0), "{r:?}");
 }
+
+#[test]
+fn math_functions_and_viewport_units_are_evaluated() {
+    // 表示領域は 800x600
+    let cases = [
+        ("width: max(100px, calc(50vw - 720px + 1rem))", 100.0, 0.0),
+        ("width: calc(100vw - 32px)", 768.0, 0.0),
+        ("width: min(300px, 100%)", 300.0, 0.0),
+        ("width: clamp(100px, 50%, 300px)", 300.0, 0.0),
+        ("width: clamp(500px, 50%, 900px)", 500.0, 0.0),
+        (
+            "--p: max(16px, calc(50vw - 720px + 16px)); padding-left: var(--p); width: 100px",
+            116.0,
+            0.0,
+        ),
+        ("height: 100svh", 800.0, 600.0),
+        ("height: 50dvh", 800.0, 300.0),
+        ("height: 10vmin; width: 10vmax", 80.0, 60.0),
+    ];
+    for (decl, width, height) in cases {
+        let css = format!("body {{ margin: 0 }} #a {{ {decl} }}");
+        let laid = lay("<div id=a>x</div>", &css);
+        let (_, _, w, h) = rect(&laid, "a");
+        assert_eq!(w, width, "{decl}");
+        if height > 0.0 {
+            assert_eq!(h, height, "{decl}");
+        }
+    }
+}
+
+#[test]
+fn grid_column_with_only_a_name_spans_the_named_lines() {
+    let css = "body { margin: 0 } #g { display: grid; column-gap: 20px;        grid-template-columns: minmax(0,1fr) [decoration-start title-start] repeat(3,60px) [title-end content-start] repeat(12,60px) [content-end hide-start] 60px [decoration-end hide-end] minmax(0,1fr);        grid-template-rows: [headline-start controls-start] auto [controls-end headline-end content-toggleable-start content-start] auto [content-end content-toggleable-end bottom-content-start] auto [bottom-content-end] }        #c { grid-column: content; grid-row: content-toggleable; height: 30px }        #t { grid-column: title; grid-row: headline; height: 20px }";
+    let laid = lay("<div id=g><div id=t>t</div><div id=c>c</div></div>", css);
+    // content は 12 トラック（60 * 12 + 隙間 20 * 11）、title は 3 トラック（60 * 3 + 20 * 2）
+    assert_eq!(rect(&laid, "c").2, 940.0);
+    assert_eq!(rect(&laid, "t").2, 220.0);
+}
