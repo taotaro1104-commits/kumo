@@ -62,7 +62,7 @@ impl ContentClient {
         let closed = Arc::new(AtomicBool::new(false));
         let worker = {
             let (events_tx, notify, closed) = (events_tx.clone(), notify.clone(), closed.clone());
-            std::thread::spawn(move || {
+            crate::host::spawn_thread("kumo-content", crate::host::ENGINE_STACK_BYTES, move || {
                 let engine = ContentEngine::new(fetcher, || 0);
                 host::run(engine, &events_rx, &events_tx, |m| {
                     deliver(&inbox_tx, &notify, m)

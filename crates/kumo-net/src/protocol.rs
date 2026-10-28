@@ -17,6 +17,12 @@ pub enum ResourceKind {
     Document,
     Stylesheet,
     Image,
+    /// `<script src>`
+    Script,
+    /// スクリプトの `fetch` / `XMLHttpRequest`（同じオリジン。Cookie を送る）
+    Fetch,
+    /// 別のオリジンへのスクリプトの要求。Cookie などの資格情報を送らず、キャッシュも使わない
+    FetchAnonymous,
     Other,
 }
 
@@ -27,6 +33,8 @@ impl ResourceKind {
             Self::Document => "document",
             Self::Stylesheet => "stylesheet",
             Self::Image => "image",
+            Self::Script => "script",
+            Self::Fetch | Self::FetchAnonymous => "xmlhttprequest",
             Self::Other => "other",
         }
     }
@@ -39,6 +47,12 @@ pub enum RequestMethod {
     Get,
     Post {
         content_type: String,
+        body: Vec<u8>,
+    },
+    /// スクリプトからの GET 以外の要求（PUT・DELETE・Content-Type なしの POST など）。キャッシュしない
+    Send {
+        method: String,
+        content_type: Option<String>,
         body: Vec<u8>,
     },
 }
@@ -62,6 +76,8 @@ pub struct FetchResponse {
     pub content_type: Option<String>,
     pub body: Vec<u8>,
     pub from_cache: bool,
+    /// `Access-Control-Allow-Origin` ヘッダの値（別オリジンのスクリプトに読ませてよいかの判定に使う）
+    pub allow_origin: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

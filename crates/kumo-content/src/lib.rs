@@ -11,12 +11,14 @@ mod frame;
 mod host;
 mod interact;
 mod jobs;
+mod js_glue;
 mod page;
 pub mod protocol;
 mod services;
+mod work;
 
 pub use client::{ContentClient, Notify};
-pub use engine::{BLANK, ContentEngine, FetchJob, Fetched};
+pub use engine::{BLANK, ContentEngine};
 pub use error_page::{describe_error, error_html};
 pub use fetch::{FORM_CONTENT_TYPE, FetchedPage, fetch_document, image_urls, prepare};
 pub use forms::{ControlClick, Submission, build_submission, click_control};
@@ -24,6 +26,7 @@ pub use frame::{FrameReader, FrameWriter};
 pub use host::{Event, run, serve_stdio};
 pub use page::{Page, PageStats, escape};
 pub use services::{FetchLoader, PageImages, Services};
+pub use work::{Done, FetchJob, Fetched, SubFetched, SubJob, SubKind, Work};
 
 use url::Url;
 

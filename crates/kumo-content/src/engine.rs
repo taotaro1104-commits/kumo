@@ -1,51 +1,25 @@
 //! Content のロジック：全タブのページを持ち、Browser からの要求を処理して通知を返す。
-//! 取得は [`FetchJob`] として外へ出し（ホストが別スレッドで動かす）、結果を [`ContentEngine::fetched`] で受ける。
+//! 取得は [`Work`] として外へ出し（ホストが別スレッドで動かす）、結果を [`ContentEngine::done`] で受ける。
 //! 入出力を持たないので、プロセスでもスレッドでも、テストでは直接でも同じように動かせる。
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use kumo_dom::NodeId;
 use kumo_net::process::Fetcher;
 use kumo_net::protocol::FetchError;
 use url::Url;
 
-use crate::fetch::{FetchedPage, fetch_document};
 use crate::frame::FrameWriter;
 use crate::page::Page;
 use crate::protocol::{ContentStats, FromContent, HoverKind, TabId, ToContent};
 use crate::services::{PageImages, Services};
+use crate::work::{Done, FetchJob, Fetched, Work};
 
 /// 何も開いていないタブに表示するページ。
 pub const BLANK: &str =
     "<html><head><title>新しいタブ</title></head><body style='background:#fff'></body></html>";
-
-/// 取得の依頼。ホストが別スレッドで [`FetchJob::run`] を呼び、結果を [`ContentEngine::fetched`] へ渡す。
-pub struct FetchJob {
-    pub tab: TabId,
-    pub nav: u64,
-    pub url: Url,
-    pub post_body: Option<Vec<u8>>,
-}
-
-pub struct Fetched {
-    tab: TabId,
-    nav: u64,
-    url: Url,
-    result: Result<FetchedPage, FetchError>,
-}
-
-impl FetchJob {
-    pub fn run(self, fetcher: &dyn Fetcher) -> Fetched {
-        let result = fetch_document(fetcher, &self.url, self.post_body);
-        Fetched {
-            tab: self.tab,
-            nav: self.nav,
-            url: self.url,
-            result,
-        }
-    }
-}
 
 #[derive(Default)]
 pub(crate) struct ContentTab {
@@ -59,6 +33,12 @@ pub(crate) struct ContentTab {
     pub focused: Option<NodeId>,
     /// 最後に知らせたマウスの下のもの
     pub hover: Option<(Option<String>, HoverKind)>,
+    /// 入力欄にフォーカスしたときの値（外したとき `change` を送るかの判定）
+    pub focus_value: Option<String>,
+    /// スクリプトの未捕捉の例外の数
+    pub js_errors: usize,
+    /// 最後にタイマーを動かした時刻（背景のタブは間隔を空ける）
+    pub last_tick: Duration,
 }
 
 pub struct ContentEngine {
@@ -68,7 +48,11 @@ pub struct ContentEngine {
     pub(crate) viewport: (u32, u32),
     pub(crate) frame: FrameWriter,
     pub(crate) out: Vec<FromContent>,
-    jobs: Vec<FetchJob>,
+    pub(crate) jobs: Vec<Work>,
+    /// Content の時計（タイマーと `performance.now()` の基準）
+    pub(crate) now: Duration,
+    /// スクリプトを実行するか
+    javascript: bool,
     private_bytes: fn() -> u64,
 }
 
@@ -83,6 +67,8 @@ impl ContentEngine {
             frame: FrameWriter::default(),
             out: Vec::new(),
             jobs: Vec::new(),
+            now: Duration::ZERO,
+            javascript: true,
             private_bytes,
         }
     }
@@ -102,12 +88,12 @@ impl ContentEngine {
     }
 
     /// 溜まった取得の依頼を取り出す。
-    pub fn take_jobs(&mut self) -> Vec<FetchJob> {
+    pub fn take_jobs(&mut self) -> Vec<Work> {
         std::mem::take(&mut self.jobs)
     }
 
     /// 取り出した依頼を戻す（テストで取得を遅らせるため）。
-    pub fn requeue(&mut self, job: FetchJob) {
+    pub fn requeue(&mut self, job: Work) {
         self.jobs.push(job);
     }
 
@@ -119,6 +105,7 @@ impl ContentEngine {
     pub fn handle(&mut self, message: ToContent) {
         match message {
             ToContent::Viewport { width, height } => self.set_viewport(width, height),
+            ToContent::Settings { javascript } => self.javascript = javascript,
             ToContent::Load {
                 tab,
                 nav,
@@ -188,12 +175,12 @@ impl ContentEngine {
                 let page = Page::from_html(BLANK, url, &mut self.services, as_f32(self.viewport));
                 self.show_page(tab, nav, page);
             }
-            Ok(url) => self.jobs.push(FetchJob {
+            Ok(url) => self.jobs.push(Work::Document(FetchJob {
                 tab,
                 nav,
                 url,
                 post_body,
-            }),
+            })),
             Err(e) => {
                 let page = self.error_page(url, &FetchError::BadUrl(e.to_string()));
                 self.show_page(tab, nav, page);
@@ -211,10 +198,24 @@ impl ContentEngine {
             return;
         }
         let page = match fetched.result {
-            Ok(page) => Page::build(page, &mut self.services, as_f32(self.viewport)),
+            Ok(page) => Page::build(
+                page,
+                &mut self.services,
+                as_f32(self.viewport),
+                self.javascript.then_some(self.now),
+            ),
             Err(e) => self.error_page(fetched.url.as_str(), &e),
         };
         self.show_page(fetched.tab, fetched.nav, page);
+        self.pump_js(fetched.tab);
+    }
+
+    /// 取得スレッドの仕事が終わった。
+    pub fn done(&mut self, done: Done) {
+        match done {
+            Done::Document(fetched) => self.fetched(*fetched),
+            Done::Sub(sub) => self.sub_fetched(sub),
+        }
     }
 
     fn error_page(&mut self, url: &str, error: &FetchError) -> Page {
@@ -234,6 +235,7 @@ impl ContentEngine {
         tab.needs_layout = false;
         tab.focused = None;
         tab.hover = None;
+        tab.js_errors = 0;
         tab.scroll_y = 0.0;
         if let Some(y) = target {
             tab.scroll_y = y;
@@ -300,16 +302,23 @@ impl ContentEngine {
     }
 
     pub fn stats(&self) -> ContentStats {
-        let (mut dom_nodes, mut display_items) = (0, 0);
-        for page in self.tabs.values().filter_map(|t| t.page.as_ref()) {
+        let (mut dom_nodes, mut display_items, mut js_tabs, mut js_errors) = (0, 0, 0, 0);
+        for tab in self.tabs.values() {
+            let Some(page) = tab.page.as_ref() else {
+                continue;
+            };
             let stats = page.stats();
             dom_nodes += stats.dom_nodes;
             display_items += stats.display_items;
+            js_tabs += usize::from(page.has_js());
+            js_errors += tab.js_errors;
         }
         ContentStats {
             tabs: self.tabs.len(),
             dom_nodes,
             display_items,
+            js_tabs,
+            js_errors,
             decoded_image_bytes: self.services.images.decoded_bytes() as u64,
             compressed_image_bytes: self.services.images.compressed_bytes() as u64,
             glyph_bytes: self.frame.raster.glyphs.bytes() as u64,

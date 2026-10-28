@@ -11,12 +11,13 @@ pub struct Args {
     pub headless: Option<String>,
     pub mem_report: bool,
     pub in_process: bool,
+    pub no_js: bool,
     pub no_disk_cache: bool,
     pub filter_lists: Vec<PathBuf>,
 }
 
 pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
-[--headless out.png] [--mem-report] [--in-process] [--no-disk-cache] [--filter-list FILE ...]";
+[--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-disk-cache] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
     let mut args = Args {
@@ -27,6 +28,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         headless: None,
         mem_report: false,
         in_process: false,
+        no_js: false,
         no_disk_cache: false,
         filter_lists: Vec::new(),
     };
@@ -45,6 +47,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
             "--filter-list" => args.filter_lists.push(value("--filter-list")?.into()),
             "--mem-report" => args.mem_report = true,
             "--in-process" => args.in_process = true,
+            "--no-js" => args.no_js = true,
             "--no-disk-cache" => args.no_disk_cache = true,
             "-h" | "--help" => return Err(USAGE.to_owned()),
             other if other.starts_with("--") => {

@@ -68,6 +68,13 @@ impl Browser {
                 damage,
             } => self.frame_arrived(tab, &path, (width, height), damage),
             FromContent::Hovered { tab, link, kind } => self.hovered(tab, link, kind),
+            FromContent::TitleChanged { tab, title } => {
+                let Some(index) = self.tab_index(tab) else {
+                    return Redraw::default();
+                };
+                self.tabs[index].title = Some(title);
+                self.invalidate_chrome()
+            }
             FromContent::Synced { .. } | FromContent::Stats { .. } => Redraw::default(),
         }
     }

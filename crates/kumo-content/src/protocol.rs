@@ -39,6 +39,10 @@ pub enum ToContent {
         width: u32,
         height: u32,
     },
+    /// 設定。`javascript` が偽ならスクリプトを実行しない（読み込む前に送る）
+    Settings {
+        javascript: bool,
+    },
     /// `url` を読み込む。`nav` は Browser が付ける通し番号（古い読み込みの結果を捨てるため）。
     /// `post_body` があればフォームを POST で送信する。
     Load {
@@ -105,6 +109,10 @@ pub struct ContentStats {
     pub tabs: usize,
     pub dom_nodes: usize,
     pub display_items: usize,
+    /// スクリプトを動かしているタブの数
+    pub js_tabs: usize,
+    /// スクリプトの未捕捉の例外の数
+    pub js_errors: usize,
     pub decoded_image_bytes: u64,
     pub compressed_image_bytes: u64,
     pub glyph_bytes: u64,
@@ -137,6 +145,11 @@ pub enum FromContent {
     Scrolled {
         tab: TabId,
         y: f32,
+    },
+    /// スクリプトが題名を変えた
+    TitleChanged {
+        tab: TabId,
+        title: String,
     },
     /// マウスの下にあるものが変わった（`link` は解決済みのリンク先）
     Hovered {

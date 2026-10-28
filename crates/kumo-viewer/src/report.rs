@@ -19,6 +19,10 @@ pub fn print(
     raster: &CpuRasterizer,
     frame_bytes: usize,
 ) {
+    for tab in browser.tabs() {
+        let url = tab.url().map(ToString::to_string).unwrap_or_default();
+        eprintln!("[tab] {} | {url}", tab.title());
+    }
     let browser_bytes = kumo_mem::process_memory().map_or(0, |p| p.primary as u64);
     eprint!(
         "{}",
@@ -33,10 +37,12 @@ pub fn print(
     let content = browser.content_stats(STATS_TIMEOUT);
     match &content {
         Some(c) => eprintln!(
-            "[content] {} タブ（DOM {} ノード、描画命令 {} 件） frame={:.2}MB glyphs={:.2}MB images(decoded)={:.2}MB images(compressed)={:.2}MB",
+            "[content] {} タブ（DOM {} ノード、描画命令 {} 件、JS {} タブ・例外 {} 件） frame={:.2}MB glyphs={:.2}MB images(decoded)={:.2}MB images(compressed)={:.2}MB",
             c.tabs,
             c.dom_nodes,
             c.display_items,
+            c.js_tabs,
+            c.js_errors,
             mb(c.frame_bytes),
             mb(c.glyph_bytes),
             mb(c.decoded_image_bytes),

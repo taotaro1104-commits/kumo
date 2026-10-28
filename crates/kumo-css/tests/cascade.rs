@@ -274,3 +274,13 @@ fn border_radius_shorthand_and_longhands() {
     );
     assert_eq!(ComputedStyle::default().border_radius, [LengthPct::ZERO; 4]);
 }
+
+#[test]
+fn noscript_content_is_not_displayed() {
+    let (doc, map) = style(
+        "<div id=d><noscript id=n><img src=x.png></noscript></div>",
+        "",
+    );
+    assert_eq!(computed(&doc, &map, "n").display, Display::None);
+    assert_eq!(computed(&doc, &map, "d").display, Display::Block);
+}

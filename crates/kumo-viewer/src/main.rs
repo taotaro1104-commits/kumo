@@ -66,6 +66,7 @@ fn run(args: Args) -> Result<(), String> {
         (args.width as f32, args.height as f32),
     );
     browser.set_content_restart(processes.restart);
+    browser.set_javascript(!args.no_js);
     let started = std::time::Instant::now();
     if args.targets.is_empty() {
         browser.open_tab(None, true);

@@ -89,6 +89,7 @@ fn serve(mut stream: std::net::TcpStream, counter: &Mutex<HashMap<String, usize>
             "text/html",
             &format!("<title>{echo}</title><p>{}</p>", path),
         ),
+        "/cors" => ok("Access-Control-Allow-Origin: *\r\n", "text/plain", "public"),
         "/big" => ok(
             "Cache-Control: no-store\r\n",
             "text/plain",

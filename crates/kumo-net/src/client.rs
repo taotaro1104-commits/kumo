@@ -12,7 +12,7 @@ use std::time::Duration;
 
 use kumo_ipc::{Connection, SharedView};
 
-use crate::process::{FetchResult, Fetcher, LISTEN_ARG, post_method};
+use crate::process::{FetchResult, Fetcher, LISTEN_ARG, post_method, script_method};
 use crate::protocol::{
     FetchError, FetchRequest, FetchResponse, FromNetwork, NetworkStats, RequestMethod,
     ResourceKind, ToNetwork, read_message, write_message,
@@ -264,6 +264,20 @@ impl ReaderState {
 }
 
 impl Fetcher for NetworkClient {
+    fn send(
+        &self,
+        method: &str,
+        url: &str,
+        kind: ResourceKind,
+        content_type: Option<&str>,
+        body: Vec<u8>,
+        source_url: Option<&str>,
+    ) -> FetchResult {
+        let method = script_method(method, content_type, body);
+        let rx = self.submit(Self::request(url, method, kind, source_url))?;
+        Self::wait(&rx)
+    }
+
     fn fetch(&self, url: &str, kind: ResourceKind, source_url: Option<&str>) -> FetchResult {
         let rx = self.submit(Self::request(url, RequestMethod::Get, kind, source_url))?;
         Self::wait(&rx)

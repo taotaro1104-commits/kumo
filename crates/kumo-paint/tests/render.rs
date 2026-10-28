@@ -304,3 +304,50 @@ fn rounded_boxes_paint_round_corners() {
     assert_eq!(pixel(&pm, 0, 40), (255, 255, 255), "輪の角の外");
     assert_eq!(pixel(&pm, 36, 76), (255, 255, 255), "輪の内側");
 }
+
+#[test]
+fn hit_regions_find_the_innermost_element_including_inline_text() {
+    use kumo_paint::build_display_list_with;
+    let html = "<div id=a style='margin:0;width:300px;height:100px'><p id=p style='margin:0;font-size:20px'>text <span id=s>inline</span></p></div>";
+    let doc = kumo_html::parse_html(html);
+    let engine = CascadeEngine::new(vec![Stylesheet::parse("body { margin: 0 }")]);
+    let styles = engine.compute(
+        &doc,
+        &Device {
+            width: W,
+            height: H,
+        },
+    );
+    let mut tree = build_box_tree(&doc, &styles, TextSystem::new(), &NoImages);
+    layout(&mut tree, W, H);
+    let id_of = |name: &str| {
+        doc.descendants(doc.root())
+            .find(|&n| doc.attr(n, "id") == Some(name))
+            .unwrap()
+            .index()
+    };
+    let without = build_display_list(&tree);
+    assert!(
+        without.hits.is_empty() && without.hit_at(5.0, 5.0).is_none(),
+        "既定では記録しない"
+    );
+    let list = build_display_list_with(&tree, true);
+    assert_eq!(list.hit_at(5.0, 5.0), Some(id_of("p")), "段落の文字の上");
+    assert_eq!(
+        list.hit_at(250.0, 60.0),
+        Some(id_of("a")),
+        "段落の外の div の上"
+    );
+    let span_x = list
+        .hits
+        .iter()
+        .find(|(_, n)| *n == id_of("s"))
+        .map(|(r, _)| r.x + 2.0)
+        .expect("span の領域がある");
+    assert_eq!(
+        list.hit_at(span_x, 5.0),
+        Some(id_of("s")),
+        "インラインの span"
+    );
+    assert_eq!(list.hit_at(250.0, 250.0), None, "何もない所");
+}

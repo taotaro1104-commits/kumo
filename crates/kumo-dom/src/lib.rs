@@ -5,8 +5,10 @@
 //! ドキュメントを drop すれば全ノードが一括で解放される。
 #![forbid(unsafe_code)]
 
+mod edit;
 mod iter;
 mod node;
+mod serialize;
 mod tree;
 
 pub use iter::{Children, Descendants};

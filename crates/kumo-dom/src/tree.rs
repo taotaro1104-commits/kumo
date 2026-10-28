@@ -7,9 +7,9 @@ use crate::node::{Attr, ElementData, Node, NodeId, NodeKind};
 /// 1ドキュメント = 1アリーナ。drop で全ノードを一括解放する。
 #[derive(Clone, Debug)]
 pub struct Document {
-    nodes: Vec<Node>,
-    elements: Vec<ElementData>,
-    texts: Vec<CompactString>,
+    pub(crate) nodes: Vec<Node>,
+    pub(crate) elements: Vec<ElementData>,
+    pub(crate) texts: Vec<CompactString>,
 }
 
 impl Default for Document {
@@ -199,6 +199,9 @@ impl Document {
 
     /// `child` を `sibling` の直前に挿入する。`sibling` は親を持っている必要がある。
     pub fn insert_before(&mut self, sibling: NodeId, child: NodeId) {
+        if child == sibling {
+            return; // 自分自身の前には入れられない（位置は変わらない）
+        }
         self.detach(child);
         let parent = self
             .parent(sibling)

@@ -71,6 +71,11 @@ impl Browser {
         true
     }
 
+    /// スクリプトの実行を切り替える（以後に読み込むページから効く）。
+    pub fn set_javascript(&mut self, on: bool) {
+        self.content.send(ToContent::Settings { javascript: on });
+    }
+
     // ---- ページ内の入力欄 ----
 
     pub fn field_focused(&self) -> bool {

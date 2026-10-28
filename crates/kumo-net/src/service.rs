@@ -10,9 +10,11 @@ use url::Url;
 use crate::blocker::ContentBlocker;
 use crate::cache::{CachedEntry, CachedMeta, DISK_BUDGET, HttpCache, MEMORY_BUDGET, unix};
 use crate::cookies::CookiePersistence;
+use crate::local_file::read_file;
 use crate::policy::{CacheHeaders, Storability, storability};
 use crate::protocol::{
     FetchError, FetchRequest, FetchResponse, MAX_BODY_BYTES, NetworkStats, RequestMethod,
+    ResourceKind,
 };
 
 const USER_AGENT: &str =
@@ -45,6 +47,8 @@ struct Counters {
 
 pub struct NetworkService {
     agent: ureq::Agent,
+    /// 別オリジンへのスクリプトの要求用。Cookie の保管庫が別で、使うたびに空にする
+    anonymous_agent: ureq::Agent,
     cache: HttpCache,
     blocker: ContentBlocker,
     counters: Counters,
@@ -84,16 +88,34 @@ impl NetworkService {
             .as_ref()
             .map(|dir| dir.join("adblock-engine.bin"));
         let blocker = ContentBlocker::load(&config.filter_lists, filter_cache.as_deref());
+        let anonymous_agent = ureq::Agent::new_with_config(agent_config.clone());
         let agent = ureq::Agent::new_with_config(agent_config);
         let cookies =
             CookiePersistence::new(config.cache_dir.as_ref().map(|d| d.join("cookies.json")));
         cookies.load(&agent);
         Self {
             agent,
+            anonymous_agent,
             cache,
             blocker,
             counters: Counters::default(),
             cookies,
+        }
+    }
+
+    /// 要求に使うエージェント。別オリジンへのスクリプトの要求は資格情報（Cookie）を送らない別のものを使う。
+    fn agent_for(&self, request: &FetchRequest) -> &ureq::Agent {
+        if request.kind == ResourceKind::FetchAnonymous {
+            &self.anonymous_agent
+        } else {
+            &self.agent
+        }
+    }
+
+    /// 資格情報なしの要求で受け取った Cookie を捨てる（次の要求に持ち越さない）。
+    fn forget_anonymous_cookies(&self, request: &FetchRequest) {
+        if request.kind == ResourceKind::FetchAnonymous {
+            self.anonymous_agent.cookie_jar_lock().clear();
         }
     }
 
@@ -131,10 +153,21 @@ impl NetworkService {
             self.counters.blocked.fetch_add(1, Ordering::Relaxed);
             return Err(FetchError::Blocked);
         }
-        if let RequestMethod::Post { content_type, body } = &request.method {
-            return self.post(request, &url, content_type, body);
+        match &request.method {
+            RequestMethod::Post { content_type, body } => {
+                return self.post(request, &url, content_type, body);
+            }
+            RequestMethod::Send {
+                method,
+                content_type,
+                body,
+            } => return self.send_other(request, &url, method, content_type.as_deref(), body),
+            RequestMethod::Get => {}
         }
-        let cached = self.cache.get(url.as_str());
+        // 資格情報なしの要求はキャッシュを使わない（Cookie つきで取った別の内容を返さないため）
+        let cached = (request.kind != ResourceKind::FetchAnonymous)
+            .then(|| self.cache.get(url.as_str()))
+            .flatten();
         if let Some(entry) = &cached
             && entry.meta.is_fresh(SystemTime::now())
         {
@@ -152,14 +185,49 @@ impl NetworkService {
         content_type: &str,
         body: &[u8],
     ) -> Result<FetchResponse, FetchError> {
-        let mut response = self
-            .agent
+        let response = self
+            .agent_for(request)
             .post(url.as_str())
             .header("Content-Type", content_type)
             .send(body)
             .map_err(network_error)?;
+        self.finish_uncached(request, response)
+    }
+
+    /// GET 以外の任意のメソッド（スクリプトの `fetch`）。キャッシュしない。
+    fn send_other(
+        &self,
+        request: &FetchRequest,
+        url: &Url,
+        method: &str,
+        content_type: Option<&str>,
+        body: &[u8],
+    ) -> Result<FetchResponse, FetchError> {
+        let mut builder = ureq::http::Request::builder()
+            .method(method)
+            .uri(url.as_str());
+        if let Some(content_type) = content_type {
+            builder = builder.header("Content-Type", content_type);
+        }
+        let http_request = builder
+            .body(body.to_vec())
+            .map_err(|e| FetchError::Network(e.to_string()))?;
+        let response = self
+            .agent_for(request)
+            .run(http_request)
+            .map_err(network_error)?;
+        self.finish_uncached(request, response)
+    }
+
+    /// キャッシュしない応答の後始末（本文の読み取りと Cookie の保存）。
+    fn finish_uncached(
+        &self,
+        request: &FetchRequest,
+        mut response: ureq::http::Response<ureq::Body>,
+    ) -> Result<FetchResponse, FetchError> {
         let status = response.status().as_u16();
-        let (final_url, content_type, body) = read_response(&mut response)?;
+        let (final_url, content_type, allow_origin, body) = read_response(&mut response)?;
+        self.forget_anonymous_cookies(request);
         self.cookies.save_if_due(&self.agent);
         Ok(FetchResponse {
             id: request.id,
@@ -168,6 +236,7 @@ impl NetworkService {
             content_type,
             body,
             from_cache: false,
+            allow_origin,
         })
     }
 
@@ -177,7 +246,7 @@ impl NetworkService {
         url: &Url,
         stale: Option<CachedEntry>,
     ) -> Result<FetchResponse, FetchError> {
-        let mut builder = self.agent.get(url.as_str());
+        let mut builder = self.agent_for(request).get(url.as_str());
         if let Some(entry) = &stale {
             if let Some(etag) = &entry.meta.etag {
                 builder = builder.header("If-None-Match", etag.as_str());
@@ -204,8 +273,11 @@ impl NetworkService {
                 },
             ));
         }
-        let (final_url, content_type, body) = read_response(&mut response)?;
-        if let Storability::Store { fresh_until } = storability(status, &headers, now) {
+        let (final_url, content_type, allow_origin, body) = read_response(&mut response)?;
+        self.forget_anonymous_cookies(request);
+        let cacheable = request.kind != ResourceKind::FetchAnonymous;
+        if cacheable && let Storability::Store { fresh_until } = storability(status, &headers, now)
+        {
             let meta = CachedMeta {
                 final_url: final_url.clone(),
                 content_type: content_type.clone(),
@@ -225,6 +297,7 @@ impl NetworkService {
             content_type,
             body,
             from_cache: false,
+            allow_origin,
         })
     }
 }
@@ -281,36 +354,19 @@ fn from_entry(id: u64, entry: &CachedEntry) -> FetchResponse {
         content_type: entry.meta.content_type.clone(),
         body: entry.body.to_vec(),
         from_cache: true,
+        allow_origin: None,
     }
 }
 
-fn read_file(request: &FetchRequest, url: &Url) -> Result<FetchResponse, FetchError> {
-    let path = url
-        .to_file_path()
-        .map_err(|()| FetchError::BadUrl(url.to_string()))?;
-    let metadata = std::fs::metadata(&path)
-        .map_err(|e| FetchError::Network(format!("{}: {e}", path.display())))?;
-    if metadata.len() > MAX_BODY_BYTES {
-        return Err(FetchError::TooLarge);
-    }
-    let body = std::fs::read(&path)
-        .map_err(|e| FetchError::Network(format!("{}: {e}", path.display())))?;
-    Ok(FetchResponse {
-        id: request.id,
-        status: 200,
-        final_url: url.to_string(),
-        content_type: None,
-        body,
-        from_cache: false,
-    })
-}
+/// 応答の (最終 URL, Content-Type, Access-Control-Allow-Origin, 本文)。
+type ReadResponse = (String, Option<String>, Option<String>, Vec<u8>);
 
-/// レスポンスの最終 URL・Content-Type・本文（上限付き）を読む。
 fn read_response(
     response: &mut ureq::http::Response<ureq::Body>,
-) -> Result<(String, Option<String>, Vec<u8>), FetchError> {
+) -> Result<ReadResponse, FetchError> {
     let final_url = ureq::ResponseExt::get_uri(&*response).to_string();
     let content_type = header(response.headers(), "content-type");
+    let allow_origin = header(response.headers(), "access-control-allow-origin");
     let body = response
         .body_mut()
         .with_config()
@@ -320,5 +376,5 @@ fn read_response(
             ureq::Error::BodyExceedsLimit(_) => FetchError::TooLarge,
             other => network_error(other),
         })?;
-    Ok((final_url, content_type, body))
+    Ok((final_url, content_type, allow_origin, body))
 }

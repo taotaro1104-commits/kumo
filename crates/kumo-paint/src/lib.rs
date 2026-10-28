@@ -9,7 +9,7 @@ mod scroll;
 mod stacking;
 mod tiles;
 
-pub use builder::build_display_list;
+pub use builder::{build_display_list, build_display_list_with};
 pub use display_list::{
     DisplayEntry, DisplayItem, DisplayList, GlyphRunItem, LinkRegion, PlacedGlyph, RectF,
 };

@@ -1,11 +1,12 @@
-# Kumo — Rust製・省メモリブラウザ（Phase 1：ブラウザの骨格・プロセス分離）
+# Kumo — Rust製・省メモリブラウザ（Phase 2：JavaScript）
 
-設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 1 までの実装です（JSなし）。
+設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 2 までの実装です。
 HTML/CSS → アリーナDOM → カスケード → Taffy + Parley レイアウト → tiny-skia 描画。
 タブ・履歴・Network プロセス（rustls・HTTPキャッシュ・コンテンツブロック・Cookie 永続化）を備え、
 ページの処理は Content プロセスで非同期に行います（Browser / Content / Network の3プロセス）。
 フォーム送信とページ内アンカーにも対応しています。
-計画と計測結果は [docs/phase1.md](docs/phase1.md)、プロセス分離は [docs/phase1b.md](docs/phase1b.md)。
+計画と計測結果は [docs/phase1.md](docs/phase1.md)、プロセス分離は [docs/phase1b.md](docs/phase1b.md)、
+JavaScript（Boa）は [docs/phase2.md](docs/phase2.md)。
 
 ```
 Browser（タブ・履歴・UI）──stdin/stdout──▶ Content（全タブのページ、共有フレームへ描画）
@@ -27,6 +28,7 @@ Browser（タブ・履歴・UI）──stdin/stdout──▶ Content（全タブ
 | `kumo-mem` | タグ付きアロケータ（mimalloc v2）、一時ヒープ、プロセスメモリ計測。`unsafe` はこの crate のみ |
 | `kumo-ipc` | 共有メモリ（ファイルのマップ）、リングの領域管理、ローカルソケット。`unsafe` は kumo-mem とこの crate のみ |
 | `kumo-net` | Network プロセス：取得（ureq + rustls）、HTTP キャッシュ（メモリ 8MB + ディスク、索引は redb）、コンテンツブロック（adblock）、Cookie の永続化、複数クライアントの受付と本文リング |
+| `kumo-js` | JavaScript：Boa に DOM・イベント・タイマー・`fetch`・Web API（URL・storage・XHR など）を結びつける。スクリプトの予算・panic の保護・同一オリジンポリシー |
 | `kumo-content` | Content プロセス：取得・パース（別スレッド）→ スタイル・レイアウト → 共有フレームへの描画、フォーム・リンク・スクロールの処理 |
 | `kumo-browser` | Browser プロセス：タブ・セッション履歴・閲覧履歴（redb）・ブラウザ UI（自エンジンで描く HTML）。Content へは要求を送るだけで待たない |
 | `kumo-viewer` | ブラウザ本体（winit + softbuffer）。同じ実行ファイルを `--network-process`・`--content-process` で子プロセスとして起動 |
@@ -62,11 +64,13 @@ target/release/kumo-viewer tests/fixtures/basic.html --headless out.png --width 
 - **エラーページ**：原因を分かる言葉で示し（サーバーが見つからない、応答がない、ファイルがない など）、「再読み込み」「戻る」ボタンを置く。
 - ページの `border-radius`（角丸の背景・枠線）に対応。フォーム部品も角を丸めて描く。
 
-オプション：`--in-process`（Content・Network を別プロセスにせずスレッドで動かす）、`--no-disk-cache`（キャッシュ・履歴を保存しない）、
+オプション：`--no-js`（スクリプトを実行しない）、`--in-process`（Content・Network を別プロセスにせずスレッドで動かす）、`--no-disk-cache`（キャッシュ・履歴を保存しない）、
 `--filter-list FILE`（EasyList などを追加）。キャッシュと履歴は `%LOCALAPPDATA%\Kumo`（Linux は `~/.cache/kumo`）。
-`KUMO_ALLOC_STATS=1` で mimalloc の内部統計も出力します。
+`KUMO_ALLOC_STATS=1` で mimalloc の内部統計も、`KUMO_JS_LOG=1` でスクリプトのコンソール出力・例外・実行時間も出力します。
 
 ## 検証
+
+実サイトの互換性の目安：`scripts/compat.sh`（50 サイトを開いて、読み込み・描画・JS の例外・メモリ・時間を判定）。
 
 ```sh
 cargo test --workspace

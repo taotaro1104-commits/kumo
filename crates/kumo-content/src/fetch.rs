@@ -3,7 +3,7 @@
 //! 別のスレッドで動かせる。取得を待つ間もメインスレッドは他のタブの描画や入力を処理できる。
 
 use kumo_css::Stylesheet;
-use kumo_dom::Document;
+use kumo_dom::{Document, NodeId};
 use kumo_html::{StyleSource, stylesheets};
 use kumo_mem::{Subsystem, scope};
 use kumo_net::process::Fetcher;
@@ -23,7 +23,14 @@ pub struct FetchedPage {
     pub stylesheets: Vec<Stylesheet>,
     /// 先に取得した画像（絶対 URL と圧縮データ。`None` は取得失敗）
     pub images: Vec<(String, Option<Vec<u8>>)>,
+    /// 先に取得した外部スクリプトの本文（`None` は取得失敗・ブロック・大きすぎる）
+    pub scripts: Vec<(NodeId, Option<String>)>,
 }
+
+/// 1ページで先に取得する外部スクリプトの数の上限。
+const MAX_SCRIPTS: usize = 64;
+/// 実行するスクリプトの大きさの上限（巨大なバンドルは純 Rust の JS エンジンでは実用にならない）。
+pub const MAX_SCRIPT_BYTES: usize = kumo_js::SCRIPT_MAX_BYTES;
 
 /// 文書を取得してパースする。`post_body` があればフォームを POST で送る。
 pub fn fetch_document(
@@ -59,11 +66,13 @@ pub fn prepare(html: &str, url: Url, fetcher: &dyn Fetcher) -> FetchedPage {
         load_stylesheets(&doc, &url, fetcher)
     };
     let images = prefetch_images(&doc, &url, fetcher);
+    let scripts = prefetch_scripts(&doc, &url, fetcher);
     FetchedPage {
         url,
         doc,
         stylesheets,
         images,
+        scripts,
     }
 }
 
@@ -150,6 +159,54 @@ pub fn image_urls(doc: &Document, base: &Url) -> Vec<String> {
         }
     }
     urls
+}
+
+/// 外部スクリプトをまとめて（Network プロセス側で並行に）取得する。
+fn prefetch_scripts(
+    doc: &Document,
+    base: &Url,
+    fetcher: &dyn Fetcher,
+) -> Vec<(NodeId, Option<String>)> {
+    let external: Vec<(NodeId, String)> = kumo_js::scripts_in_order(doc, base)
+        .into_iter()
+        .filter_map(|(node, info)| info.src.map(|src| (node, src)))
+        .take(MAX_SCRIPTS)
+        .collect();
+    if external.is_empty() {
+        return Vec::new();
+    }
+    let requests: Vec<(String, ResourceKind)> = external
+        .iter()
+        .map(|(_, url)| (url.clone(), ResourceKind::Script))
+        .collect();
+    let results = fetcher.fetch_all(&requests, Some(base.as_str()));
+    external
+        .into_iter()
+        .zip(results)
+        .map(|((node, url), result)| {
+            let body = match result {
+                Ok(response)
+                    if response.status == 200 && response.body.len() <= MAX_SCRIPT_BYTES =>
+                {
+                    Some(String::from_utf8_lossy(&response.body).into_owned())
+                }
+                Ok(response) => {
+                    eprintln!(
+                        "[js] {url}: 実行しません（状態 {}、{} バイト）",
+                        response.status,
+                        response.body.len()
+                    );
+                    None
+                }
+                Err(FetchError::Blocked) => None,
+                Err(e) => {
+                    eprintln!("[js] {url}: {e}");
+                    None
+                }
+            };
+            (node, body)
+        })
+        .collect()
 }
 
 fn prefetch_images(

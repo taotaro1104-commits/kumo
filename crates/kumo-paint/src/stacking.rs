@@ -100,6 +100,11 @@ fn paint_own_background(tree: &BoxTree, placed: Placed, list: &mut DisplayList) 
             .map_or(placed.rect, |c| placed.rect.intersect(&c));
         list.controls.push((rect, node.index()));
     }
+    if let Some(node) = b.dom
+        && is_visible(tree, placed.index)
+    {
+        list.add_hit(placed.rect, node.index(), placed.clip);
+    }
     if b.dom.is_some() && !is_root_element && is_visible(tree, placed.index) {
         paint_background_and_borders(&b.computed, placed.rect, placed.clip, list);
         // ブロックや画像そのものがリンクの場合（テキストは段落側で記録する）

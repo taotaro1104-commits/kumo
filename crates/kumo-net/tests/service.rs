@@ -1,6 +1,7 @@
 mod common;
 
 use common::TestServer;
+use kumo_net::process::Fetcher;
 use kumo_net::protocol::{FetchError, FetchRequest, RequestMethod, ResourceKind};
 use kumo_net::service::{NetworkConfig, NetworkService};
 
@@ -200,4 +201,95 @@ fn posts_form_bodies_without_caching() {
         assert!(!response.from_cache);
     }
     assert_eq!(server.hits("/echo"), 2, "POST は毎回送る");
+}
+
+#[test]
+fn script_requests_use_any_method_and_are_not_cached() {
+    let server = TestServer::start();
+    let service = NetworkService::new(&NetworkConfig::default());
+    for method in ["PUT", "DELETE", "POST", "PATCH"] {
+        let response = service
+            .send(
+                method,
+                &server.url("/echo"),
+                ResourceKind::Fetch,
+                Some("application/json"),
+                br#"{"a":1}"#.to_vec(),
+                None,
+            )
+            .unwrap();
+        let body = String::from_utf8_lossy(&response.body).into_owned();
+        assert!(
+            body.contains(&format!("{method} application/json {{\"a\":1}}")),
+            "{method}: {body}"
+        );
+    }
+    // Content-Type なしでも送れる
+    let bare = service
+        .send(
+            "PUT",
+            &server.url("/echo"),
+            ResourceKind::Fetch,
+            None,
+            b"x".to_vec(),
+            None,
+        )
+        .unwrap();
+    assert!(String::from_utf8_lossy(&bare.body).contains("PUT  x"));
+    // GET は通常の取得（キャッシュあり）
+    for _ in 0..2 {
+        service
+            .send(
+                "GET",
+                &server.url("/fresh.css"),
+                ResourceKind::Fetch,
+                None,
+                Vec::new(),
+                None,
+            )
+            .unwrap();
+    }
+    assert_eq!(server.hits("/fresh.css"), 1);
+    assert_eq!(server.hits("/echo"), 5, "GET 以外はキャッシュしない");
+}
+
+#[test]
+fn anonymous_requests_send_no_cookies_skip_the_cache_and_expose_cors_headers() {
+    let server = TestServer::start();
+    let service = NetworkService::new(&NetworkConfig::default());
+    service
+        .fetch(&request(&server.url("/set-cookie"), ResourceKind::Other))
+        .unwrap();
+    let get = |path: &str, kind: ResourceKind| {
+        service
+            .send("GET", &server.url(path), kind, None, Vec::new(), None)
+            .unwrap()
+    };
+    let with_cookie = get("/echo-cookie", ResourceKind::Fetch);
+    assert!(String::from_utf8_lossy(&with_cookie.body).contains("persistent=yes"));
+    let without = get("/echo-cookie", ResourceKind::FetchAnonymous);
+    assert_eq!(
+        String::from_utf8_lossy(&without.body),
+        "",
+        "資格情報なしの要求は Cookie を送らない"
+    );
+    // 資格情報なしの要求で受け取った Cookie は、次の要求には持ち越さない
+    get("/set-cookie", ResourceKind::FetchAnonymous);
+    let later = get("/echo-cookie", ResourceKind::FetchAnonymous);
+    assert_eq!(String::from_utf8_lossy(&later.body), "");
+    // ヘッダを読める／キャッシュしない
+    assert_eq!(
+        get("/cors", ResourceKind::FetchAnonymous)
+            .allow_origin
+            .as_deref(),
+        Some("*")
+    );
+    assert_eq!(get("/fresh.css", ResourceKind::Fetch).allow_origin, None);
+    get("/fresh.css", ResourceKind::FetchAnonymous);
+    get("/fresh.css", ResourceKind::FetchAnonymous);
+    assert_eq!(
+        server.hits("/fresh.css"),
+        3,
+        "通常の1回 + 資格情報なしの2回（キャッシュを使わない）"
+    );
 }

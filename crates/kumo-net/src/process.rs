@@ -36,6 +36,32 @@ pub trait Fetcher: Send + Sync {
 
     fn stats(&self) -> Option<NetworkStats>;
 
+    /// スクリプトからの要求（`fetch`）。GET はキャッシュを使い、それ以外は送るだけ。
+    /// 既定の実装は GET と POST だけを扱う（他は [`NetworkService`] と [`NetworkClient`] が処理する）。
+    /// `kind` は [`ResourceKind::Fetch`]（同じオリジン）か [`ResourceKind::FetchAnonymous`]（別オリジン）。
+    fn send(
+        &self,
+        method: &str,
+        url: &str,
+        kind: ResourceKind,
+        content_type: Option<&str>,
+        body: Vec<u8>,
+        source_url: Option<&str>,
+    ) -> FetchResult {
+        match method {
+            "GET" | "HEAD" => self.fetch(url, kind, source_url),
+            "POST" => self.post(
+                url,
+                content_type.unwrap_or("text/plain;charset=UTF-8"),
+                body,
+                source_url,
+            ),
+            other => Err(FetchError::Network(format!(
+                "{other} には未対応の取得元です"
+            ))),
+        }
+    }
+
     /// フォームを POST で送信する（文書として取得する）。
     fn post(
         &self,
@@ -46,6 +72,22 @@ pub trait Fetcher: Send + Sync {
     ) -> FetchResult;
 }
 
+/// スクリプトの要求のメソッド。GET と HEAD はキャッシュを使う GET として扱う。
+pub(crate) fn script_method(
+    method: &str,
+    content_type: Option<&str>,
+    body: Vec<u8>,
+) -> RequestMethod {
+    match method {
+        "GET" | "HEAD" => RequestMethod::Get,
+        other => RequestMethod::Send {
+            method: other.to_owned(),
+            content_type: content_type.map(str::to_owned),
+            body,
+        },
+    }
+}
+
 pub(crate) fn post_method(content_type: &str, body: Vec<u8>) -> RequestMethod {
     RequestMethod::Post {
         content_type: content_type.to_owned(),
@@ -54,6 +96,27 @@ pub(crate) fn post_method(content_type: &str, body: Vec<u8>) -> RequestMethod {
 }
 
 impl Fetcher for NetworkService {
+    fn send(
+        &self,
+        method: &str,
+        url: &str,
+        kind: ResourceKind,
+        content_type: Option<&str>,
+        body: Vec<u8>,
+        source_url: Option<&str>,
+    ) -> FetchResult {
+        NetworkService::fetch(
+            self,
+            &FetchRequest {
+                id: 0,
+                url: url.to_owned(),
+                method: script_method(method, content_type, body),
+                kind,
+                source_url: source_url.map(str::to_owned),
+            },
+        )
+    }
+
     fn fetch(&self, url: &str, kind: ResourceKind, source_url: Option<&str>) -> FetchResult {
         NetworkService::fetch(
             self,

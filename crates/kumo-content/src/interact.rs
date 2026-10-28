@@ -1,6 +1,9 @@
 //! ページ上の操作：スクロール、クリック（リンク・フォーム部品）、入力欄へのキー入力。
+//! スクリプトがあるページでは、操作を DOM のイベント（click・keydown・input・change・submit）としても送り、
+//! `preventDefault` されたら既定の動作（リンクの移動やフォームの送信）をしない。
 
 use kumo_dom::{Document, NodeId};
+use kumo_js::InitValue;
 use kumo_layout::FOCUS_ATTR;
 use url::Url;
 
@@ -57,8 +60,8 @@ impl ContentEngine {
         let doc_y = y + tab.scroll_y;
         let found = if let Some(node) = page.list.control_at(x, doc_y) {
             let node = NodeId::from_index(node);
-            let field =
-                node.index() < page.document().len() && forms::is_text_field(page.document(), node);
+            let field = node.index() < page.document().len()
+                && forms::is_text_field(&page.document(), node);
             (
                 None,
                 if field {
@@ -93,24 +96,40 @@ impl ContentEngine {
         });
     }
 
-    /// コンテンツ領域でのクリック：フォーム部品、リンクの順に調べる。何もなければ入力欄のフォーカスを外す。
+    /// コンテンツ領域でのクリック：スクリプトのイベント、フォーム部品、リンクの順に調べる。
+    /// 何もなければ入力欄のフォーカスを外す。
     pub(crate) fn click(&mut self, id: TabId, x: f32, y: f32, new_tab: bool) {
         let Some(tab) = self.tabs.get(&id) else {
             return;
         };
         let Some(page) = &tab.page else { return };
         let doc_y = y + tab.scroll_y;
-        if !new_tab && let Some(node) = page.list.control_at(x, doc_y) {
-            self.click_control(id, NodeId::from_index(node));
-            return;
-        }
+        let target = page.hit_node(x, doc_y);
+        let control = page.list.control_at(x, doc_y);
         let link = page
             .list
             .link_at(x, doc_y)
             .and_then(|href| page.resolve(href));
+        if let Some(node) = target {
+            let init = [
+                ("clientX", InitValue::Num(f64::from(x))),
+                ("clientY", InitValue::Num(f64::from(y))),
+                ("button", InitValue::Num(0.0)),
+                ("ctrlKey", InitValue::Bool(new_tab)),
+            ];
+            if !self.js_event(id, node, "MouseEvent", "click", &init) {
+                return; // スクリプトが既定の動作を止めた
+            }
+        }
+        if !new_tab && let Some(node) = control {
+            self.click_control(id, NodeId::from_index(node));
+            return;
+        }
         match link {
-            // JS は Phase 2
+            // `javascript:` はスクリプトの実行（ここでは何もしない）
             Some(url) if url.scheme() == "javascript" => {}
+            // 遠隔のページからローカルのファイルへは移動させない
+            Some(url) if !self.may_navigate(id, &url) => {}
             Some(url) => {
                 self.blur(id);
                 self.out.push(FromContent::Navigate {
@@ -129,61 +148,119 @@ impl ContentEngine {
         if self.tabs.get(&id).is_some_and(|t| t.focused != Some(node)) {
             self.blur(id);
         }
-        let Some(doc) = self.document_mut(id) else {
-            return;
+        let outcome = {
+            let Some(page) = self.tabs.get(&id).and_then(|t| t.page.as_ref()) else {
+                return;
+            };
+            let mut doc = page.document_mut();
+            if node.index() >= doc.len() {
+                return;
+            }
+            forms::click_control(&mut doc, node)
         };
-        if node.index() >= doc.len() {
-            return;
-        }
-        match forms::click_control(doc, node) {
+        match outcome {
             ControlClick::Focus(field)
                 if self.tabs.get(&id).is_some_and(|t| t.focused == Some(field)) => {}
             ControlClick::Focus(field) => {
+                let value = self.field_value_of(id, field);
                 self.edit(id, |doc| doc.set_attr(field, FOCUS_ATTR, ""));
                 if let Some(tab) = self.tabs.get_mut(&id) {
                     tab.focused = Some(field);
+                    tab.focus_value = Some(value);
                 }
                 self.out.push(FromContent::FieldFocus {
                     tab: id,
                     focused: true,
                 });
             }
-            ControlClick::Changed => self.edit(id, |_| {}),
+            ControlClick::Changed => {
+                self.edit(id, |_| {});
+                self.js_event(id, node, "Event", "input", &[]);
+                self.js_event(id, node, "Event", "change", &[]);
+            }
             ControlClick::Submit { form, submitter } => self.submit(id, form, Some(submitter)),
             ControlClick::Nothing => {}
         }
+    }
+
+    fn field_value_of(&self, id: TabId, field: NodeId) -> String {
+        self.tabs
+            .get(&id)
+            .and_then(|t| t.page.as_ref())
+            .map(|p| forms::field_value(&p.document(), field))
+            .unwrap_or_default()
     }
 
     pub(crate) fn key(&mut self, id: TabId, key: FieldKey) {
         let Some(field) = self.tabs.get(&id).and_then(|t| t.focused) else {
             return;
         };
+        let name = match &key {
+            FieldKey::Text(text) => text.clone(),
+            FieldKey::Backspace => "Backspace".to_owned(),
+            FieldKey::Enter => "Enter".to_owned(),
+            FieldKey::Blur => String::new(),
+        };
+        if !matches!(key, FieldKey::Blur)
+            && !self.js_event(
+                id,
+                field,
+                "KeyboardEvent",
+                "keydown",
+                &[("key", InitValue::Str(name))],
+            )
+        {
+            return; // スクリプトが入力を止めた
+        }
         match key {
-            FieldKey::Text(text) => self.edit(id, |doc| forms::insert_text(doc, field, &text)),
-            FieldKey::Backspace => self.edit(id, |doc| forms::backspace(doc, field)),
+            FieldKey::Text(text) => {
+                self.edit(id, |doc| forms::insert_text(doc, field, &text));
+                self.js_event(
+                    id,
+                    field,
+                    "InputEvent",
+                    "input",
+                    &[("data", InitValue::Str(text))],
+                );
+            }
+            FieldKey::Backspace => {
+                self.edit(id, |doc| forms::backspace(doc, field));
+                self.js_event(id, field, "InputEvent", "input", &[]);
+            }
             FieldKey::Blur => self.blur(id),
             FieldKey::Enter => {
-                let Some(doc) = self.document_mut(id) else {
-                    return;
+                let (is_textarea, form) = {
+                    let Some(page) = self.tabs.get(&id).and_then(|t| t.page.as_ref()) else {
+                        return;
+                    };
+                    let doc = page.document();
+                    (
+                        doc.element(field).is_some_and(|e| e.is_html("textarea")),
+                        forms::form_of(&doc, field),
+                    )
                 };
-                if doc.element(field).is_some_and(|e| e.is_html("textarea")) {
+                if is_textarea {
                     self.edit(id, |doc| forms::insert_text(doc, field, "\n"));
-                } else if let Some(form) = forms::form_of(doc, field) {
+                    self.js_event(id, field, "InputEvent", "input", &[]);
+                } else if let Some(form) = form {
                     self.submit(id, form, None);
                 }
             }
         }
     }
 
+    /// フォームを送信する。スクリプトの `submit` イベントが止めたら送らない。
     fn submit(&mut self, id: TabId, form: NodeId, submitter: Option<NodeId>) {
-        let Some(page) = self.tabs.get(&id).and_then(|t| t.page.as_ref()) else {
+        if !self.js_event(id, form, "Event", "submit", &[]) {
             return;
+        }
+        let submission = {
+            let Some(page) = self.tabs.get(&id).and_then(|t| t.page.as_ref()) else {
+                return;
+            };
+            forms::build_submission(&page.document(), page.url(), form, submitter)
         };
-        let Some(submission) =
-            forms::build_submission(page.document(), page.url(), form, submitter)
-        else {
-            return;
-        };
+        let Some(submission) = submission else { return };
         self.blur(id);
         self.out.push(FromContent::Navigate {
             tab: id,
@@ -193,9 +270,12 @@ impl ContentEngine {
         });
     }
 
-    /// 入力欄のフォーカスを外す。
+    /// 入力欄のフォーカスを外す。値が変わっていれば `change` を送る。
     pub(crate) fn blur(&mut self, id: TabId) {
-        let Some(field) = self.tabs.get_mut(&id).and_then(|t| t.focused.take()) else {
+        let Some(tab) = self.tabs.get_mut(&id) else {
+            return;
+        };
+        let (Some(field), before) = (tab.focused.take(), tab.focus_value.take()) else {
             return;
         };
         self.edit(id, |doc| doc.remove_attr(field, FOCUS_ATTR));
@@ -203,14 +283,9 @@ impl ContentEngine {
             tab: id,
             focused: false,
         });
-    }
-
-    fn document_mut(&mut self, id: TabId) -> Option<&mut Document> {
-        self.tabs
-            .get_mut(&id)?
-            .page
-            .as_mut()
-            .map(|p| p.document_mut())
+        if before.is_some_and(|b| b != self.field_value_of(id, field)) {
+            self.js_event(id, field, "Event", "change", &[]);
+        }
     }
 
     /// DOM を変更し、次の描画前に（まとめて1回）再レイアウトさせる。
@@ -221,7 +296,7 @@ impl ContentEngine {
         let Some(page) = tab.page.as_mut() else {
             return;
         };
-        edit(page.document_mut());
+        edit(&mut page.document_mut());
         tab.needs_layout = true;
         if self.active == Some(id) {
             self.frame.touch();

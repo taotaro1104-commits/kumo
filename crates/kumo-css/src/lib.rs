@@ -15,6 +15,7 @@ mod index;
 pub mod keywords;
 mod media;
 mod properties;
+pub mod query;
 mod selector;
 mod shorthands;
 pub mod style;

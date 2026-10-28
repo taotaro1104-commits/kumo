@@ -3,14 +3,16 @@
 
 use std::io::{self, BufWriter};
 use std::sync::Arc;
-use std::sync::mpsc::{self, Receiver, Sender};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
+use std::time::Instant;
 
 use kumo_net::process::Fetcher;
 use kumo_net::protocol::{read_message, write_message};
 
-use crate::engine::{ContentEngine, Fetched};
+use crate::engine::ContentEngine;
 use crate::jobs::JobQueue;
 use crate::protocol::{FromContent, ToContent};
+use crate::work::Done;
 
 /// 同時に取得・パースするページ数（文書内の CSS・画像は Network 側で並行に取得する）。
 /// 2 以上にすると 10 タブで約 12MB 増える（スレッドごとのヒープに DOM が分かれるため）ので、
@@ -19,24 +21,67 @@ const FETCH_WORKERS: usize = 1;
 
 pub enum Event {
     Message(ToContent),
-    Fetched(Box<Fetched>),
+    /// 取得スレッドの仕事が終わった
+    Done(Box<Done>),
     /// Browser との接続が切れた
     Closed,
 }
 
+/// 溜まった取得の依頼を取得スレッドへ回す。表示中のタブの依頼は先頭に入れる。
+fn flush_jobs(engine: &mut ContentEngine, workers: &FetchWorkers, active: Option<u64>) {
+    for job in engine.take_jobs() {
+        let urgent = active == Some(job.tab());
+        workers.queue.push(job, urgent);
+    }
+}
+
+/// エンジンのスレッドのスタック。Boa の構文解析と実行は深く再帰する（大きなスクリプトで 1〜2MB の
+/// 既定のスタックを溢れさせる）ので大きく取る。使った分だけがコミットされる。
+pub const ENGINE_STACK_BYTES: usize = 256 * 1024 * 1024;
+/// 取得スレッド（HTML の解析）のスタック。
+const FETCH_STACK_BYTES: usize = 32 * 1024 * 1024;
+
+/// 名前とスタックの大きさを指定してスレッドを起こす。
+pub(crate) fn spawn_thread(
+    name: &str,
+    stack: usize,
+    f: impl FnOnce() + Send + 'static,
+) -> std::thread::JoinHandle<()> {
+    std::thread::Builder::new()
+        .name(name.to_owned())
+        .stack_size(stack)
+        .spawn(f)
+        .expect("スレッドを起こせません")
+}
+
 /// `events` が閉じるか Shutdown を受けるまで動く。`send` が `false` を返したら（相手が閉じた）終わる。
+/// 要求・取得結果・タイマーの期限のどれかが来るたびに、溜まった分をまとめて処理してから1回描く。
 pub fn run(
     mut engine: ContentEngine,
     events: &Receiver<Event>,
     events_tx: &Sender<Event>,
     mut send: impl FnMut(FromContent) -> bool,
 ) {
-    let jobs = FetchWorkers::spawn(engine.fetcher(), events_tx);
+    let workers = FetchWorkers::spawn(engine.fetcher(), events_tx);
+    let started = Instant::now();
     // 表示中のタブ（その読み込みを先に回す）
     let mut active = None;
-    while let Ok(first) = events.recv() {
-        let mut next = Some(first);
+    loop {
+        engine.set_time(started.elapsed());
+        let first = match engine.next_wake() {
+            Some(wait) => match events.recv_timeout(wait) {
+                Ok(event) => Some(event),
+                Err(RecvTimeoutError::Timeout) => None,
+                Err(RecvTimeoutError::Disconnected) => return,
+            },
+            None => match events.recv() {
+                Ok(event) => Some(event),
+                Err(_) => return,
+            },
+        };
+        engine.set_time(started.elapsed());
         // 溜まっている分を全部処理してから描く（連続した入力を1回の再レイアウトにまとめる）
+        let mut next = first;
         while let Some(event) = next {
             match event {
                 Event::Message(ToContent::Shutdown) | Event::Closed => return,
@@ -44,21 +89,20 @@ pub fn run(
                     match &message {
                         ToContent::Show { tab } => {
                             active = Some(*tab);
-                            jobs.queue.promote(*tab);
+                            workers.queue.promote(*tab);
                         }
-                        ToContent::Close { tab } => jobs.queue.cancel(*tab),
+                        ToContent::Close { tab } => workers.queue.cancel(*tab),
                         _ => {}
                     }
                     engine.handle(message);
                 }
-                Event::Fetched(fetched) => engine.fetched(*fetched),
+                Event::Done(done) => engine.done(*done),
             }
-            for job in engine.take_jobs() {
-                let urgent = active == Some(job.tab);
-                jobs.queue.push(job, urgent);
-            }
+            flush_jobs(&mut engine, &workers, active);
             next = events.try_recv().ok();
         }
+        engine.tick();
+        flush_jobs(&mut engine, &workers, active);
         engine.render();
         for message in engine.take_output() {
             if !send(message) {
@@ -79,10 +123,10 @@ impl FetchWorkers {
         let queue = Arc::new(JobQueue::default());
         for _ in 0..FETCH_WORKERS {
             let (queue, fetcher, events) = (queue.clone(), fetcher.clone(), events.clone());
-            std::thread::spawn(move || {
+            spawn_thread("kumo-fetch", FETCH_STACK_BYTES, move || {
                 while let Some(job) = queue.pop() {
-                    let fetched = job.run(&*fetcher);
-                    if events.send(Event::Fetched(Box::new(fetched))).is_err() {
+                    let done = job.run(&*fetcher);
+                    if events.send(Event::Done(Box::new(done))).is_err() {
                         return;
                     }
                     // パースの一時データで空いたこのスレッドのページを OS へ返す
@@ -120,10 +164,15 @@ pub fn serve_stdio(fetcher: Arc<dyn Fetcher>, private_bytes: fn() -> u64) -> io:
             }
         }
     });
-    let mut out = BufWriter::new(io::stdout().lock());
-    let engine = ContentEngine::new(fetcher, private_bytes);
-    run(engine, &rx, &tx, |message| {
-        write_message(&mut out, &message).is_ok()
+    // エンジンは大きなスタックのスレッドで動かし、このスレッドは終わるのを待つ
+    let engine_thread = spawn_thread("kumo-content", ENGINE_STACK_BYTES, move || {
+        let mut out = BufWriter::new(io::stdout().lock());
+        let engine = ContentEngine::new(fetcher, private_bytes);
+        run(engine, &rx, &tx, |message| {
+            write_message(&mut out, &message).is_ok()
+        });
     });
-    Ok(())
+    engine_thread
+        .join()
+        .map_err(|_| io::Error::other("Content のエンジンが異常終了しました"))
 }

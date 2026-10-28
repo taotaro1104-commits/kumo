@@ -11,7 +11,13 @@ use crate::stacking::{Placed, paint_layer};
 
 /// ボックスツリー全体をディスプレイリストに変換する。
 pub fn build_display_list(tree: &BoxTree) -> DisplayList {
+    build_display_list_with(tree, false)
+}
+
+/// `record_hits` なら、マウスの下の要素を調べるための領域も記録する（JS を使うページ用）。
+pub fn build_display_list_with(tree: &BoxTree, record_hits: bool) -> DisplayList {
     let mut list = DisplayList {
+        record_hits,
         width: tree.boxes[0].layout().size.width,
         height: kumo_layout::document_height(tree),
         background: canvas_background(tree),
@@ -249,7 +255,7 @@ fn record_links(
     clip: Option<RectF>,
     list: &mut DisplayList,
 ) {
-    if content.paints.iter().all(|p| p.link.is_none()) {
+    if !list.record_hits && content.paints.iter().all(|p| p.link.is_none()) {
         return;
     }
     for line in layout.lines() {
@@ -260,12 +266,12 @@ fn record_links(
             let PositionedLayoutItem::GlyphRun(glyph_run) = item else {
                 continue;
             };
-            let link = content
-                .paints
-                .get(glyph_run.style().brush as usize)
-                .and_then(|p| p.link.as_ref());
-            if let Some(href) = link {
-                let rect = RectF::new(x + glyph_run.offset(), top, glyph_run.advance(), height);
+            let paint = content.paints.get(glyph_run.style().brush as usize);
+            let rect = RectF::new(x + glyph_run.offset(), top, glyph_run.advance(), height);
+            if let Some(node) = paint.and_then(|p| p.node) {
+                list.add_hit(rect, node.index(), clip);
+            }
+            if let Some(href) = paint.and_then(|p| p.link.as_ref()) {
                 list.add_link(rect, href, clip);
             }
         }

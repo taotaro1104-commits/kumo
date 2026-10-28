@@ -1,5 +1,6 @@
 /* Kumo UA スタイルシート（HTML Living Standard §15 の抜粋） */
-[hidden], area, base, basefont, datalist, head, link, meta, noembed, noframes,
+/* noscript：パーサはスクリプト有効として解析する（中身は生の文字列）ので、常に隠す */
+[hidden], area, base, basefont, datalist, head, link, meta, noembed, noframes, noscript,
 param, rp, script, style, template, title, dialog:not([open]),
 input[type=hidden i] { display: none; }
 

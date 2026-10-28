@@ -117,6 +117,10 @@ pub struct DisplayList {
     pub anchors: Vec<(Arc<str>, f32)>,
     /// フォーム部品の領域（DOM ノードのインデックス付き）
     pub controls: Vec<(RectF, usize)>,
+    /// 要素の当たり判定の領域（描画順。後ろほど手前）。JS のイベント対象を決めるため、JS を使うページだけ記録する
+    pub hits: Vec<(RectF, usize)>,
+    /// `hits` を記録するか
+    pub record_hits: bool,
 }
 
 /// リンクの当たり判定領域。`href` は未解決のまま。
@@ -164,6 +168,26 @@ impl DisplayList {
             .rev()
             .find(|(r, _)| x >= r.x && x < r.right() && y >= r.y && y < r.bottom())
             .map(|&(_, node)| node)
+    }
+
+    /// 文書座標 (x, y) にある最も手前の要素（DOM ノードのインデックス）。
+    pub fn hit_at(&self, x: f32, y: f32) -> Option<usize> {
+        self.hits
+            .iter()
+            .rev()
+            .find(|(r, _)| x >= r.x && x < r.right() && y >= r.y && y < r.bottom())
+            .map(|&(_, node)| node)
+    }
+
+    /// 当たり判定の領域を記録する（`record_hits` のときだけ）。
+    pub fn add_hit(&mut self, rect: RectF, node: usize, clip: Option<RectF>) {
+        if !self.record_hits {
+            return;
+        }
+        let rect = clip.map_or(rect, |c| rect.intersect(&c));
+        if !rect.is_empty() {
+            self.hits.push((rect, node));
+        }
     }
 
     /// 文書座標 (x, y) にある最も手前のリンク。

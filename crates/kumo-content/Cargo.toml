@@ -15,6 +15,7 @@ kumo-paint.workspace = true
 kumo-image.workspace = true
 kumo-mem.workspace = true
 kumo-net.workspace = true
+kumo-js.workspace = true
 kumo-ipc.workspace = true
 url = "2.5"
 percent-encoding = "2"
