@@ -106,16 +106,27 @@ DirectoryIndex index.html
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set Strict-Transport-Security "max-age=31536000"
-  # 自分のファイルと、Google アナリティクス（gtag）・AdSense の通信先だけを許可する。
+  # 自分のファイルと、Google アナリティクス（gtag）・AdSense・Google Fonts の通信先だけを許可する。
   # AdSense は広告のためにインラインのスクリプト・スタイルと第三者のフレームを使うので、その分は緩める。
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.g.doubleclick.net https://www.googletagservices.com https://partner.googleadservices.com https://adservice.google.com https://*.adtrafficquality.google; frame-src https://*.googlesyndication.com https://*.g.doubleclick.net https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; img-src 'self' data: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.googlesyndication.com https://*.g.doubleclick.net https://*.adtrafficquality.google https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.g.doubleclick.net https://www.googletagservices.com https://partner.googleadservices.com https://adservice.google.com https://*.adtrafficquality.google; frame-src https://*.googlesyndication.com https://*.g.doubleclick.net https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; img-src 'self' data: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.googlesyndication.com https://*.g.doubleclick.net https://*.adtrafficquality.google https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
 </IfModule>
 
-# ---- 隠しファイル・設定ファイルを見せない ----
+# ---- ファイルの種類の許可リスト（二重の防御） ----
+# 上の RewriteRule が使えないサーバーでも効く。公開物の拡張子以外のファイル（設定・バックアップ・ソース・隠しファイル）は返さない。
+# Apache は後に書いた条件が優先されるので、「全部拒否 → 公開物の拡張子だけ許可 → 隠しファイルを拒否 → .well-known だけ許可」の順に並べる。
 <IfModule mod_authz_core.c>
-  <FilesMatch "^\.(?!well-known)|\.(bak|log|ini|sh|toml|lock)$">
+  <FilesMatch "^.*$">
     Require all denied
   </FilesMatch>
+  <FilesMatch "\.(html|css|js|svg|png|ico|txt|xml)$">
+    Require all granted
+  </FilesMatch>
+  <FilesMatch "^\.">
+    Require all denied
+  </FilesMatch>
+  <If "%{REQUEST_URI} =~ m#^/\.well-known/[A-Za-z0-9._/-]+$#">
+    Require all granted
+  </If>
 </IfModule>
 
 # ---- エラーページ ----

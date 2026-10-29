@@ -9,29 +9,37 @@ cta_source: "源代码"
 ad_label: "广告"
 stats_title: "内存占用（发布版实测）"
 stats:
-  - { value: "约 22 MB", label: "空白标签页" }
-  - { value: "约 65 MB", label: "一篇维基百科文章" }
-  - { value: "约 185 MB", label: "10 个标签页" }
+  - { mb: 22, value: "约 22 MB", label: "空白标签页" }
+  - { mb: 65, value: "约 65 MB", label: "一篇维基百科文章" }
+  - { mb: 185, value: "约 185 MB", label: "10 个标签页" }
 features_title: "特点"
 features:
-  - { title: "省内存", body: "后台标签页会自动冻结或丢弃，使内存保持在预算之内。" }
-  - { title: "三个进程", body: "Browser、Content、Network 相互独立。页面再重窗口也不会卡住，Content 意外退出时会自动重建。" }
-  - { title: "JavaScript", body: "基于 Boa 引擎运行 DOM、事件、定时器和 fetch 等。" }
-  - { title: "负载级别 1–5", body: "从“最轻”到“最大”共 5 档。图片加载可单独开关。" }
-  - { title: "密码管理器", body: "登录时询问是否保存，并在同一网站自动填入。密码经过加密，密钥保存在 Windows 凭据管理器中。" }
-  - { title: "书签", body: "Ctrl+D 添加，Ctrl+B 查看列表。主页可在设置中指定。" }
-  - { title: "历史记录与下载", body: "Ctrl+H 查看历史，Ctrl+J 查看下载列表。点击文件链接不离开当前页面即可保存，并显示进度。" }
-  - { title: "页面缩放", body: "Ctrl+加号、Ctrl+减号或 Ctrl+滚轮，可在 25% 到 500% 之间缩放。Ctrl+0 恢复原大小。" }
-  - { title: "日语输入", body: "用输入法（IME）转换的文字可输入地址栏和页面输入框。" }
-  - { title: "5 种显示语言", body: "日语、English、简体中文、한국어、Español。" }
-  - { title: "内容拦截", body: "通过过滤列表拦截广告等请求。" }
+  - { icon: "🍃", title: "省内存", body: "后台标签页会自动冻结或丢弃，使内存保持在预算之内。" }
+  - { icon: "🔀", title: "三个进程", body: "Browser、Content、Network 相互独立。页面再重窗口也不会卡住，Content 意外退出时会自动重建。" }
+  - { icon: "⚡", title: "JavaScript", body: "基于 Boa 引擎运行 DOM、事件、定时器和 fetch 等。" }
+  - { icon: "🎚️", title: "负载级别 1–5", body: "从“最轻”到“最大”共 5 档。图片加载可单独开关。" }
+  - { icon: "🔑", title: "密码管理器", body: "登录时询问是否保存，并在同一网站自动填入。密码经过加密，密钥保存在 Windows 凭据管理器中。" }
+  - { icon: "⭐", title: "书签", body: "Ctrl+D 添加，Ctrl+B 查看列表。主页可在设置中指定。" }
+  - { icon: "🕘", title: "历史记录与下载", body: "Ctrl+H 查看历史，Ctrl+J 查看下载列表。点击文件链接不离开当前页面即可保存，并显示进度。" }
+  - { icon: "🔍", title: "页面缩放", body: "Ctrl+加号、Ctrl+减号或 Ctrl+滚轮，可在 25% 到 500% 之间缩放。Ctrl+0 恢复原大小。" }
+  - { icon: "あ", title: "日语输入", body: "用输入法（IME）转换的文字可输入地址栏和页面输入框。" }
+  - { icon: "🌏", title: "5 种显示语言", body: "日语、English、简体中文、한국어、Español。" }
+  - { icon: "🛡️", title: "内容拦截", body: "通过过滤列表拦截广告等请求。" }
 start_title: "使用方法"
-start:
-  - "启动后会打开一个新标签页。在顶部输入框中输入网址或搜索词（Ctrl+L）。"
-  - "Ctrl+T 新标签页 / Ctrl+W 关闭 / Alt+← 后退 / Alt+Home 主页 / Ctrl+点击 在后台标签页打开"
-  - "设置：about:settings，密码：about:passwords，内存状况：about:memory。"
+start_lead: "启动后会打开新标签页。在顶部输入框中输入网址或搜索词即可。"
+keys:
+  - { k: "Ctrl L", d: "转到地址栏" }
+  - { k: "Ctrl T", d: "新标签页" }
+  - { k: "Ctrl W", d: "关闭标签页" }
+  - { k: "Ctrl D", d: "为此页添加书签" }
+  - { k: "Ctrl H", d: "历史记录" }
+  - { k: "Ctrl J", d: "下载列表" }
+  - { k: "Ctrl +/-", d: "放大或缩小" }
+start_note: "设置在 about:settings，密码在 about:passwords，内存状况在 about:memory。"
 download_title: "获取"
 download_button: "从 Google 云端硬盘下载"
+recommended: "推荐"
+sha_summary: "查看校验值（SHA-256）"
 download_body: "适用于 Windows 11（64 位）。运行安装程序，或直接解压 zip 即可使用。历史记录和设置保存在 %LOCALAPPDATA%\\Kumo。可在 MIT 或 Apache-2.0 许可证中任选其一。"
 release_title: "最新版本"
 release_version: "版本 0.1.0（2026-10-29）"

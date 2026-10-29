@@ -9,29 +9,37 @@ cta_source: "Source code"
 ad_label: "Ad"
 stats_title: "Memory use (measured on a release build)"
 stats:
-  - { value: "~22 MB", label: "Blank tab" }
-  - { value: "~65 MB", label: "One Wikipedia article" }
-  - { value: "~185 MB", label: "Ten tabs" }
+  - { mb: 22, value: "~22 MB", label: "Blank tab" }
+  - { mb: 65, value: "~65 MB", label: "One Wikipedia article" }
+  - { mb: 185, value: "~185 MB", label: "Ten tabs" }
 features_title: "Features"
 features:
-  - { title: "Low memory", body: "Background tabs are frozen and discarded automatically to stay within a memory budget." }
-  - { title: "Three processes", body: "Browser, Content and Network run separately. The window stays responsive on heavy pages, and Content restarts itself if it stops." }
-  - { title: "JavaScript", body: "Runs the DOM, events, timers, fetch and more on the Boa engine." }
-  - { title: "Load levels 1-5", body: "From \"Minimal\" to \"Maximum\". Image loading can be switched on or off separately." }
-  - { title: "Password manager", body: "Asks to save when you sign in and fills it in next time. Passwords are encrypted, with the key kept in the Windows Credential Manager." }
-  - { title: "Bookmarks", body: "Ctrl+D to add, Ctrl+B for the list. Choose your home page in Settings." }
-  - { title: "History and downloads", body: "Ctrl+H for history, Ctrl+J for downloads. Links to files are saved without leaving the page, with live progress." }
-  - { title: "Page zoom", body: "Ctrl+plus, Ctrl+minus or Ctrl+wheel from 25% to 500%. Ctrl+0 resets it." }
-  - { title: "Japanese input", body: "Text converted with an IME goes into the address bar and page fields." }
-  - { title: "Five display languages", body: "Japanese, English, Simplified Chinese, Korean and Spanish." }
-  - { title: "Content blocking", body: "Block ads and other unwanted requests with filter lists." }
+  - { icon: "🍃", title: "Low memory", body: "Background tabs are frozen and discarded automatically to stay within a memory budget." }
+  - { icon: "🔀", title: "Three processes", body: "Browser, Content and Network run separately. The window stays responsive on heavy pages, and Content restarts itself if it stops." }
+  - { icon: "⚡", title: "JavaScript", body: "Runs the DOM, events, timers, fetch and more on the Boa engine." }
+  - { icon: "🎚️", title: "Load levels 1-5", body: "From \"Minimal\" to \"Maximum\". Image loading can be switched on or off separately." }
+  - { icon: "🔑", title: "Password manager", body: "Asks to save when you sign in and fills it in next time. Passwords are encrypted, with the key kept in the Windows Credential Manager." }
+  - { icon: "⭐", title: "Bookmarks", body: "Ctrl+D to add, Ctrl+B for the list. Choose your home page in Settings." }
+  - { icon: "🕘", title: "History and downloads", body: "Ctrl+H for history, Ctrl+J for downloads. Links to files are saved without leaving the page, with live progress." }
+  - { icon: "🔍", title: "Page zoom", body: "Ctrl+plus, Ctrl+minus or Ctrl+wheel from 25% to 500%. Ctrl+0 resets it." }
+  - { icon: "あ", title: "Japanese input", body: "Text converted with an IME goes into the address bar and page fields." }
+  - { icon: "🌏", title: "Five display languages", body: "Japanese, English, Simplified Chinese, Korean and Spanish." }
+  - { icon: "🛡️", title: "Content blocking", body: "Block ads and other unwanted requests with filter lists." }
 start_title: "Getting started"
-start:
-  - "A new tab opens at startup. Type a URL or a search in the box at the top (Ctrl+L)."
-  - "Ctrl+T new tab / Ctrl+W close / Alt+Left back / Alt+Home home / Ctrl+click open in background"
-  - "Settings: about:settings, passwords: about:passwords, memory: about:memory."
+start_lead: "A new tab opens at startup. Type a URL or a search in the box at the top."
+keys:
+  - { k: "Ctrl L", d: "Go to the address bar" }
+  - { k: "Ctrl T", d: "New tab" }
+  - { k: "Ctrl W", d: "Close tab" }
+  - { k: "Ctrl D", d: "Bookmark this page" }
+  - { k: "Ctrl H", d: "History" }
+  - { k: "Ctrl J", d: "Downloads" }
+  - { k: "Ctrl +/-", d: "Zoom in or out" }
+start_note: "See about:settings for settings, about:passwords for saved passwords and about:memory for memory use."
 download_title: "Get it"
 download_button: "Download from Google Drive"
+recommended: "Recommended"
+sha_summary: "Show checksums (SHA-256)"
 download_body: "For Windows 11 (64-bit). Run the installer, or just unzip the package. History and settings are stored in %LOCALAPPDATA%\\Kumo. Licensed under your choice of MIT or Apache-2.0."
 release_title: "Latest release"
 release_version: "Version 0.1.0 (2026-10-29)"

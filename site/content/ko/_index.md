@@ -9,29 +9,37 @@ cta_source: "소스 코드"
 ad_label: "광고"
 stats_title: "메모리 사용량 (릴리스 빌드 실측)"
 stats:
-  - { value: "약 22 MB", label: "빈 탭" }
-  - { value: "약 65 MB", label: "위키백과 문서 1개" }
-  - { value: "약 185 MB", label: "탭 10개" }
+  - { mb: 22, value: "약 22 MB", label: "빈 탭" }
+  - { mb: 65, value: "약 65 MB", label: "위키백과 문서 1개" }
+  - { mb: 185, value: "약 185 MB", label: "탭 10개" }
 features_title: "특징"
 features:
-  - { title: "적은 메모리", body: "백그라운드 탭은 자동으로 동결·폐기하여 메모리 예산 안에 유지합니다." }
-  - { title: "3개의 프로세스", body: "Browser, Content, Network를 분리했습니다. 페이지가 무거워도 화면이 멈추지 않으며, Content가 종료되면 자동으로 다시 만듭니다." }
-  - { title: "JavaScript", body: "Boa 엔진으로 DOM, 이벤트, 타이머, fetch 등을 실행합니다." }
-  - { title: "부하 수준 1~5", body: "'최경량'부터 '최대'까지 5단계. 이미지 로딩은 따로 켜고 끌 수 있습니다." }
-  - { title: "비밀번호 관리자", body: "로그인할 때 저장 여부를 묻고 같은 사이트에서 자동 입력합니다. 비밀번호는 암호화되며 키는 Windows 자격 증명 관리자에 보관합니다." }
-  - { title: "북마크", body: "Ctrl+D로 추가, Ctrl+B로 목록 보기. 홈페이지는 설정에서 정할 수 있습니다." }
-  - { title: "방문 기록·다운로드", body: "Ctrl+H로 방문 기록, Ctrl+J로 다운로드 목록. 파일 링크는 페이지를 떠나지 않고 저장하며 진행 상황을 보여 줍니다." }
-  - { title: "확대·축소", body: "Ctrl+「+」「-」 또는 Ctrl+휠로 25~500%. Ctrl+0으로 원래 크기로 돌아갑니다." }
-  - { title: "일본어 입력", body: "IME로 변환한 글자를 주소창과 입력란에 넣을 수 있습니다." }
-  - { title: "5개 언어 표시", body: "일본어, English, 简体中文, 한국어, Español." }
-  - { title: "콘텐츠 차단", body: "필터 목록으로 광고 등의 요청을 차단합니다." }
+  - { icon: "🍃", title: "적은 메모리", body: "백그라운드 탭은 자동으로 동결·폐기하여 메모리 예산 안에 유지합니다." }
+  - { icon: "🔀", title: "3개의 프로세스", body: "Browser, Content, Network를 분리했습니다. 페이지가 무거워도 화면이 멈추지 않으며, Content가 종료되면 자동으로 다시 만듭니다." }
+  - { icon: "⚡", title: "JavaScript", body: "Boa 엔진으로 DOM, 이벤트, 타이머, fetch 등을 실행합니다." }
+  - { icon: "🎚️", title: "부하 수준 1~5", body: "'최경량'부터 '최대'까지 5단계. 이미지 로딩은 따로 켜고 끌 수 있습니다." }
+  - { icon: "🔑", title: "비밀번호 관리자", body: "로그인할 때 저장 여부를 묻고 같은 사이트에서 자동 입력합니다. 비밀번호는 암호화되며 키는 Windows 자격 증명 관리자에 보관합니다." }
+  - { icon: "⭐", title: "북마크", body: "Ctrl+D로 추가, Ctrl+B로 목록 보기. 홈페이지는 설정에서 정할 수 있습니다." }
+  - { icon: "🕘", title: "방문 기록·다운로드", body: "Ctrl+H로 방문 기록, Ctrl+J로 다운로드 목록. 파일 링크는 페이지를 떠나지 않고 저장하며 진행 상황을 보여 줍니다." }
+  - { icon: "🔍", title: "확대·축소", body: "Ctrl+「+」「-」 또는 Ctrl+휠로 25~500%. Ctrl+0으로 원래 크기로 돌아갑니다." }
+  - { icon: "あ", title: "일본어 입력", body: "IME로 변환한 글자를 주소창과 입력란에 넣을 수 있습니다." }
+  - { icon: "🌏", title: "5개 언어 표시", body: "일본어, English, 简体中文, 한국어, Español." }
+  - { icon: "🛡️", title: "콘텐츠 차단", body: "필터 목록으로 광고 등의 요청을 차단합니다." }
 start_title: "사용 방법"
-start:
-  - "실행하면 새 탭이 열립니다. 위쪽 입력란에 URL이나 검색어를 입력하세요 (Ctrl+L)."
-  - "Ctrl+T 새 탭 / Ctrl+W 닫기 / Alt+← 뒤로 / Alt+Home 홈 / Ctrl+클릭 백그라운드 탭으로 열기"
-  - "설정은 about:settings, 비밀번호는 about:passwords, 메모리 상태는 about:memory에서 볼 수 있습니다."
+start_lead: "실행하면 새 탭이 열립니다. 위쪽 입력란에 URL이나 검색어를 입력하세요."
+keys:
+  - { k: "Ctrl L", d: "주소창으로 이동" }
+  - { k: "Ctrl T", d: "새 탭" }
+  - { k: "Ctrl W", d: "탭 닫기" }
+  - { k: "Ctrl D", d: "북마크에 추가" }
+  - { k: "Ctrl H", d: "방문 기록" }
+  - { k: "Ctrl J", d: "다운로드 목록" }
+  - { k: "Ctrl +/-", d: "확대·축소" }
+start_note: "설정은 about:settings, 비밀번호는 about:passwords, 메모리 상태는 about:memory에서 볼 수 있습니다."
 download_title: "받기"
 download_button: "Google 드라이브에서 다운로드"
+recommended: "추천"
+sha_summary: "체크섬(SHA-256) 보기"
 download_body: "Windows 11(64비트)용입니다. 설치 프로그램을 실행하거나 zip을 풀기만 하면 사용할 수 있습니다. 기록과 설정은 %LOCALAPPDATA%\\Kumo에 저장됩니다. 라이선스는 MIT 또는 Apache-2.0 중에서 선택할 수 있습니다."
 release_title: "최신 버전"
 release_version: "버전 0.1.0 (2026-10-29)"

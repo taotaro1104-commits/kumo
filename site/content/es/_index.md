@@ -9,29 +9,37 @@ cta_source: "Código fuente"
 ad_label: "Publicidad"
 stats_title: "Uso de memoria (medido en una compilación release)"
 stats:
-  - { value: "~22 MB", label: "Pestaña en blanco" }
-  - { value: "~65 MB", label: "Un artículo de Wikipedia" }
-  - { value: "~185 MB", label: "Diez pestañas" }
+  - { mb: 22, value: "~22 MB", label: "Pestaña en blanco" }
+  - { mb: 65, value: "~65 MB", label: "Un artículo de Wikipedia" }
+  - { mb: 185, value: "~185 MB", label: "Diez pestañas" }
 features_title: "Funciones"
 features:
-  - { title: "Poca memoria", body: "Las pestañas en segundo plano se congelan o descartan automáticamente para mantenerse dentro del presupuesto de memoria." }
-  - { title: "Tres procesos", body: "Browser, Content y Network se ejecutan por separado. La ventana responde aunque la página sea pesada, y Content se reinicia solo si se detiene." }
-  - { title: "JavaScript", body: "Ejecuta DOM, eventos, temporizadores, fetch y más con el motor Boa." }
-  - { title: "Niveles de carga 1-5", body: "De «Mínimo» a «Máximo». La carga de imágenes se puede activar o desactivar por separado." }
-  - { title: "Gestor de contraseñas", body: "Pregunta si quieres guardar al iniciar sesión y las rellena la próxima vez en el mismo sitio. Las contraseñas se cifran y la clave se guarda en el Administrador de credenciales de Windows." }
-  - { title: "Marcadores", body: "Ctrl+D para añadir, Ctrl+B para ver la lista. Elige tu página de inicio en Ajustes." }
-  - { title: "Historial y descargas", body: "Ctrl+H para el historial, Ctrl+J para las descargas. Los enlaces a archivos se guardan sin salir de la página y con el progreso a la vista." }
-  - { title: "Zoom de página", body: "Ctrl+más, Ctrl+menos o Ctrl+rueda, del 25 % al 500 %. Ctrl+0 lo restablece." }
-  - { title: "Entrada en japonés", body: "El texto convertido con un IME se escribe en la barra de direcciones y en los campos de la página." }
-  - { title: "Cinco idiomas", body: "Japonés, inglés, chino simplificado, coreano y español." }
-  - { title: "Bloqueo de contenido", body: "Bloquea anuncios y otras peticiones no deseadas con listas de filtros." }
+  - { icon: "🍃", title: "Poca memoria", body: "Las pestañas en segundo plano se congelan o descartan automáticamente para mantenerse dentro del presupuesto de memoria." }
+  - { icon: "🔀", title: "Tres procesos", body: "Browser, Content y Network se ejecutan por separado. La ventana responde aunque la página sea pesada, y Content se reinicia solo si se detiene." }
+  - { icon: "⚡", title: "JavaScript", body: "Ejecuta DOM, eventos, temporizadores, fetch y más con el motor Boa." }
+  - { icon: "🎚️", title: "Niveles de carga 1-5", body: "De «Mínimo» a «Máximo». La carga de imágenes se puede activar o desactivar por separado." }
+  - { icon: "🔑", title: "Gestor de contraseñas", body: "Pregunta si quieres guardar al iniciar sesión y las rellena la próxima vez en el mismo sitio. Las contraseñas se cifran y la clave se guarda en el Administrador de credenciales de Windows." }
+  - { icon: "⭐", title: "Marcadores", body: "Ctrl+D para añadir, Ctrl+B para ver la lista. Elige tu página de inicio en Ajustes." }
+  - { icon: "🕘", title: "Historial y descargas", body: "Ctrl+H para el historial, Ctrl+J para las descargas. Los enlaces a archivos se guardan sin salir de la página y con el progreso a la vista." }
+  - { icon: "🔍", title: "Zoom de página", body: "Ctrl+más, Ctrl+menos o Ctrl+rueda, del 25 % al 500 %. Ctrl+0 lo restablece." }
+  - { icon: "あ", title: "Entrada en japonés", body: "El texto convertido con un IME se escribe en la barra de direcciones y en los campos de la página." }
+  - { icon: "🌏", title: "Cinco idiomas", body: "Japonés, inglés, chino simplificado, coreano y español." }
+  - { icon: "🛡️", title: "Bloqueo de contenido", body: "Bloquea anuncios y otras peticiones no deseadas con listas de filtros." }
 start_title: "Primeros pasos"
-start:
-  - "Al iniciar se abre una pestaña nueva. Escribe una URL o una búsqueda en el cuadro superior (Ctrl+L)."
-  - "Ctrl+T pestaña nueva / Ctrl+W cerrar / Alt+← atrás / Alt+Home inicio / Ctrl+clic abrir en segundo plano"
-  - "Ajustes: about:settings, contraseñas: about:passwords, memoria: about:memory."
+start_lead: "Al iniciar se abre una pestaña nueva. Escribe una URL o una búsqueda en el cuadro superior."
+keys:
+  - { k: "Ctrl L", d: "Ir a la barra de direcciones" }
+  - { k: "Ctrl T", d: "Pestaña nueva" }
+  - { k: "Ctrl W", d: "Cerrar pestaña" }
+  - { k: "Ctrl D", d: "Añadir a marcadores" }
+  - { k: "Ctrl H", d: "Historial" }
+  - { k: "Ctrl J", d: "Descargas" }
+  - { k: "Ctrl +/-", d: "Acercar o alejar" }
+start_note: "Los ajustes están en about:settings, las contraseñas en about:passwords y la memoria en about:memory."
 download_title: "Descargar"
 download_button: "Descargar desde Google Drive"
+recommended: "Recomendado"
+sha_summary: "Ver sumas de comprobación (SHA-256)"
 download_body: "Para Windows 11 (64 bits). Ejecuta el instalador o simplemente descomprime el zip. El historial y los ajustes se guardan en %LOCALAPPDATA%\\Kumo. Licencia a tu elección: MIT o Apache-2.0."
 release_title: "Última versión"
 release_version: "Versión 0.1.0 (2026-10-29)"

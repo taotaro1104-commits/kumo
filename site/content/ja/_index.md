@@ -9,29 +9,37 @@ cta_source: "ソースコード"
 ad_label: "広告"
 stats_title: "メモリ使用量（リリースビルドでの実測）"
 stats:
-  - { value: "約 22 MB", label: "空のタブ" }
-  - { value: "約 65 MB", label: "Wikipedia の記事 1 枚" }
-  - { value: "約 185 MB", label: "10 タブ" }
+  - { mb: 22, value: "約 22 MB", label: "空のタブ" }
+  - { mb: 65, value: "約 65 MB", label: "Wikipedia の記事 1 枚" }
+  - { mb: 185, value: "約 185 MB", label: "10 タブ" }
 features_title: "特長"
 features:
-  - { title: "省メモリ", body: "背景のタブは自動で凍結・破棄し、メモリの予算に収めます。" }
-  - { title: "3 つのプロセス", body: "Browser・Content・Network を分離。ページが重くても画面は固まらず、Content が落ちても自動で立て直します。" }
-  - { title: "JavaScript", body: "Boa エンジンで DOM・イベント・タイマー・fetch などを動かします。" }
-  - { title: "負荷レベル 1〜5", body: "「最軽量」から「最大」まで 5 段階。画像の読み込みは別に切り替えられます。" }
-  - { title: "パスワードマネージャ", body: "ログイン時に保存を確認し、同じサイトで自動入力。パスワードは暗号化し、鍵は Windows の資格情報マネージャに置きます。" }
-  - { title: "ブックマーク", body: "Ctrl+D で追加、Ctrl+B で一覧。ホームページも設定で決められます。" }
-  - { title: "閲覧履歴・ダウンロード", body: "Ctrl+H で履歴、Ctrl+J でダウンロード一覧。ファイルへのリンクはページを離れずに保存し、進み具合を表示します。" }
-  - { title: "拡大・縮小", body: "Ctrl+「+」「-」やCtrl+ホイールで 25〜500%。Ctrl+0 で元の大きさに戻ります。" }
-  - { title: "日本語入力", body: "IME で変換した文字を URL 欄や入力欄に入れられます。" }
-  - { title: "5 か国語の表示", body: "日本語・English・简体中文・한국어・Español。" }
-  - { title: "コンテンツブロック", body: "フィルタリストで広告などの読み込みを止められます。" }
+  - { icon: "🍃", title: "省メモリ", body: "背景のタブは自動で凍結・破棄し、メモリの予算に収めます。" }
+  - { icon: "🔀", title: "3 つのプロセス", body: "Browser・Content・Network を分離。ページが重くても画面は固まらず、Content が落ちても自動で立て直します。" }
+  - { icon: "⚡", title: "JavaScript", body: "Boa エンジンで DOM・イベント・タイマー・fetch などを動かします。" }
+  - { icon: "🎚️", title: "負荷レベル 1〜5", body: "「最軽量」から「最大」まで 5 段階。画像の読み込みは別に切り替えられます。" }
+  - { icon: "🔑", title: "パスワードマネージャ", body: "ログイン時に保存を確認し、同じサイトで自動入力。パスワードは暗号化し、鍵は Windows の資格情報マネージャに置きます。" }
+  - { icon: "⭐", title: "ブックマーク", body: "Ctrl+D で追加、Ctrl+B で一覧。ホームページも設定で決められます。" }
+  - { icon: "🕘", title: "閲覧履歴・ダウンロード", body: "Ctrl+H で履歴、Ctrl+J でダウンロード一覧。ファイルへのリンクはページを離れずに保存し、進み具合を表示します。" }
+  - { icon: "🔍", title: "拡大・縮小", body: "Ctrl+「+」「-」やCtrl+ホイールで 25〜500%。Ctrl+0 で元の大きさに戻ります。" }
+  - { icon: "あ", title: "日本語入力", body: "IME で変換した文字を URL 欄や入力欄に入れられます。" }
+  - { icon: "🌏", title: "5 か国語の表示", body: "日本語・English・简体中文・한국어・Español。" }
+  - { icon: "🛡️", title: "コンテンツブロック", body: "フィルタリストで広告などの読み込みを止められます。" }
 start_title: "使い方"
-start:
-  - "起動すると新しいタブが開きます。上の欄に URL か調べたい言葉を入力します（Ctrl+L）。"
-  - "Ctrl+T 新しいタブ / Ctrl+W 閉じる / Alt+← 戻る / Alt+Home ホーム / Ctrl+クリック 背景のタブで開く"
-  - "設定は about:settings、パスワードは about:passwords、メモリの状況は about:memory。"
+start_lead: "起動すると新しいタブが開きます。上の欄に URL か調べたい言葉を入力してください。"
+keys:
+  - { k: "Ctrl L", d: "アドレスバーへ" }
+  - { k: "Ctrl T", d: "新しいタブ" }
+  - { k: "Ctrl W", d: "タブを閉じる" }
+  - { k: "Ctrl D", d: "ブックマークに追加" }
+  - { k: "Ctrl H", d: "閲覧履歴" }
+  - { k: "Ctrl J", d: "ダウンロード一覧" }
+  - { k: "Ctrl +/-", d: "拡大・縮小" }
+start_note: "設定は about:settings、パスワードは about:passwords、メモリの状況は about:memory で見られます。"
 download_title: "入手方法"
 download_button: "Google ドライブからダウンロード"
+recommended: "おすすめ"
+sha_summary: "チェックサム（SHA-256）を見る"
 download_body: "Windows 11（64 ビット）用です。インストーラーを実行するか、zip を展開するだけで使えます。履歴と設定は %LOCALAPPDATA%\\Kumo に保存されます。ライセンスは MIT または Apache-2.0 から選べます。"
 release_title: "最新版"
 release_version: "バージョン 0.1.0（2026-10-29）"
