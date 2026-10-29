@@ -28,17 +28,33 @@ DirectoryIndex index.html
   RewriteRule ^$ /en/ [L,R=302]
   RewriteRule ^$ /ja/ [L,R=302]
 
-  # ---- 許可リスト方式：公開するパスだけを通し、それ以外は 404 ----
-  # 許可：トップ、言語ごとのページ（/ja/・/en/・/zh/・/ko/・/es/ 以下）、ハッシュ付き CSS、アイコン、sitemap・robots、.well-known
-  RewriteCond %{REQUEST_URI} !^/$
-  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)(/|$)
-  RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
-  RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|analytics\.js|ads\.js|ads\.txt|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|sitemap\.xml|robots\.txt)$
-  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  # ---- 許可リスト方式：公開するファイルだけを通し、それ以外は 404 ----
+  # 1) 読み取り専用のサイトなので、GET・HEAD・OPTIONS 以外は受け付けない
+  RewriteCond %{REQUEST_METHOD} !^(GET|HEAD|OPTIONS)$
+  RewriteRule ^ - [F,L]
+
+  # 2) 親ディレクトリへの遡り（..）、空のパス区間（//）、制御文字を含む要求は 404
+  RewriteCond %{REQUEST_URI} (\.\./|/\.\.$|//|%2e%2e|%00|%0d|%0a) [NC]
   RewriteRule ^ - [R=404,L]
 
-  # 許可したパスの中でも、拡張子が公開物でないもの（バックアップ・設定・ソース）は 404
-  RewriteRule \.(bak|old|orig|swp|log|ini|sh|toml|yaml|yml|json|md|lock|git|env)$ - [R=404,L,NC]
+  # 3) 言語ページの正規の URL は /ja/ のような形（/ja/index.html は 301 で寄せる）
+  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/index\.html[\s?]
+  RewriteRule ^ /%1/ [L,R=301]
+
+  # 4) 許可するパス（上から順に、どれにも当てはまらなければ 404）
+  #    - /                              トップ（上で言語ページへ転送済み）
+  #    - /ja/ /en/ /zh/ /ko/ /es/       言語ページのディレクトリと、その中の index.html・404.html・sitemap.xml だけ
+  #    - /style.min.<ハッシュ>.css       ハッシュ付きの CSS
+  #    - アイコン・OGP 画像・スクリプト・ads.txt・sitemap.xml・robots.txt
+  #    - /.well-known/                  証明書の更新などの標準の置き場
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/?$
+  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/((index|404)\.html|sitemap\.xml)$
+  RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
+  RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png)$
+  RewriteCond %{REQUEST_URI} !^/(analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt)$
+  RewriteCond %{REQUEST_URI} !^/\.well-known/[A-Za-z0-9._/-]+$
+  RewriteRule ^ - [R=404,L]
 </IfModule>
 
 # ---- ファイルの種類 ----
