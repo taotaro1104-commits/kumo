@@ -34,6 +34,7 @@ mod settings_page;
 mod tab;
 mod url_display;
 mod vault;
+mod zoom;
 
 pub use about_memory::ABOUT_MEMORY_URL;
 pub use bookmarks::Bookmark;

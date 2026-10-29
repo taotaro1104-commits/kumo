@@ -67,6 +67,11 @@ pub enum ToContent {
     Close {
         tab: TabId,
     },
+    /// タブの拡大率（%。100 が等倍）。以後そのタブに読み込むページにも効く
+    Zoom {
+        tab: TabId,
+        percent: u32,
+    },
     /// 表示するタブを切り替える（必ず全面を描き直す）
     Show {
         tab: TabId,

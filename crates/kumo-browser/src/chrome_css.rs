@@ -48,7 +48,10 @@ a.url.focused { background: #ffffff; border: 2px solid #1a73e8; padding-left: 12
 .rest { color: #6b7280; }
 .placeholder { color: #80868b; }
 .caret { color: #1a73e8; }
+.pre { text-decoration: underline; }
 .badge { flex: none; height: 24px; line-height: 24px; padding: 0 10px; border-radius: 12px; font-size: 12px; }
 .badge.loading { background: #e8f0fe; color: #1a56c4; }
+a.badge.zoom { background: #eef1f5; color: #1f2328; text-decoration: none; }
+a.badge.zoom.hover { background: #dfe3e8; }
 .badge.lost { background: #fce8e6; color: #b3261e; }
 ";

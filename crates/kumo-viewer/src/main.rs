@@ -133,6 +133,10 @@ fn run(args: Args) -> Result<(), String> {
                 started.elapsed().as_secs_f64() * 1000.0
             );
             fast_forward(&mut browser, &args);
+            if args.zoom != 100 {
+                browser.set_zoom_percent(args.zoom);
+                wait_for_timers(&mut browser, 300);
+            }
             wait_for_timers(&mut browser, args.wait_ms);
             for code in &args.eval {
                 match browser.eval(code, Duration::from_secs(10)) {

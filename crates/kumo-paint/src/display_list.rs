@@ -49,6 +49,11 @@ impl RectF {
     pub fn translate(&self, dx: f32, dy: f32) -> Self {
         Self::new(self.x + dx, self.y + dy, self.w, self.h)
     }
+
+    /// 原点を中心に `k` 倍する。
+    pub fn scaled(&self, k: f32) -> Self {
+        Self::new(self.x * k, self.y * k, self.w * k, self.h * k)
+    }
 }
 
 /// 位置決め済みグリフ（ベースライン上のペン位置）。
@@ -133,6 +138,55 @@ pub struct LinkRegion {
 }
 
 impl DisplayList {
+    /// 全体を `k` 倍する（ページの拡大・縮小）。レイアウトは `1/k` の幅で行い、できた描画命令をここで拡大する。
+    pub fn scale(&mut self, k: f32) {
+        let radii = |r: &mut [f32; 4]| r.iter_mut().for_each(|v| *v *= k);
+        for entry in &mut self.entries {
+            entry.bounds = entry.bounds.scaled(k);
+            entry.clip = entry.clip.map(|c| c.scaled(k));
+            match &mut entry.item {
+                DisplayItem::Fill { rect, .. } | DisplayItem::Image { rect, .. } => {
+                    *rect = rect.scaled(k);
+                }
+                DisplayItem::RoundedFill { rect, radii: r, .. } => {
+                    *rect = rect.scaled(k);
+                    radii(r);
+                }
+                DisplayItem::RoundedBorder {
+                    rect,
+                    widths,
+                    radii: r,
+                    ..
+                } => {
+                    *rect = rect.scaled(k);
+                    radii(widths);
+                    radii(r);
+                }
+                DisplayItem::Glyphs(run) => {
+                    run.size *= k;
+                    for g in &mut run.glyphs {
+                        g.x *= k;
+                        g.y *= k;
+                    }
+                }
+            }
+        }
+        self.width *= k;
+        self.height *= k;
+        for link in &mut self.links {
+            link.rect = link.rect.scaled(k);
+        }
+        for (_, y) in &mut self.anchors {
+            *y *= k;
+        }
+        for (rect, _) in self.controls.iter_mut().chain(&mut self.hits) {
+            *rect = rect.scaled(k);
+        }
+        for (_, rect) in &mut self.geometry {
+            *rect = rect.scaled(k);
+        }
+    }
+
     /// リンク領域を追加する（クリップの外は除く）。
     pub fn add_link(&mut self, rect: RectF, href: &Arc<str>, clip: Option<RectF>) {
         let rect = clip.map_or(rect, |c| rect.intersect(&c));
@@ -254,6 +308,43 @@ mod tests {
         assert_eq!(a.intersect(&b), RectF::new(5.0, 5.0, 5.0, 5.0));
         assert!(a.intersects(&b));
         assert!(!a.intersects(&RectF::new(10.0, 0.0, 5.0, 5.0)));
+    }
+
+    #[test]
+    fn scaling_moves_and_resizes_everything() {
+        let mut list = DisplayList {
+            width: 100.0,
+            height: 200.0,
+            ..DisplayList::default()
+        };
+        let rect = RectF::new(10.0, 20.0, 30.0, 40.0);
+        list.push(
+            DisplayItem::RoundedFill {
+                rect,
+                color: Rgba::BLACK,
+                radii: [1.0, 2.0, 3.0, 4.0],
+            },
+            rect,
+            Some(RectF::new(0.0, 0.0, 50.0, 60.0)),
+        );
+        list.add_link(rect, &Arc::from("a"), None);
+        list.anchors.push((Arc::from("x"), 15.0));
+        list.controls.push((rect, 3));
+        list.scale(2.0);
+        assert_eq!((list.width, list.height), (200.0, 400.0));
+        let entry = &list.entries[0];
+        assert_eq!(entry.bounds, RectF::new(20.0, 40.0, 60.0, 80.0));
+        assert_eq!(entry.clip, Some(RectF::new(0.0, 0.0, 100.0, 120.0)));
+        match &entry.item {
+            DisplayItem::RoundedFill { rect, radii, .. } => {
+                assert_eq!(*rect, RectF::new(20.0, 40.0, 60.0, 80.0));
+                assert_eq!(*radii, [2.0, 4.0, 6.0, 8.0]);
+            }
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(list.links[0].rect, RectF::new(20.0, 40.0, 60.0, 80.0));
+        assert_eq!(list.anchor_y("x"), Some(30.0));
+        assert_eq!(list.control_at(30.0, 50.0), Some(3), "拡大後の座標で当たる");
     }
 
     #[test]

@@ -105,6 +105,8 @@ pub struct Tab {
     pub(crate) posted: bool,
     /// 破棄から戻すときに、読み込み後に戻すスクロール位置
     pub(crate) restore_scroll: Option<f32>,
+    /// 拡大率（%）。タブごとに持ち、同じタブで別のページを開いても保つ
+    pub zoom: u32,
 }
 
 /// 題名が届く前のタブ見出し：ドメイン、ファイルならファイル名。
@@ -140,6 +142,7 @@ impl Tab {
             last_active: Instant::now(),
             posted: false,
             restore_scroll: None,
+            zoom: 100,
         }
     }
 

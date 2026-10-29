@@ -28,6 +28,8 @@ pub struct Browser {
     /// ウィンドウ全体の大きさ（UI を含む）
     pub(crate) window: (f32, f32),
     pub(crate) url_text: String,
+    /// 変換中の文字（URL 欄に入力中のときだけ持つ）
+    pub(crate) preedit: String,
     pub(crate) url_focused: bool,
     /// UI のページ（状態が変わったら作り直す）
     pub(crate) chrome: Option<Page>,
@@ -120,6 +122,7 @@ impl Browser {
             history,
             window,
             url_text: String::new(),
+            preedit: String::new(),
             url_focused: false,
             chrome: None,
             frame: FrameReader::default(),

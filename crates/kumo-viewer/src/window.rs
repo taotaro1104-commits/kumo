@@ -11,7 +11,7 @@ use kumo_net::process::Fetcher;
 use kumo_paint::{CpuRasterizer, NoImageProvider, RectF, ScrollRenderer};
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalPosition;
-use winit::event::{ElementState, MouseScrollDelta, WindowEvent};
+use winit::event::{ElementState, Ime, MouseScrollDelta, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::keyboard::ModifiersState;
 use winit::window::{Window, WindowId};
@@ -22,6 +22,8 @@ use crate::input::{self, LINE_SCROLL, Outcome};
 const MEMORY_CHECK_INTERVAL: Duration = Duration::from_secs(2);
 /// ダウンロード中に経過を取り込む間隔。
 const DOWNLOAD_POLL_INTERVAL: Duration = Duration::from_millis(300);
+/// 変換候補の窓を URL 欄に出すときの横位置（URL 欄の入力の頭のあたり）。
+const URL_BAR_X: f64 = 160.0;
 
 /// Content から通知が届いた。
 #[derive(Clone, Copy, Debug)]
@@ -235,6 +237,43 @@ fn copy_frame(
     start..end.max(start)
 }
 
+impl Viewer {
+    /// IME（日本語入力など）のイベント：変換中の文字は URL 欄に見せ、確定した文字は入力欄へ入れる。
+    fn ime(&mut self, ime: Ime, event_loop: &ActiveEventLoop) {
+        match ime {
+            Ime::Preedit(text, _) => {
+                let redraw = self.browser.set_preedit(&text);
+                self.mark(redraw);
+                self.place_ime_window();
+            }
+            Ime::Commit(text) => {
+                let outcome = input::commit(&mut self.browser, &text);
+                self.apply(outcome, event_loop);
+                self.place_ime_window();
+            }
+            Ime::Disabled => {
+                let redraw = self.browser.set_preedit("");
+                self.mark(redraw);
+            }
+            Ime::Enabled => self.place_ime_window(),
+        }
+    }
+
+    /// 変換候補の窓を、入力中の場所の近くに出す（URL 欄、なければ最後にクリックした場所）。
+    fn place_ime_window(&self) {
+        let Some(surface) = &self.surface else { return };
+        let (x, y) = if self.browser.url_focused() {
+            (URL_BAR_X, 8.0)
+        } else {
+            (self.cursor.x, self.cursor.y)
+        };
+        surface.window.set_ime_cursor_area(
+            PhysicalPosition::new(x, y),
+            winit::dpi::PhysicalSize::new(8.0, 24.0),
+        );
+    }
+}
+
 impl ApplicationHandler<ContentWake> for Viewer {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.surface.is_some() {
@@ -249,7 +288,11 @@ impl ApplicationHandler<ContentWake> for Viewer {
                 (h + CHROME_HEIGHT) as u32,
             ));
         let window = match event_loop.create_window(attributes) {
-            Ok(w) => Rc::new(w),
+            Ok(w) => {
+                // 日本語など、変換して入力する言語のために IME を有効にする
+                w.set_ime_allowed(true);
+                Rc::new(w)
+            }
             Err(e) => {
                 eprintln!("[window] ウィンドウを作れません: {e}");
                 event_loop.exit();
@@ -332,9 +375,20 @@ impl ApplicationHandler<ContentWake> for Viewer {
                     MouseScrollDelta::LineDelta(_, y) => -y * LINE_SCROLL,
                     MouseScrollDelta::PixelDelta(p) => -p.y as f32,
                 };
-                // 新しい位置のフレームは Content から届く
-                self.browser.scroll_by(dy);
+                if self.mods.control_key() {
+                    // Ctrl+ホイール：上に回すと拡大、下に回すと縮小
+                    let redraw = match dy {
+                        d if d < 0.0 => self.browser.zoom_in(),
+                        d if d > 0.0 => self.browser.zoom_out(),
+                        _ => Redraw::default(),
+                    };
+                    self.mark(redraw);
+                } else {
+                    // 新しい位置のフレームは Content から届く
+                    self.browser.scroll_by(dy);
+                }
             }
+            WindowEvent::Ime(ime) => self.ime(ime, event_loop),
             WindowEvent::KeyboardInput { event, .. } => {
                 let outcome = input::key(&mut self.browser, &event, self.mods);
                 self.apply(outcome, event_loop);

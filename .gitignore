@@ -2,3 +2,4 @@
 *.png
 !tests/fixtures/**/*.png
 /dist
+!site/static/*.png

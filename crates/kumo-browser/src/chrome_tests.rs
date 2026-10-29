@@ -19,11 +19,13 @@ fn state<'a>(url_text: &'a str, hover: Option<&'a str>) -> ChromeState<'a> {
         ],
         active: 1,
         url_text,
+        preedit: "",
         url_focused: false,
         can_go_back: false,
         can_go_forward: true,
         loading: false,
         bookmarked: true,
+        zoom: 100,
         content_lost: false,
         hover,
         login_prompt: None,
@@ -156,4 +158,21 @@ fn login_prompt_replaces_the_url_bar_with_three_choices() {
         ChromeAction::from_href("kumo:pwnever"),
         Some(ChromeAction::NeverSaveLogin)
     );
+}
+
+#[test]
+fn preedit_text_is_shown_underlined_before_the_caret() {
+    let mut editing = state("東京", None);
+    editing.url_focused = true;
+    editing.preedit = "てんき<";
+    let html = chrome_html(&editing);
+    assert!(
+        html.contains("東京<span class=pre>てんき&lt;</span><span class=caret>"),
+        "{html}"
+    );
+    // 変換中の文字だけでも案内は消える
+    let mut only = state("", None);
+    only.url_focused = true;
+    only.preedit = "あ";
+    assert!(!chrome_html(&only).contains("検索語または URL を入力"));
 }

@@ -26,6 +26,7 @@ impl Browser {
                     .collect(),
                 active: self.active,
                 url_text: &self.url_text,
+                preedit: &self.preedit,
                 url_focused: self.url_focused,
                 can_go_back: tab.is_some_and(|t| t.session.can_go_back()),
                 can_go_forward: tab.is_some_and(|t| t.session.can_go_forward()),
@@ -34,6 +35,7 @@ impl Browser {
                     .and_then(Tab::url)
                     .zip(self.history.as_ref())
                     .is_some_and(|(u, h)| h.is_bookmarked(u.as_str())),
+                zoom: tab.map_or(100, |t| t.zoom),
                 content_lost: self.content_lost,
                 hover: self.chrome_hover.as_deref(),
                 login_prompt: login_prompt.as_deref(),

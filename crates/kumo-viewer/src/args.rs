@@ -8,6 +8,8 @@ pub struct Args {
     pub width: u32,
     pub height: u32,
     pub scroll: f32,
+    /// 拡大率（%）。ヘッドレスの描画で使う
+    pub zoom: u32,
     pub headless: Option<String>,
     pub mem_report: bool,
     pub in_process: bool,
@@ -31,7 +33,7 @@ pub struct Args {
     pub filter_lists: Vec<PathBuf>,
 }
 
-pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] \
+pub const USAGE: &str = "usage: kumo-viewer [URL|FILE ...] [--width N] [--height N] [--scroll Y] [--zoom PERCENT] \
 [--headless out.png] [--mem-report] [--in-process] [--no-js] [--no-images] [--load-level 1-5] [--lang ja|en|zh|ko|es] [--no-disk-cache] [--wait MS] [--eval JS] [--memory-budget MB] [--freeze-after SEC] [--discard-after SEC] [--filter-list FILE ...]";
 
 pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
@@ -40,6 +42,7 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
         width: 1280,
         height: 800,
         scroll: 0.0,
+        zoom: 100,
         headless: None,
         mem_report: false,
         in_process: false,
@@ -65,6 +68,11 @@ pub fn parse(raw: impl Iterator<Item = String>) -> Result<Args, String> {
                 args.scroll = value("--scroll")?
                     .parse()
                     .map_err(|_| "--scroll は数値".to_owned())?
+            }
+            "--zoom" => {
+                args.zoom = value("--zoom")?
+                    .parse()
+                    .map_err(|_| "--zoom は 25〜500 の整数（%）".to_owned())?
             }
             "--headless" => args.headless = Some(value("--headless")?),
             "--filter-list" => args.filter_lists.push(value("--filter-list")?.into()),

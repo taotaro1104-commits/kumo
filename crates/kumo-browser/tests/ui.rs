@@ -315,3 +315,57 @@ fn language_is_chosen_on_the_settings_page_and_changes_the_screens() {
     let b = browser(Some(HistoryDb::open(&path).unwrap()));
     assert_eq!(b.language(), Lang::En);
 }
+
+#[test]
+fn japanese_input_is_previewed_then_committed_into_the_url_bar() {
+    let mut b = browser(None);
+    b.open_tab(None, true);
+    settle(&mut b);
+    // URL 欄にフォーカスがなければ変換中の文字は持たない
+    b.set_preedit("あ");
+    b.focus_url_bar();
+    b.type_text("search ");
+    b.set_preedit("にほんご");
+    b.type_text("日本語"); // 確定
+    assert_eq!(b.url_text(), "search 日本語");
+    // 確定すると変換中の表示は消え、同じ内容の再通知は描き直さない
+    assert!(!b.set_preedit("").chrome, "すでに空");
+}
+
+#[test]
+fn zoom_steps_through_the_levels_per_tab_and_resets() {
+    let site = Site::new("zoom-ui");
+    let mut b = browser(None);
+    b.open_tab(Some(site.url("a.html")), true);
+    settle(&mut b);
+    assert_eq!(b.zoom_percent(), 100);
+    assert!(b.zoom_out().chrome, "縮小できる");
+    assert_eq!(b.zoom_percent(), 90);
+    b.zoom_in();
+    b.zoom_in();
+    assert_eq!(b.zoom_percent(), 110);
+    for _ in 0..30 {
+        b.zoom_in();
+    }
+    assert_eq!(b.zoom_percent(), 500, "上限で止まる");
+    assert!(!b.zoom_in().chrome, "上限ではもう変わらない");
+    for _ in 0..30 {
+        b.zoom_out();
+    }
+    assert_eq!(b.zoom_percent(), 25, "下限で止まる");
+
+    // 倍率はタブごと
+    b.open_tab(Some(site.url("b.html")), true);
+    settle(&mut b);
+    assert_eq!(b.zoom_percent(), 100, "新しいタブは等倍");
+    b.activate(0);
+    assert_eq!(b.zoom_percent(), 25);
+
+    // 等倍以外のときだけバッジを出し、押すと戻る
+    let page = b.chrome_page();
+    assert!(page.list.links.iter().any(|l| &*l.href == "kumo:zoom"));
+    b.chrome_action(ChromeAction::ResetZoom);
+    assert_eq!(b.zoom_percent(), 100);
+    let page = b.chrome_page();
+    assert!(!page.list.links.iter().any(|l| &*l.href == "kumo:zoom"));
+}

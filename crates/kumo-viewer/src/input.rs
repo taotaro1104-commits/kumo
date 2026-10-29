@@ -28,6 +28,12 @@ pub fn key(browser: &mut Browser, event: &KeyEvent, mods: ModifiersState) -> Out
     if event.state != ElementState::Pressed {
         return Outcome::default();
     }
+    // 拡大・縮小は URL 欄や入力欄にフォーカスがあっても効く
+    if mods.control_key()
+        && let Some(redraw) = zoom_key(browser, &event.logical_key)
+    {
+        return Outcome::redraw(redraw);
+    }
     if browser.url_focused() {
         return url_bar_key(browser, event);
     }
@@ -84,6 +90,30 @@ pub fn key(browser: &mut Browser, event: &KeyEvent, mods: ModifiersState) -> Out
         },
         _ => Outcome::default(),
     }
+}
+
+/// Ctrl+「+」で拡大、Ctrl+「-」で縮小、Ctrl+0 で 100%。
+fn zoom_key(browser: &mut Browser, key: &Key) -> Option<Redraw> {
+    let Key::Character(c) = key else { return None };
+    match c.as_str() {
+        "+" | "=" => Some(browser.zoom_in()),
+        "-" | "_" => Some(browser.zoom_out()),
+        "0" => Some(browser.zoom_reset()),
+        _ => None,
+    }
+}
+
+/// 日本語入力などで確定した文字。フォーカスがある URL 欄か、ページ内の入力欄に入れる。
+pub fn commit(browser: &mut Browser, text: &str) -> Outcome {
+    let preedit = browser.set_preedit("");
+    let typed = if browser.url_focused() {
+        browser.type_text(text)
+    } else if browser.field_focused() {
+        browser.type_into_field(text)
+    } else {
+        Redraw::default()
+    };
+    Outcome::redraw(preedit.merge(typed))
 }
 
 /// ページ内の入力欄に文字を入れる。
@@ -151,8 +181,8 @@ mod tests {
 
     use kumo_net::service::{NetworkConfig, NetworkService};
 
-    fn browser_with_page() -> (Browser, std::path::PathBuf) {
-        let dir = std::env::temp_dir().join(format!("kumo-input-{}", std::process::id()));
+    fn browser_with_page(name: &str) -> (Browser, std::path::PathBuf) {
+        let dir = std::env::temp_dir().join(format!("kumo-input-{name}-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(
             dir.join("a.html"),
@@ -182,7 +212,7 @@ mod tests {
 
     #[test]
     fn clicks_on_chrome_and_content() {
-        let (mut browser, dir) = browser_with_page();
+        let (mut browser, dir) = browser_with_page("clicks");
         let none = ModifiersState::empty();
         // コンテンツ上のリンク（UI の高さ分ずらした位置）
         click(
@@ -216,6 +246,20 @@ mod tests {
         let tab1 = link_center(&browser.chrome_page().list, "kumo:tab/1");
         click(&mut browser, tab1.0, tab1.1, MouseButton::Middle, none);
         assert_eq!(browser.tabs().len(), 2);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn committed_ime_text_goes_to_the_url_bar_only_when_it_has_focus() {
+        let (mut browser, dir) = browser_with_page("ime");
+        // どこにもフォーカスがなければ捨てる
+        let ignored = commit(&mut browser, "日本語");
+        assert!(!ignored.redraw.chrome);
+        browser.focus_url_bar();
+        browser.type_text("x ");
+        browser.set_preedit("にほん");
+        commit(&mut browser, "日本");
+        assert_eq!(browser.url_text(), "x 日本", "変換中の表示は確定で消える");
         let _ = std::fs::remove_dir_all(dir);
     }
 }

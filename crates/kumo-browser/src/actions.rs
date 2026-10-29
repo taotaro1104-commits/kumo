@@ -22,6 +22,7 @@ impl Browser {
             ChromeAction::ShowBookmarks => self.show_bookmarks(),
             ChromeAction::ShowHistory => self.show_history(),
             ChromeAction::ShowDownloads => self.show_downloads(),
+            ChromeAction::ResetZoom => self.zoom_reset(),
             ChromeAction::Home => self.go_home(),
             ChromeAction::SaveLogin => self.save_pending_login(),
             ChromeAction::DismissLogin => self.dismiss_login_prompt(),
@@ -142,10 +143,21 @@ impl Browser {
         &self.url_text
     }
 
+    /// 日本語入力などの変換中の文字を URL 欄に見せる（空にすると消える）。確定は `type_text`。
+    pub fn set_preedit(&mut self, text: &str) -> Redraw {
+        let text = if self.url_focused { text } else { "" };
+        if self.preedit == text {
+            return Redraw::default();
+        }
+        self.preedit = text.to_owned();
+        self.invalidate_chrome()
+    }
+
     pub fn type_text(&mut self, text: &str) -> Redraw {
         if !self.url_focused {
             return Redraw::default();
         }
+        self.preedit.clear();
         self.url_text
             .extend(text.chars().filter(|c| !c.is_control()));
         self.invalidate_chrome()

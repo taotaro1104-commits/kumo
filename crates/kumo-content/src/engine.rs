@@ -37,6 +37,8 @@ pub(crate) struct ContentTab {
     pub focus_value: Option<String>,
     /// スクリプトの未捕捉の例外の数
     pub js_errors: usize,
+    /// 拡大率（%）。0 は等倍（100%）
+    pub zoom_pct: u32,
     /// 最後にタイマーを動かした時刻（背景のタブは間隔を空ける）
     pub last_tick: Duration,
 }
@@ -125,6 +127,7 @@ impl ContentEngine {
                 self.apply_images();
             }
             ToContent::Language(lang) => self.lang = lang,
+            ToContent::Zoom { tab, percent } => self.set_zoom(tab, percent),
             ToContent::Images(on) => {
                 self.images = on;
                 self.apply_images();
@@ -215,6 +218,25 @@ impl ContentEngine {
         kumo_mem::release_free_memory();
     }
 
+    /// タブの拡大率を変える。見ている位置（文書の上から何割か）が動かないようにスクロールも合わせる。
+    fn set_zoom(&mut self, id: TabId, percent: u32) {
+        let percent = percent.clamp(MIN_ZOOM, MAX_ZOOM);
+        let tab = self.tabs.entry(id).or_default();
+        let before = tab.zoom_factor();
+        tab.zoom_pct = percent;
+        let ratio = tab.zoom_factor() / before;
+        if (ratio - 1.0).abs() < f32::EPSILON {
+            return;
+        }
+        tab.scroll_y = (tab.scroll_y * ratio).round();
+        tab.needs_layout = true;
+        let y = tab.scroll_y;
+        self.out.push(FromContent::Scrolled { tab: id, y });
+        if self.active == Some(id) {
+            self.frame.invalidate();
+        }
+    }
+
     fn set_viewport(&mut self, width: u32, height: u32) {
         let viewport = (width.max(1), height.max(1));
         if viewport == self.viewport {
@@ -298,8 +320,14 @@ impl ContentEngine {
         Page::from_html(&html, base, &mut self.services, as_f32(self.viewport))
     }
 
-    fn show_page(&mut self, id: TabId, nav: u64, page: Page) {
+    fn show_page(&mut self, id: TabId, nav: u64, mut page: Page) {
         let height = self.viewport_f32().1;
+        // 拡大中のタブには、アンカーの位置を出す前に拡大して置き直す
+        let zoom = self.tabs.get(&id).map_or(1.0, ContentTab::zoom_factor);
+        if zoom != 1.0 {
+            page.set_zoom(zoom);
+            page.relayout(self.viewport_f32(), &mut self.services);
+        }
         let url = page.url().to_string();
         let title = page.title().to_owned();
         let target = crate::anchor_y(&page, page.url());
@@ -355,14 +383,16 @@ impl ContentEngine {
         let Some(tab) = self.tabs.get_mut(&id) else {
             return;
         };
+        let zoom = tab.zoom_factor();
         let stale = tab
             .page
             .as_ref()
-            .is_some_and(|p| p.is_frozen() || p.viewport() != viewport);
+            .is_some_and(|p| p.is_frozen() || p.viewport() != viewport || p.zoom() != zoom);
         if !(tab.needs_layout || stale) {
             return;
         }
         if let Some(page) = tab.page.as_mut() {
+            page.set_zoom(zoom);
             page.relayout(viewport, &mut self.services);
         }
         tab.needs_layout = false;
@@ -378,7 +408,20 @@ impl ContentEngine {
     }
 }
 
+/// 拡大率（%）の下限・上限。
+pub const MIN_ZOOM: u32 = 25;
+pub const MAX_ZOOM: u32 = 500;
+
 impl ContentTab {
+    /// 拡大率（1.0 が等倍）。
+    pub fn zoom_factor(&self) -> f32 {
+        if self.zoom_pct == 0 {
+            1.0
+        } else {
+            self.zoom_pct as f32 / 100.0
+        }
+    }
+
     /// スクロール位置をページの範囲に収める。
     pub fn clamp_scroll(&mut self, viewport_height: f32) {
         let max = self

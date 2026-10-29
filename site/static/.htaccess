@@ -27,7 +27,7 @@ DirectoryIndex index.html
   RewriteCond %{REQUEST_URI} !^/$
   RewriteCond %{REQUEST_URI} !^/(ja|en)(/|$)
   RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
-  RewriteCond %{REQUEST_URI} !^/(icon\.svg|favicon\.ico|sitemap\.xml|robots\.txt)$
+  RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|analytics\.js|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|sitemap\.xml|robots\.txt)$
   RewriteCond %{REQUEST_URI} !^/\.well-known/
   RewriteRule ^ - [R=404,L]
 
@@ -59,13 +59,14 @@ DirectoryIndex index.html
   ExpiresByType application/xml "access plus 1 day"
   ExpiresByType image/svg+xml "access plus 1 month"
   ExpiresByType image/x-icon "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
   ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType text/css "access plus 1 year"
-  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 day"
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(css|js|woff2)$">
+  <FilesMatch "\.(css|woff2)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   <FilesMatch "\.(html|xml)$">
@@ -83,8 +84,8 @@ DirectoryIndex index.html
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set Strict-Transport-Security "max-age=31536000"
-  # このサイトは自分のファイルだけを使う（外部のスクリプト・フォント・計測なし）
-  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+  # 自分のファイルと、Google アナリティクス（gtag）の通信先だけを許可する
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; style-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
 </IfModule>
 
 # ---- 隠しファイル・設定ファイルを見せない ----

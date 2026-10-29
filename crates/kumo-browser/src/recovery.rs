@@ -64,6 +64,7 @@ impl Browser {
         self.send_load_level();
         self.send_language();
         self.send_images();
+        self.send_zooms();
         for index in 0..self.tabs.len() {
             let tab = &mut self.tabs[index];
             let url = tab

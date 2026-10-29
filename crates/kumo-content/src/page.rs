@@ -26,6 +26,8 @@ pub struct Page {
     engine: CascadeEngine,
     pub list: DisplayList,
     viewport: (f32, f32),
+    /// 拡大率（1.0 が等倍）。レイアウトは `viewport / zoom` で行い、描画命令を `zoom` 倍して持つ
+    zoom: f32,
     boxes: usize,
     unique_styles: usize,
     js: Option<JsRuntime>,
@@ -79,6 +81,7 @@ impl Page {
             engine,
             list: DisplayList::default(),
             viewport,
+            zoom: 1.0,
             boxes: 0,
             unique_styles: 0,
             js,
@@ -191,17 +194,28 @@ impl Page {
         self.viewport
     }
 
+    pub fn zoom(&self) -> f32 {
+        self.zoom
+    }
+
+    /// 拡大率を変える。表示に反映するには再レイアウトが必要。
+    pub fn set_zoom(&mut self, zoom: f32) {
+        self.zoom = zoom;
+    }
+
     pub fn document_height(&self) -> f32 {
         self.list.height
     }
 
     /// ビューポート変更時：スタイル（@media）から作り直す。
     pub fn relayout(&mut self, viewport: (f32, f32), services: &mut Services) {
-        let (width, height) = viewport;
         self.viewport = viewport;
+        // 拡大すると CSS 上のビューポートは狭くなる（@media やレイアウトはこの大きさで見る）
+        let zoom = self.zoom;
+        let (width, height) = (viewport.0 / zoom, viewport.1 / zoom);
         self.frozen = false;
         if let Some(js) = &mut self.js {
-            js.set_viewport(viewport);
+            js.set_viewport((width, height));
         }
         let record_hits = self.js.is_some();
         let text = services.take_text();
@@ -252,6 +266,9 @@ impl Page {
                 geometry.iter().map(|&(n, r)| (n, [r.x, r.y, r.w, r.h])),
                 0.0,
             );
+        }
+        if zoom != 1.0 {
+            list.scale(zoom);
         }
         self.list = list;
         self.boxes = boxes;

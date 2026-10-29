@@ -32,6 +32,8 @@ pub enum ChromeAction {
     ShowHistory,
     ShowDownloads,
     Home,
+    /// 拡大率を 100% に戻す
+    ResetZoom,
     /// パスワードの保存の確認：保存する・今回は保存しない・このサイトでは保存しない
     SaveLogin,
     DismissLogin,
@@ -56,6 +58,7 @@ impl ChromeAction {
                 "history" => Self::ShowHistory,
                 "downloads" => Self::ShowDownloads,
                 "home" => Self::Home,
+                "zoom" => Self::ResetZoom,
                 "pwsave" => Self::SaveLogin,
                 "pwskip" => Self::DismissLogin,
                 "pwnever" => Self::NeverSaveLogin,
@@ -79,12 +82,16 @@ pub struct ChromeState<'a> {
     pub tabs: Vec<TabLabel>,
     pub active: usize,
     pub url_text: &'a str,
+    /// 日本語入力などの変換中の文字（まだ確定していない）。URL 欄の末尾に下線付きで出す
+    pub preedit: &'a str,
     pub url_focused: bool,
     pub can_go_back: bool,
     pub can_go_forward: bool,
     pub loading: bool,
     /// 表示中のページがブックマーク済み
     pub bookmarked: bool,
+    /// 表示中のタブの拡大率（%）。100 以外なら URL 欄の右に出す
+    pub zoom: u32,
     /// Content プロセスが終了して作り直せなかった
     pub content_lost: bool,
     /// マウスが乗っている UI のリンク
@@ -145,13 +152,17 @@ fn tabs_html(state: &ChromeState<'_>, html: &mut String) {
 /// URL 欄の中身。編集中は入力中の文字列、それ以外は安全性の印とドメインを強調した表記。
 fn url_html(state: &ChromeState<'_>) -> String {
     if state.url_focused {
-        if state.url_text.is_empty() {
+        if state.url_text.is_empty() && state.preedit.is_empty() {
             return format!(
                 "<span class=caret>|</span><span class=placeholder>{}</span>",
                 Ui::UrlPlaceholder.t(state.lang)
             );
         }
-        return format!("{}<span class=caret>|</span>", escape(state.url_text));
+        return format!(
+            "{}<span class=pre>{}</span><span class=caret>|</span>",
+            escape(state.url_text),
+            escape(state.preedit)
+        );
     }
     let parts = format_url(state.url_text);
     let chip = parts
@@ -244,6 +255,13 @@ pub fn chrome_html(state: &ChromeState<'_>) -> String {
         "☰",
         Ui::BookmarkList.t(state.lang),
     ));
+    if state.zoom != 100 {
+        let class = class_for(state, "badge zoom", "kumo:zoom");
+        html.push_str(&format!(
+            "<a class='{class}' href='kumo:zoom' title='100%'>{}%</a>",
+            state.zoom
+        ));
+    }
     if state.content_lost {
         html.push_str(&format!(
             "<span class='badge lost'>{}</span>",
