@@ -3,3 +3,4 @@
 !tests/fixtures/**/*.png
 /dist
 !site/static/*.png
+!android/res/**/*.png
