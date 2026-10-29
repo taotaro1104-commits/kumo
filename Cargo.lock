@@ -1808,6 +1808,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kumo-android"
+version = "0.1.0"
+dependencies = [
+ "android-activity",
+ "kumo-mem",
+ "kumo-viewer",
+]
+
+[[package]]
 name = "kumo-browser"
 version = "0.1.0"
 dependencies = [
@@ -1966,6 +1975,7 @@ dependencies = [
 name = "kumo-viewer"
 version = "0.1.0"
 dependencies = [
+ "android-activity",
  "image",
  "kumo-browser",
  "kumo-content",

@@ -64,7 +64,7 @@ pub fn process_memory() -> Option<ProcessMemory> {
     })
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn process_memory() -> Option<ProcessMemory> {
     let text = std::fs::read_to_string("/proc/self/smaps_rollup").ok()?;
     let field = |name: &str| {
@@ -81,7 +81,7 @@ pub fn process_memory() -> Option<ProcessMemory> {
     })
 }
 
-#[cfg(not(any(windows, target_os = "linux")))]
+#[cfg(not(any(windows, target_os = "linux", target_os = "android")))]
 pub fn process_memory() -> Option<ProcessMemory> {
     None
 }

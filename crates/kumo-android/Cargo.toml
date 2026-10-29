@@ -1,0 +1,21 @@
+[package]
+name = "kumo-android"
+description = "Kumo browser for Android: NativeActivity shared library"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "kumo"
+crate-type = ["cdylib"]
+
+[dependencies]
+kumo-mem.workspace = true
+kumo-viewer = { path = "../kumo-viewer" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+android-activity = { version = "0.6", features = ["native-activity"] }
+
+# android_main の公開と環境変数の設定にだけ unsafe が要る（下のコメント参照）
+[lints.clippy]
+all = { level = "warn", priority = -1 }

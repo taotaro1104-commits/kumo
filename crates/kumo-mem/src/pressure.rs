@@ -53,7 +53,7 @@ fn physical_memory() -> Option<(u64, u64)> {
     (ok != 0).then_some((status.ullAvailPhys, status.ullTotalPhys))
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn physical_memory() -> Option<(u64, u64)> {
     let text = std::fs::read_to_string("/proc/meminfo").ok()?;
     let field = |name: &str| {
@@ -66,7 +66,7 @@ fn physical_memory() -> Option<(u64, u64)> {
     Some((field("MemAvailable:")?, field("MemTotal:")?))
 }
 
-#[cfg(not(any(windows, target_os = "linux")))]
+#[cfg(not(any(windows, target_os = "linux", target_os = "android")))]
 fn physical_memory() -> Option<(u64, u64)> {
     None
 }

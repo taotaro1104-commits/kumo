@@ -17,6 +17,7 @@ use winit::keyboard::ModifiersState;
 use winit::window::{Window, WindowId};
 
 use crate::input::{self, LINE_SCROLL, Outcome};
+use crate::touch::{Gesture, Touches};
 
 /// メモリ管理の事務を呼ぶ間隔（ウィンドウのイベントがなくても起きる）。
 const MEMORY_CHECK_INTERVAL: Duration = Duration::from_secs(2);
@@ -28,6 +29,28 @@ const URL_BAR_X: f64 = 160.0;
 /// Content から通知が届いた。
 #[derive(Clone, Copy, Debug)]
 pub struct ContentWake;
+
+/// 実行環境ごとの違い。既定はデスクトップ（イベントループは [`run`] が作る）。
+#[derive(Default)]
+pub struct Platform {
+    /// 作成済みのイベントループ（Android は `AndroidApp` を渡して作る必要がある）
+    pub event_loop: Option<EventLoop<ContentWake>>,
+    /// ダウンロードの保存先（なければ「ダウンロード」フォルダ）
+    pub download_dir: Option<std::path::PathBuf>,
+}
+
+/// 描画面の大きさを画面の物理 px の何分の一にするか。
+/// Android は高密度（物理 px が dp の2〜3倍）なので、dp 相当の大きさで描いて OS に拡大させる。
+fn render_scale(window: &Window) -> f64 {
+    if cfg!(target_os = "android") {
+        window.scale_factor().max(1.0)
+    } else {
+        1.0
+    }
+}
+
+/// 文字入力の最中だけソフトキーボードを出す環境か（デスクトップは IME を常に有効にしておく）。
+const KEYBOARD_ON_DEMAND: bool = cfg!(target_os = "android");
 
 struct Surface {
     window: Rc<Window>,
@@ -48,6 +71,13 @@ pub struct Viewer {
     /// リンク先の吹き出しを描いた行（コンテンツ領域の座標）
     status_rows: Option<std::ops::Range<usize>>,
     pointer: Pointer,
+    /// [`render_scale`]（描画面は物理 px をこれで割った大きさ）
+    scale: f64,
+    /// 描画面の大きさ（論理 px）
+    size: (u32, u32),
+    touches: Touches,
+    /// 今 IME（ソフトキーボード）を有効にしているか
+    ime_on: bool,
 }
 
 impl Viewer {
@@ -90,10 +120,14 @@ impl Viewer {
         crate::report::print(&mut self.browser, &*self.network, &self.raster, frame);
     }
 
-    fn resize(&mut self, width: u32, height: u32) {
+    /// 物理 px の大きさを受け取り、描画面は [`Viewer::scale`] で縮めた大きさにする。
+    fn resize(&mut self, physical_width: u32, physical_height: u32) {
+        let shrink = |n: u32| (f64::from(n) / self.scale).round() as u32;
+        let (width, height) = (shrink(physical_width), shrink(physical_height));
         let (Some(w), Some(h)) = (NonZeroU32::new(width), NonZeroU32::new(height)) else {
             return;
         };
+        self.size = (width, height);
         if let Some(s) = &mut self.surface
             && let Err(e) = s.surface.resize(w, h)
         {
@@ -105,10 +139,10 @@ impl Viewer {
     }
 
     fn redraw(&mut self) {
-        let Some(size) = self.surface.as_ref().map(|s| s.window.inner_size()) else {
+        if self.surface.is_none() {
             return;
-        };
-        let (w, h) = (size.width as usize, size.height as usize);
+        }
+        let (w, h) = (self.size.0 as usize, self.size.1 as usize);
         let chrome_rows = (CHROME_HEIGHT as usize).min(h);
         if w == 0 || h <= chrome_rows {
             return;
@@ -290,7 +324,10 @@ impl ApplicationHandler<ContentWake> for Viewer {
         let window = match event_loop.create_window(attributes) {
             Ok(w) => {
                 // 日本語など、変換して入力する言語のために IME を有効にする
-                w.set_ime_allowed(true);
+                // （スマートフォンでは文字を入力する間だけキーボードを出す）
+                self.ime_on = !KEYBOARD_ON_DEMAND;
+                w.set_ime_allowed(self.ime_on);
+                self.scale = render_scale(&w);
                 Rc::new(w)
             }
             Err(e) => {
@@ -308,6 +345,7 @@ impl ApplicationHandler<ContentWake> for Viewer {
                     surface,
                 });
                 let size = window.inner_size();
+                self.chrome_dirty = true;
                 self.resize(size.width, size.height);
             }
             Err(e) => {
@@ -315,6 +353,11 @@ impl ApplicationHandler<ContentWake> for Viewer {
                 event_loop.exit();
             }
         }
+    }
+
+    /// Android でアプリが背面に回ると描画面が失われる。戻ってきたら [`Self::resumed`] で作り直す。
+    fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+        self.surface = None;
     }
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
@@ -337,6 +380,7 @@ impl ApplicationHandler<ContentWake> for Viewer {
         let redraw = self.browser.pump();
         self.mark(redraw);
         self.update_cursor();
+        self.sync_ime();
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
@@ -346,8 +390,9 @@ impl ApplicationHandler<ContentWake> for Viewer {
             WindowEvent::RedrawRequested => self.redraw(),
             WindowEvent::ModifiersChanged(mods) => self.mods = mods.state(),
             WindowEvent::CursorMoved { position, .. } => {
-                self.cursor = position;
-                let (x, y) = (position.x as f32, position.y as f32);
+                self.cursor =
+                    PhysicalPosition::new(position.x / self.scale, position.y / self.scale);
+                let (x, y) = (self.cursor.x as f32, self.cursor.y as f32);
                 let redraw = if y < CHROME_HEIGHT {
                     self.browser.hover_chrome(x, y)
                 } else {
@@ -388,6 +433,7 @@ impl ApplicationHandler<ContentWake> for Viewer {
                     self.browser.scroll_by(dy);
                 }
             }
+            WindowEvent::Touch(touch) => self.touch(touch, event_loop),
             WindowEvent::Ime(ime) => self.ime(ime, event_loop),
             WindowEvent::KeyboardInput { event, .. } => {
                 let outcome = input::key(&mut self.browser, &event, self.mods);
@@ -395,13 +441,79 @@ impl ApplicationHandler<ContentWake> for Viewer {
             }
             _ => {}
         }
+        self.sync_ime();
     }
 }
 
-pub fn run(browser: Browser, network: Arc<dyn Fetcher>, mem_report: bool) -> Result<(), String> {
-    let event_loop = EventLoop::<ContentWake>::with_user_event()
-        .build()
-        .map_err(|e| e.to_string())?;
+impl Viewer {
+    /// 指の動きを、スクロール・クリック・拡大縮小にする。
+    fn touch(&mut self, touch: winit::event::Touch, event_loop: &ActiveEventLoop) {
+        use winit::event::TouchPhase;
+        let pos = (touch.location.x / self.scale, touch.location.y / self.scale);
+        let gesture = match touch.phase {
+            TouchPhase::Started => self.touches.down(touch.id, pos),
+            TouchPhase::Moved => self.touches.moved(touch.id, pos),
+            TouchPhase::Ended => self.touches.up(touch.id, pos),
+            TouchPhase::Cancelled => {
+                self.touches.cancel(touch.id);
+                Gesture::None
+            }
+        };
+        match gesture {
+            Gesture::None => {}
+            // 新しい位置のフレームは Content から届く
+            Gesture::Scroll(dy) => {
+                self.browser.scroll_by(dy);
+            }
+            Gesture::ZoomIn => {
+                let redraw = self.browser.zoom_in();
+                self.mark(redraw);
+            }
+            Gesture::ZoomOut => {
+                let redraw = self.browser.zoom_out();
+                self.mark(redraw);
+            }
+            Gesture::Tap(x, y) => {
+                self.cursor = PhysicalPosition::new(x, y);
+                let outcome = input::click(
+                    &mut self.browser,
+                    x as f32,
+                    y as f32,
+                    winit::event::MouseButton::Left,
+                    ModifiersState::empty(),
+                );
+                self.apply(outcome, event_loop);
+            }
+        }
+    }
+
+    /// 文字を入力する場所（URL 欄・ページの入力欄）にフォーカスがある間だけ、ソフトキーボードを出す。
+    fn sync_ime(&mut self) {
+        if !KEYBOARD_ON_DEMAND {
+            return;
+        }
+        let wanted = self.browser.url_focused() || self.browser.field_focused();
+        if wanted != self.ime_on
+            && let Some(s) = &self.surface
+        {
+            s.window.set_ime_allowed(wanted);
+            self.ime_on = wanted;
+        }
+    }
+}
+
+pub fn run(
+    browser: Browser,
+    network: Arc<dyn Fetcher>,
+    mem_report: bool,
+    platform: Platform,
+) -> Result<(), String> {
+    let event_loop = match platform.event_loop {
+        Some(event_loop) => event_loop,
+        None => EventLoop::<ContentWake>::with_user_event()
+            .build()
+            .map_err(|e| e.to_string())?,
+    };
     let proxy = event_loop.create_proxy();
     let mut browser = browser;
     browser.set_notify(Arc::new(move || {
@@ -420,6 +532,10 @@ pub fn run(browser: Browser, network: Arc<dyn Fetcher>, mem_report: bool) -> Res
         reported: false,
         status_rows: None,
         pointer: Pointer::Default,
+        scale: 1.0,
+        size: (0, 0),
+        touches: Touches::default(),
+        ime_on: false,
     };
     // 通知を設定する前に届いていた分を取り込む
     let redraw = viewer.browser.pump();
