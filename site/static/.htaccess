@@ -1,0 +1,98 @@
+# Lite Simple Rust Browser 紹介サイト用 .htaccess（Hugo の public/ をそのまま置く前提）
+# 各ブロックは <IfModule> で囲んであり、モジュールが無いサーバーでも 500 にならない。
+
+Options -Indexes -MultiViews
+ServerSignature Off
+AddDefaultCharset UTF-8
+DirectoryIndex index.html
+
+# ---- HTTPS と正規ホスト ----
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # http → https（プロキシ／CDN 配下でも判定できるよう X-Forwarded-Proto も見る）
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # トップ（/）は閲覧者の言語に合わせる：日本語以外を好むなら /en/、それ以外は /ja/
+  RewriteCond %{REQUEST_URI} ^/$
+  RewriteCond %{HTTP:Accept-Language} !^ja [NC]
+  RewriteCond %{HTTP:Accept-Language} ^[a-z]
+  RewriteRule ^$ /en/ [L,R=302]
+  RewriteRule ^$ /ja/ [L,R=302]
+
+  # ---- 許可リスト方式：公開するパスだけを通し、それ以外は 404 ----
+  # 許可：トップ、言語ごとのページ（/ja/・/en/ 以下）、ハッシュ付き CSS、アイコン、sitemap・robots、.well-known
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteCond %{REQUEST_URI} !^/(ja|en)(/|$)
+  RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
+  RewriteCond %{REQUEST_URI} !^/(icon\.svg|favicon\.ico|sitemap\.xml|robots\.txt)$
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^ - [R=404,L]
+
+  # 許可したパスの中でも、拡張子が公開物でないもの（バックアップ・設定・ソース）は 404
+  RewriteRule \.(bak|old|orig|swp|log|ini|sh|toml|yaml|yml|json|md|lock|git|env)$ - [R=404,L,NC]
+</IfModule>
+
+# ---- ファイルの種類 ----
+<IfModule mod_mime.c>
+  AddType image/svg+xml .svg .svgz
+  AddType application/xml .xml
+  AddType font/woff2 .woff2
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# ---- 圧縮 ----
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json application/manifest+json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ---- キャッシュ ----
+# CSS は Hugo がファイル名にハッシュを付けるので長期＋immutable、HTML は毎回再検証。
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 hour"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/xml "access plus 1 day"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/x-icon "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(html|xml)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # 言語で内容が変わるのは / だけ。キャッシュが取り違えないようにする
+  <If "%{REQUEST_URI} == '/'">
+    Header append Vary Accept-Language
+    Header set Cache-Control "no-store"
+  </If>
+
+  # ---- セキュリティヘッダー ----
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Strict-Transport-Security "max-age=31536000"
+  # このサイトは自分のファイルだけを使う（外部のスクリプト・フォント・計測なし）
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+</IfModule>
+
+# ---- 隠しファイル・設定ファイルを見せない ----
+<IfModule mod_authz_core.c>
+  <FilesMatch "^\.(?!well-known)|\.(bak|log|ini|sh|toml|lock)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+# ---- エラーページ ----
+ErrorDocument 404 /ja/404.html

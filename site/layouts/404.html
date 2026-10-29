@@ -1,0 +1,13 @@
+{{ define "main" }}
+<main>
+  <section class="hero">
+    <img src="{{ "icon.svg" | relURL }}" alt="" width="96" height="96">
+    <h1>404</h1>
+    <p>ページが見つかりません / Page not found</p>
+    <p class="cta">
+      <a class="btn primary" href="{{ "ja/" | relURL }}">日本語</a>
+      <a class="btn" href="{{ "en/" | relURL }}">English</a>
+    </p>
+  </section>
+</main>
+{{ end }}

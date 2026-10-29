@@ -1,0 +1,44 @@
+{{ define "main" }}
+<header class="top">
+  <a class="brand" href="{{ .Site.Home.RelPermalink }}"><img src="{{ "icon.svg" | relURL }}" alt="" width="32" height="32"><span>{{ .Title }}</span></a>
+  <nav>
+    {{ range .Site.Languages }}{{ if ne .Lang $.Site.Language.Lang }}<a href="{{ printf "/%s/" .Lang | relURL }}" hreflang="{{ .Lang }}">{{ .LanguageName }}</a>{{ end }}{{ end }}
+    <a href="{{ site.Params.repo }}">GitHub</a>
+  </nav>
+</header>
+<main>
+  <section class="hero">
+    <img src="{{ "icon.svg" | relURL }}" alt="" width="112" height="112">
+    <h1>{{ .Params.tagline }}</h1>
+    <p>{{ .Params.lead }}</p>
+    <p class="cta">
+      <a class="btn primary" href="{{ site.Params.download }}" rel="noopener">{{ .Params.cta_download }}</a>
+      <a class="btn" href="{{ site.Params.repo }}">{{ .Params.cta_source }}</a>
+    </p>
+  </section>
+  <section>
+    <h2>{{ .Params.stats_title }}</h2>
+    <ul class="stats">
+      {{ range .Params.stats }}<li><strong>{{ .value }}</strong><span>{{ .label }}</span></li>{{ end }}
+    </ul>
+  </section>
+  <section>
+    <h2>{{ .Params.features_title }}</h2>
+    <ul class="grid">
+      {{ range .Params.features }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}
+    </ul>
+  </section>
+  <section>
+    <h2>{{ .Params.start_title }}</h2>
+    <ul class="list">{{ range .Params.start }}<li>{{ . }}</li>{{ end }}</ul>
+  </section>
+  <section id="get">
+    <h2>{{ .Params.download_title }}</h2>
+    <p>{{ .Params.download_body }}</p>
+    <p class="cta"><a class="btn primary" href="{{ site.Params.download }}" rel="noopener">{{ .Params.download_button }}</a></p>
+    <h3>{{ .Params.limits_title }}</h3>
+    <p>{{ .Params.limits_body }}</p>
+  </section>
+</main>
+<footer>© Lite Simple Rust Browser · MIT / Apache-2.0</footer>
+{{ end }}
