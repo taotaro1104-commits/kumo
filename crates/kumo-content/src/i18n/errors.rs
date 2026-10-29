@@ -48,11 +48,11 @@ messages! {
             "No se puede abrir este tipo de dirección"
         ],
         SchemeHint => [
-            "Kumo が開けるのは http・https・file のページです。",
-            "Kumo can only open http, https and file pages.",
-            "Kumo 只能打开 http、https 和 file 页面。",
+            "Lite Simple Rust Browser が開けるのは http・https・file のページです。",
+            "Lite Simple Rust Browser can only open http, https and file pages.",
+            "Lite Simple Rust Browser 只能打开 http、https 和 file 页面。",
             "Kumo는 http, https, file 페이지만 열 수 있습니다.",
-            "Kumo solo puede abrir páginas http, https y file."
+            "Lite Simple Rust Browser solo puede abrir páginas http, https y file."
         ],
         TooLargeHead => [
             "ページが大きすぎます",

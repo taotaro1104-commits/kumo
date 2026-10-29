@@ -11,6 +11,7 @@
 
 mod args;
 mod headless;
+mod icon;
 mod input;
 mod overlay;
 mod processes;
@@ -101,6 +102,7 @@ fn run(args: Args) -> Result<(), String> {
         (args.width as f32, args.height as f32),
     );
     browser.set_content_restart(processes.restart);
+    browser.set_downloader(processes.network.clone());
     browser.set_javascript(!args.no_js);
     if args.no_images {
         browser.set_images(false, false);

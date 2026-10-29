@@ -261,6 +261,15 @@ impl ContentEngine {
             return;
         }
         let page = match fetched.result {
+            Err(FetchError::Download) => {
+                // 表示中のページは残す。保存は Browser が Network に頼む
+                self.out.push(FromContent::Download {
+                    tab: fetched.tab,
+                    nav: fetched.nav,
+                    url: fetched.url.to_string(),
+                });
+                return;
+            }
             Ok(page) => Page::build(
                 page,
                 &mut self.services,

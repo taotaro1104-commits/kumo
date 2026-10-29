@@ -64,6 +64,8 @@ pub struct Browser {
     pub(crate) pending_login: Option<crate::login_actions::PendingLogin>,
     /// 一覧ページでパスワードを表示している組（origin, ユーザー名）
     pub(crate) revealed: Option<(String, String)>,
+    /// ダウンロードの一覧と保存先
+    pub(crate) downloads: crate::downloads::Downloads,
 }
 
 /// Content を作る関数（落ちたときの作り直し用）。
@@ -138,6 +140,7 @@ impl Browser {
             vault: None,
             pending_login: None,
             revealed: None,
+            downloads: crate::downloads::Downloads::default(),
         };
         browser.send_viewport();
         browser.send_load_level();

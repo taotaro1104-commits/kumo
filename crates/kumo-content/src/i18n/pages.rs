@@ -117,10 +117,10 @@ messages! {
         ],
         PasswordsEmpty => [
             "保存したパスワードはありません。ログインしたとき、保存するか確認します。",
-            "No saved passwords. Kumo will ask whether to save one when you sign in.",
+            "No saved passwords. Lite Simple Rust Browser will ask whether to save one when you sign in.",
             "没有已保存的密码。登录时会询问是否保存。",
             "저장된 비밀번호가 없습니다. 로그인할 때 저장할지 물어봅니다.",
-            "No hay contraseñas guardadas. Kumo preguntará si quieres guardarla al iniciar sesión."
+            "No hay contraseñas guardadas. Lite Simple Rust Browser preguntará si quieres guardarla al iniciar sesión."
         ],
         Show => ["表示", "Show", "显示", "표시", "Mostrar"],
         Hide => ["隠す", "Hide", "隐藏", "숨기기", "Ocultar"],
@@ -228,10 +228,10 @@ messages! {
         PasswordsOff => ["使わない", "Don't use", "不使用", "사용 안 함", "No usar"],
         PasswordsHint => [
             "ログインしたとき保存を確認し、次からは同じサイトで自動入力します。",
-            "Kumo asks to save when you sign in, then fills it in next time on the same site.",
+            "Lite Simple Rust Browser asks to save when you sign in, then fills it in next time on the same site.",
             "登录时会询问是否保存，下次在同一网站自动填写。",
             "로그인할 때 저장할지 묻고, 다음부터 같은 사이트에서 자동으로 입력합니다.",
-            "Kumo pregunta si guardar al iniciar sesión y la rellena la próxima vez en el mismo sitio."
+            "Lite Simple Rust Browser pregunta si guardar al iniciar sesión y la rellena la próxima vez en el mismo sitio."
         ],
         PasswordsView => [
             "保存したパスワードを見る",
@@ -242,11 +242,11 @@ messages! {
         ],
         LanguageTitle => ["言語", "Language", "语言", "언어", "Idioma"],
         LanguageHint => [
-            "設定・新しいタブ・エラーページなど、Kumo 自身の画面の言語です。開いているページの内容は変わりません。",
-            "The language of Kumo's own screens: settings, new tab, error pages and so on. The content of web pages does not change.",
-            "Kumo 自身界面的语言，如设置、新标签页和错误页面。网页内容不会改变。",
-            "설정, 새 탭, 오류 페이지 등 Kumo 자체 화면의 언어입니다. 웹 페이지의 내용은 바뀌지 않습니다.",
-            "El idioma de las pantallas de Kumo: ajustes, nueva pestaña, páginas de error, etc. El contenido de las páginas web no cambia."
+            "設定・新しいタブ・エラーページなど、Lite Simple Rust Browser 自身の画面の言語です。開いているページの内容は変わりません。",
+            "The language of Lite Simple Rust Browser's own screens: settings, new tab, error pages and so on. The content of web pages does not change.",
+            "Lite Simple Rust Browser 自身界面的语言，如设置、新标签页和错误页面。网页内容不会改变。",
+            "설정, 새 탭, 오류 페이지 등 Lite Simple Rust Browser 자체 화면의 언어입니다. 웹 페이지의 내용은 바뀌지 않습니다.",
+            "El idioma de las pantallas de Lite Simple Rust Browser: ajustes, nueva pestaña, páginas de error, etc. El contenido de las páginas web no cambia."
         ],
         // ---- メモリ ----
         MemoryTitle => ["メモリ", "Memory", "内存", "메모리", "Memoria"],

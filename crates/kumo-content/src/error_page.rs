@@ -24,6 +24,8 @@ fn classify(error: &FetchError) -> (Er, Er) {
         FetchError::UnsupportedScheme(_) => (Er::SchemeHead, Er::SchemeHint),
         FetchError::TooLarge => (Er::TooLargeHead, Er::TooLargeHint),
         FetchError::Disconnected => (Er::DisconnectedHead, Er::DisconnectedHint),
+        // 通常は Browser が保存に切り替えるので表示されない
+        FetchError::Download => (Er::OtherHead, Er::OtherHint),
         FetchError::Network(message) => classify_network(message),
     }
 }

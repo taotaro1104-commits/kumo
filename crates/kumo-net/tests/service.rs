@@ -324,3 +324,98 @@ fn redirects_are_followed_hop_by_hop_with_limits() {
         Err(FetchError::Network(_))
     ));
 }
+
+#[test]
+fn files_to_save_are_reported_instead_of_returned_as_pages() {
+    let server = TestServer::start();
+    let service = NetworkService::new(&NetworkConfig::default());
+    for path in ["/file.zip", "/data.bin"] {
+        let result = service.fetch(&request(&server.url(path), ResourceKind::Document));
+        assert_eq!(result, Err(FetchError::Download), "{path}");
+    }
+    // 画像などの部品としての取得や、HTML はそのまま返す
+    let part = service
+        .fetch(&request(&server.url("/data.bin"), ResourceKind::Other))
+        .unwrap();
+    assert_eq!(part.body, b"0123456789");
+    let page = service
+        .fetch(&request(&server.url("/next.html"), ResourceKind::Document))
+        .unwrap();
+    assert!(String::from_utf8_lossy(&page.body).contains("Next page"));
+}
+
+fn temp_dir(name: &str) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!("kumo-net-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    dir
+}
+
+#[test]
+fn download_saves_the_file_with_the_header_name_and_avoids_overwriting() {
+    use kumo_net::protocol::DownloadState;
+    use std::sync::atomic::AtomicBool;
+
+    let server = TestServer::start();
+    let service = NetworkService::new(&NetworkConfig::default());
+    let dir = temp_dir("save");
+    let run = |path: &str| {
+        let mut events = Vec::new();
+        service.download(
+            1,
+            &server.url(path),
+            &dir,
+            None,
+            &AtomicBool::new(false),
+            &mut |e| events.push(e),
+        );
+        events
+    };
+    let first = run("/file.zip");
+    let last = first.last().unwrap();
+    let DownloadState::Done(path) = &last.state else {
+        panic!("{first:?}");
+    };
+    assert_eq!(std::fs::read(path).unwrap(), b"PKzipbody");
+    assert_eq!(last.name, "my file.zip");
+    assert_eq!((last.received, last.total), (9, Some(9)));
+    let second = run("/file.zip");
+    assert_eq!(
+        second.last().unwrap().name,
+        "my file (1).zip",
+        "上書きしない"
+    );
+    let by_url = run("/data.bin");
+    assert_eq!(
+        by_url.last().unwrap().name,
+        "data.bin",
+        "ヘッダーがなければ URL の名前"
+    );
+    let missing = run("/nothing.zip");
+    assert!(
+        matches!(&missing.last().unwrap().state, DownloadState::Failed(m) if m.contains("404"))
+    );
+    assert_eq!(
+        std::fs::read_dir(&dir).unwrap().count(),
+        3,
+        "失敗や完了のあとに .part が残らない"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_can_be_cancelled_and_leaves_nothing() {
+    use kumo_net::protocol::DownloadState;
+    use std::sync::atomic::AtomicBool;
+
+    let server = TestServer::start();
+    let service = NetworkService::new(&NetworkConfig::default());
+    let dir = temp_dir("cancel");
+    let cancel = AtomicBool::new(true);
+    let mut events = Vec::new();
+    service.download(2, &server.url("/file.zip"), &dir, None, &cancel, &mut |e| {
+        events.push(e);
+    });
+    assert_eq!(events.last().unwrap().state, DownloadState::Cancelled);
+    assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 0);
+    let _ = std::fs::remove_dir_all(&dir);
+}

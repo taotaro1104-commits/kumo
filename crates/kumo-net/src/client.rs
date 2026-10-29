@@ -1,6 +1,6 @@
 //! Network プロセスのクライアント側。ID で応答を対応づけ、共有リングの本文を受け取って返却する。
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::io::{self, BufRead, BufReader, Read};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
@@ -14,8 +14,8 @@ use kumo_ipc::{Connection, SharedView};
 
 use crate::process::{FetchResult, Fetcher, LISTEN_ARG, post_method, script_method};
 use crate::protocol::{
-    FetchError, FetchRequest, FetchResponse, FromNetwork, NetworkStats, RequestMethod,
-    ResourceKind, ToNetwork, read_message, write_message,
+    DownloadEvent, FetchError, FetchRequest, FetchResponse, FromNetwork, NetworkStats,
+    RequestMethod, ResourceKind, ToNetwork, read_message, write_message,
 };
 
 /// 1件の応答を待つ上限（取得自体のタイムアウトより長くとる）。
@@ -25,6 +25,7 @@ static SOCKET_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 type Pending = Arc<Mutex<HashMap<u64, Sender<FromNetwork>>>>;
 type Writer = Arc<Mutex<Option<Connection>>>;
+type DownloadQueue = Arc<Mutex<VecDeque<DownloadEvent>>>;
 
 /// Network プロセスへの接続。
 pub struct NetworkClient {
@@ -37,6 +38,8 @@ pub struct NetworkClient {
     shared: Arc<AtomicU64>,
     next_id: AtomicU64,
     reader: Option<JoinHandle<()>>,
+    /// ダウンロードの経過（受信スレッドが積み、[`Fetcher::take_download_events`] で取り出す）
+    downloads: DownloadQueue,
 }
 
 impl NetworkClient {
@@ -82,6 +85,7 @@ impl NetworkClient {
         let pending: Pending = Arc::default();
         let connected = Arc::new(AtomicBool::new(true));
         let shared = Arc::new(AtomicU64::new(0));
+        let downloads = DownloadQueue::default();
         let reader = {
             let mut state = ReaderState {
                 pending: pending.clone(),
@@ -89,6 +93,7 @@ impl NetworkClient {
                 writer: writer.clone(),
                 shared: shared.clone(),
                 ring: None,
+                downloads: downloads.clone(),
             };
             std::thread::spawn(move || state.run(BufReader::new(connection)))
         };
@@ -101,6 +106,7 @@ impl NetworkClient {
             shared,
             next_id: AtomicU64::new(1),
             reader: Some(reader),
+            downloads,
         }
     }
 
@@ -195,6 +201,7 @@ struct ReaderState {
     writer: Writer,
     shared: Arc<AtomicU64>,
     ring: Option<SharedView>,
+    downloads: DownloadQueue,
 }
 
 impl ReaderState {
@@ -252,6 +259,12 @@ impl ReaderState {
 
     fn deliver(&self, message: FromNetwork) {
         let id = match &message {
+            FromNetwork::Download(event) => {
+                if let Ok(mut queue) = self.downloads.lock() {
+                    queue.push_back(event.clone());
+                }
+                return;
+            }
             FromNetwork::Response(r) => r.id,
             FromNetwork::Failed { id, .. } | FromNetwork::Stats { id, .. } => *id,
             FromNetwork::Hello { .. } | FromNetwork::SharedResponse { .. } => return,
@@ -316,6 +329,31 @@ impl Fetcher for NetworkClient {
             .into_iter()
             .map(|rx| rx.and_then(|rx| Self::wait(&rx)))
             .collect()
+    }
+
+    fn start_download(&self, url: &str, dir: &Path, source_url: Option<&str>) -> Option<u64> {
+        if !self.is_connected() {
+            return None;
+        }
+        let id = self.next_id.fetch_add(1, Ordering::Relaxed);
+        let message = ToNetwork::Download {
+            id,
+            url: url.to_owned(),
+            dir: dir.to_string_lossy().into_owned(),
+            source_url: source_url.map(str::to_owned),
+        };
+        send(&self.writer, &message).ok().map(|()| id)
+    }
+
+    fn cancel_download(&self, id: u64) {
+        let _ = send(&self.writer, &ToNetwork::CancelDownload { id });
+    }
+
+    fn take_download_events(&self) -> Vec<DownloadEvent> {
+        self.downloads
+            .lock()
+            .map(|mut queue| queue.drain(..).collect())
+            .unwrap_or_default()
     }
 
     fn stats(&self) -> Option<NetworkStats> {

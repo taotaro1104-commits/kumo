@@ -49,6 +49,8 @@ pub fn key(browser: &mut Browser, event: &KeyEvent, mods: ModifiersState) -> Out
             "r" => Outcome::redraw(browser.reload()),
             "d" => Outcome::redraw(browser.toggle_bookmark()),
             "b" => Outcome::redraw(browser.show_bookmarks()),
+            "h" => Outcome::redraw(browser.show_history()),
+            "j" => Outcome::redraw(browser.show_downloads()),
             "m" => Outcome {
                 report: true,
                 ..Outcome::default()

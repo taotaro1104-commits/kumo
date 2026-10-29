@@ -8,8 +8,11 @@
 pub use crate::client::NetworkClient;
 pub use crate::server::{RING_CAPACITY, SHARED_BODY_MIN, serve, serve_listener};
 
+use std::path::Path;
+
 use crate::protocol::{
-    FetchError, FetchRequest, FetchResponse, NetworkStats, RequestMethod, ResourceKind,
+    DownloadEvent, FetchError, FetchRequest, FetchResponse, NetworkStats, RequestMethod,
+    ResourceKind,
 };
 use crate::service::{NetworkConfig, NetworkService};
 
@@ -35,6 +38,19 @@ pub trait Fetcher: Send + Sync {
     }
 
     fn stats(&self) -> Option<NetworkStats>;
+
+    /// `url` を `dir` のファイルへ保存し始める（経過は [`Fetcher::take_download_events`]）。
+    /// 返す ID で中止できる。保存に対応しない取得元は `None`。
+    fn start_download(&self, _url: &str, _dir: &Path, _source_url: Option<&str>) -> Option<u64> {
+        None
+    }
+
+    fn cancel_download(&self, _id: u64) {}
+
+    /// 溜まっているダウンロードの経過を取り出す。
+    fn take_download_events(&self) -> Vec<DownloadEvent> {
+        Vec::new()
+    }
 
     /// スクリプトからの要求（`fetch`）。GET はキャッシュを使い、それ以外は送るだけ。
     /// 既定の実装は GET と POST だけを扱う（他は [`NetworkService`] と [`NetworkClient`] が処理する）。

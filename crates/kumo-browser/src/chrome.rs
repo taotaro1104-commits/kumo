@@ -29,6 +29,8 @@ pub enum ChromeAction {
     FocusUrlBar,
     ToggleBookmark,
     ShowBookmarks,
+    ShowHistory,
+    ShowDownloads,
     Home,
     /// パスワードの保存の確認：保存する・今回は保存しない・このサイトでは保存しない
     SaveLogin,
@@ -51,6 +53,8 @@ impl ChromeAction {
                 "url" => Self::FocusUrlBar,
                 "bookmark" => Self::ToggleBookmark,
                 "bookmarks" => Self::ShowBookmarks,
+                "history" => Self::ShowHistory,
+                "downloads" => Self::ShowDownloads,
                 "home" => Self::Home,
                 "pwsave" => Self::SaveLogin,
                 "pwskip" => Self::DismissLogin,

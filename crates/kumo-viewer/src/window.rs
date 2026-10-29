@@ -20,6 +20,8 @@ use crate::input::{self, LINE_SCROLL, Outcome};
 
 /// メモリ管理の事務を呼ぶ間隔（ウィンドウのイベントがなくても起きる）。
 const MEMORY_CHECK_INTERVAL: Duration = Duration::from_secs(2);
+/// ダウンロード中に経過を取り込む間隔。
+const DOWNLOAD_POLL_INTERVAL: Duration = Duration::from_millis(300);
 
 /// Content から通知が届いた。
 #[derive(Clone, Copy, Debug)]
@@ -117,7 +119,8 @@ impl Viewer {
                 .active_tab()
                 .map(|t| t.title())
                 .unwrap_or_default();
-            s.window.set_title(&format!("{title} — Kumo"));
+            s.window
+                .set_title(&format!("{title} — {}", kumo_browser::APP_NAME));
         }
         let Some(s) = &mut self.surface else { return };
         let mut buffer = match s.surface.buffer_mut() {
@@ -239,7 +242,8 @@ impl ApplicationHandler<ContentWake> for Viewer {
         }
         let (w, h) = self.browser.content_viewport();
         let attributes = Window::default_attributes()
-            .with_title("Kumo")
+            .with_title(kumo_browser::APP_NAME)
+            .with_window_icon(crate::icon::window_icon())
             .with_inner_size(winit::dpi::PhysicalSize::new(
                 w as u32,
                 (h + CHROME_HEIGHT) as u32,
@@ -272,9 +276,18 @@ impl ApplicationHandler<ContentWake> for Viewer {
 
     fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
         let now = Instant::now();
-        let redraw = self.browser.maintain_memory(now);
+        let redraw = self
+            .browser
+            .maintain_memory(now)
+            .merge(self.browser.poll_downloads());
         self.mark(redraw);
-        event_loop.set_control_flow(ControlFlow::WaitUntil(now + MEMORY_CHECK_INTERVAL));
+        // ダウンロード中は経過を見せるため短い間隔で起きる
+        let wait = if self.browser.downloads_active() {
+            DOWNLOAD_POLL_INTERVAL
+        } else {
+            MEMORY_CHECK_INTERVAL
+        };
+        event_loop.set_control_flow(ControlFlow::WaitUntil(now + wait));
     }
 
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ContentWake) {

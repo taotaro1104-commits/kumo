@@ -89,6 +89,12 @@ fn serve(mut stream: std::net::TcpStream, counter: &Mutex<HashMap<String, usize>
             "text/html",
             &format!("<title>{echo}</title><p>{}</p>", path),
         ),
+        "/file.zip" => ok(
+            "Content-Disposition: attachment; filename=\"my file.zip\"\r\n",
+            "application/zip",
+            "PKzipbody",
+        ),
+        "/data.bin" => ok("", "application/octet-stream", "0123456789"),
         "/cors" => ok("Access-Control-Allow-Origin: *\r\n", "text/plain", "public"),
         "/big" => ok(
             "Cache-Control: no-store\r\n",

@@ -43,7 +43,7 @@ pub(crate) fn err(e: impl std::fmt::Display) -> HistoryError {
     HistoryError(e.to_string())
 }
 
-fn now() -> u64 {
+pub(crate) fn now() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| d.as_secs())
@@ -93,6 +93,50 @@ impl HistoryDb {
         let table = txn.open_table(VISITS).ok()?;
         let value = table.get(url).ok()??;
         postcard::from_bytes(value.value()).ok()
+    }
+
+    /// 新しく訪れた順に最大 `limit` 件。
+    pub fn recent(&self, limit: usize) -> Vec<HistoryEntry> {
+        let Ok(txn) = self.db.begin_read() else {
+            return Vec::new();
+        };
+        let Ok(table) = txn.open_table(VISITS) else {
+            return Vec::new();
+        };
+        let Ok(rows) = table.iter() else {
+            return Vec::new();
+        };
+        let mut found: Vec<HistoryEntry> = rows
+            .filter_map(Result::ok)
+            .filter_map(|(key, value)| {
+                let visit: Visit = postcard::from_bytes(value.value()).ok()?;
+                Some(HistoryEntry {
+                    url: key.value().to_owned(),
+                    visit,
+                })
+            })
+            .collect();
+        found.sort_by_key(|e| std::cmp::Reverse(e.visit.last_visit));
+        found.truncate(limit);
+        found
+    }
+
+    /// 1件の履歴を消す。
+    pub fn remove_visit(&self, url: &str) -> Result<(), HistoryError> {
+        let txn = self.db.begin_write().map_err(err)?;
+        {
+            let mut table = txn.open_table(VISITS).map_err(err)?;
+            table.remove(url).map_err(err)?;
+        }
+        txn.commit().map_err(err)
+    }
+
+    /// 履歴を全部消す（ブックマーク・設定・パスワードは残す）。
+    pub fn clear_visits(&self) -> Result<(), HistoryError> {
+        let txn = self.db.begin_write().map_err(err)?;
+        txn.delete_table(VISITS).map_err(err)?;
+        txn.open_table(VISITS).map_err(err)?;
+        txn.commit().map_err(err)
     }
 
     /// URL かタイトルに `query` を含む履歴を、訪問回数・新しさの順で最大 `limit` 件。

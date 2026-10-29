@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Lite Simple Rust Browser のアイコン：空色の角丸の地に、白い雲（kumo）と錆（Rust）色の小さな太陽。 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4da3ff"/>
+      <stop offset="1" stop-color="#1558c9"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dfeaff"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.4" cy="0.35" r="0.8">
+      <stop offset="0" stop-color="#ffb35c"/>
+      <stop offset="1" stop-color="#d9632b"/>
+    </radialGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#sky)"/>
+  <!-- 太陽 -->
+  <circle cx="178" cy="86" r="36" fill="url(#sun)"/>
+  <!-- 雲：3 つの丸と、平らな底 -->
+  <path fill="url(#cloud)" d="M70 190
+    a38 38 0 0 1 -2 -76
+    a50 50 0 0 1 94 -12
+    a40 40 0 0 1 30 88
+    z"/>
+  <!-- 雲の中の「ページ」を表す細い線（simple） -->
+  <rect x="86" y="150" width="84" height="9" rx="4.5" fill="#1558c9" opacity="0.85"/>
+  <rect x="86" y="168" width="56" height="9" rx="4.5" fill="#1558c9" opacity="0.5"/>
+</svg>

@@ -40,6 +40,16 @@ impl Session {
         }
     }
 
+    /// 現在の項目を捨てて、ひとつ前に戻す（移動先がダウンロードで、ページが変わらなかったとき）。
+    /// 現在の項目が `url` でなければ何もしない。
+    pub fn discard_current(&mut self, url: &Url) {
+        if self.entries.get(self.index) != Some(url) {
+            return;
+        }
+        self.entries.remove(self.index);
+        self.index = self.index.min(self.entries.len().saturating_sub(1));
+    }
+
     pub fn current(&self) -> Option<&Url> {
         self.entries.get(self.index)
     }

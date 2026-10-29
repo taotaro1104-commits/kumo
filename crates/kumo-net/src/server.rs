@@ -1,6 +1,9 @@
 //! Network プロセスのサーバ側。接続ごとにワーカーで並行に取得し、大きな本文は共有メモリのリングで渡す。
 
+use std::collections::HashMap;
 use std::io::{self, BufWriter, Read, Write};
+use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -8,7 +11,7 @@ use std::thread::JoinHandle;
 use kumo_ipc::{RingAllocator, SharedMemory};
 
 use crate::protocol::{
-    FetchRequest, FetchResponse, FromNetwork, ToNetwork, read_message, write_message,
+    DownloadEvent, FetchRequest, FetchResponse, FromNetwork, ToNetwork, read_message, write_message,
 };
 use crate::service::NetworkService;
 
@@ -54,6 +57,8 @@ impl BodyRing {
 }
 
 type SharedRing = Option<Arc<Mutex<BodyRing>>>;
+/// 実行中のダウンロードの中止フラグ（ID ごと）。
+type Downloads = Arc<Mutex<HashMap<u64, Arc<AtomicBool>>>>;
 
 /// 1つの接続を処理する。`input` が閉じるか Shutdown を受けたら戻る。
 /// `shared_ring` なら最初に本文リングを作って [`FromNetwork::Hello`] を送る。
@@ -71,6 +76,7 @@ pub fn serve(
     } else {
         None
     };
+    let downloads = Downloads::default();
     let (tx, rx) = mpsc::channel::<FetchRequest>();
     let rx = Arc::new(Mutex::new(rx));
     let workers: Vec<JoinHandle<()>> = (0..WORKERS)
@@ -92,6 +98,19 @@ pub fn serve(
                 stats.private_bytes = private_bytes();
                 send(&output, &FromNetwork::Stats { id, stats })?;
             }
+            ToNetwork::Download {
+                id,
+                url,
+                dir,
+                source_url,
+            } => start_download(&service, &output, &downloads, id, url, dir, source_url),
+            ToNetwork::CancelDownload { id } => {
+                if let Ok(map) = downloads.lock()
+                    && let Some(flag) = map.get(&id)
+                {
+                    flag.store(true, Ordering::Relaxed);
+                }
+            }
             ToNetwork::Release { pos } => {
                 if let Some(ring) = &ring
                     && let Ok(mut ring) = ring.lock()
@@ -103,10 +122,48 @@ pub fn serve(
         }
     }
     drop(tx);
+    // 接続が閉じたら、続けても受け取る相手がいないダウンロードは止める
+    if let Ok(map) = downloads.lock() {
+        map.values()
+            .for_each(|flag| flag.store(true, Ordering::Relaxed));
+    }
     for worker in workers {
         let _ = worker.join();
     }
     Ok(())
+}
+
+/// ダウンロードを専用のスレッドで始める（取得用のワーカーを長時間ふさがない）。
+fn start_download(
+    service: &Arc<NetworkService>,
+    output: &Arc<Mutex<BufWriter<impl Write + Send + 'static>>>,
+    downloads: &Downloads,
+    id: u64,
+    url: String,
+    dir: String,
+    source_url: Option<String>,
+) {
+    let cancel = Arc::new(AtomicBool::new(false));
+    if let Ok(mut map) = downloads.lock() {
+        map.insert(id, cancel.clone());
+    }
+    let (service, output, downloads) = (service.clone(), output.clone(), downloads.clone());
+    std::thread::spawn(move || {
+        let mut report = |event: DownloadEvent| {
+            let _ = send(&output, &FromNetwork::Download(event));
+        };
+        service.download(
+            id,
+            &url,
+            Path::new(&dir),
+            source_url.as_deref(),
+            &cancel,
+            &mut report,
+        );
+        if let Ok(mut map) = downloads.lock() {
+            map.remove(&id);
+        }
+    });
 }
 
 /// リングを作って Hello を送る。共有メモリが作れない環境ではリングなしで続ける。

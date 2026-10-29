@@ -1,4 +1,4 @@
-; Kumo のインストーラー（Inno Setup 6）。scripts/installer.ps1 から `ISCC /DAppVersion=... /DSourceDir=...` で作る。
+; Lite Simple Rust Browser（内部名 Kumo）のインストーラー（Inno Setup 6）。scripts/installer.ps1 から `ISCC /DAppVersion=... /DSourceDir=...` で作る。
 ; 既定は管理者権限なしの利用者単位（%LOCALAPPDATA%\Programs\Kumo）。画面で「すべてのユーザー」を選ぶと Program Files へ入れる。
 
 #ifndef AppVersion
@@ -11,12 +11,12 @@
 [Setup]
 ; アプリを一意に決める ID（変えると別のアプリとして入る）
 AppId={{6F0B5A52-9C3E-4C58-8B1D-3A7E2D1F4C90}
-AppName=Kumo
+AppName=Lite Simple Rust Browser
 AppVersion={#AppVersion}
-AppPublisher=Kumo
+AppPublisher=Lite Simple Rust Browser
 AppPublisherURL=https://github.com/taotaro1104-commits/kumo
-DefaultDirName={autopf}\Kumo
-DefaultGroupName=Kumo
+DefaultDirName={autopf}\Lite Simple Rust Browser
+DefaultGroupName=Lite Simple Rust Browser
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
@@ -28,7 +28,7 @@ Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\kumo.exe
-UninstallDisplayName=Kumo
+UninstallDisplayName=Lite Simple Rust Browser
 VersionInfoVersion={#AppVersion}
 LicenseFile={#SourceDir}\LICENSE.txt
 
@@ -48,10 +48,10 @@ Source: "{#SourceDir}\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\Kumo"; Filename: "{app}\kumo.exe"
-Name: "{autodesktop}\Kumo"; Filename: "{app}\kumo.exe"; Tasks: desktopicon
+Name: "{autoprograms}\Lite Simple Rust Browser"; Filename: "{app}\kumo.exe"
+Name: "{autodesktop}\Lite Simple Rust Browser"; Filename: "{app}\kumo.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\kumo.exe"; Description: "{cm:LaunchProgram,Kumo}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\kumo.exe"; Description: "{cm:LaunchProgram,Lite Simple Rust Browser}"; Flags: nowait postinstall skipifsilent
 
 ; アンインストールしても、履歴・設定・パスワード（%LOCALAPPDATA%\Kumo）は消さない。

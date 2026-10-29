@@ -29,9 +29,35 @@ fn serve() -> u16 {
         for stream in listener.incoming() {
             let Ok(mut stream) = stream else { continue };
             std::thread::spawn(move || {
+                // ヘッダーの終わりと、本文（POST）まで読み切ってから返す（残すと接続が切れて失敗する）
+                let mut data = Vec::new();
                 let mut buf = [0u8; 4096];
-                let n = stream.read(&mut buf).unwrap_or(0);
-                let head = String::from_utf8_lossy(&buf[..n]).to_string();
+                let head_end = loop {
+                    let n = stream.read(&mut buf).unwrap_or(0);
+                    if n == 0 {
+                        break data.len();
+                    }
+                    data.extend_from_slice(&buf[..n]);
+                    if let Some(i) = data.windows(4).position(|w| w == b"\r\n\r\n") {
+                        break i + 4;
+                    }
+                };
+                let head = String::from_utf8_lossy(&data[..head_end.min(data.len())]).to_string();
+                let length: usize = head
+                    .lines()
+                    .find_map(|l| {
+                        l.to_ascii_lowercase()
+                            .strip_prefix("content-length:")
+                            .map(|v| v.trim().parse().unwrap_or(0))
+                    })
+                    .unwrap_or(0);
+                while data.len() < head_end + length {
+                    let n = stream.read(&mut buf).unwrap_or(0);
+                    if n == 0 {
+                        break;
+                    }
+                    data.extend_from_slice(&buf[..n]);
+                }
                 let first = head.lines().next().unwrap_or("").to_owned();
                 let body = if first.contains("/welcome") {
                     "<html><head><title>Welcome</title></head><body>hi</body></html>".to_owned()

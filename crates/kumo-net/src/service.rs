@@ -10,6 +10,7 @@ use url::Url;
 use crate::blocker::ContentBlocker;
 use crate::cache::{CachedEntry, CachedMeta, DISK_BUDGET, HttpCache, MEMORY_BUDGET, unix};
 use crate::cookies::CookiePersistence;
+use crate::download::wants_download;
 use crate::http_io::{is_stale_connection, read_response};
 use crate::local_file::read_file;
 use crate::policy::{CacheHeaders, Storability, storability};
@@ -226,6 +227,9 @@ impl NetworkService {
         mut response: ureq::http::Response<ureq::Body>,
     ) -> Result<FetchResponse, FetchError> {
         let status = response.status().as_u16();
+        if wants_download(request.kind, status, response.headers()) {
+            return Err(FetchError::Download);
+        }
         let (final_url, content_type, allow_origin, body) = read_response(&mut response)?;
         self.forget_anonymous_cookies(request);
         self.cookies.save_if_due(&self.agent);
@@ -249,6 +253,36 @@ impl NetworkService {
         url: &Url,
         stale: Option<&CachedEntry>,
     ) -> Result<ureq::http::Response<ureq::Body>, FetchError> {
+        self.follow(request, url, stale, false)
+    }
+
+    /// ダウンロードの開始：ブロックの判定とリダイレクトをたどり、本文を読む前の応答を返す。
+    /// 本文の読み取りに時間の上限を付けない（大きなファイルのため）。
+    pub(crate) fn open_download(
+        &self,
+        request: &FetchRequest,
+        url: &Url,
+    ) -> Result<ureq::http::Response<ureq::Body>, FetchError> {
+        if !matches!(url.scheme(), "http" | "https") {
+            return Err(FetchError::UnsupportedScheme(url.scheme().to_owned()));
+        }
+        if self
+            .blocker
+            .should_block(url.as_str(), request.source_url.as_deref(), request.kind)
+        {
+            self.counters.blocked.fetch_add(1, Ordering::Relaxed);
+            return Err(FetchError::Blocked);
+        }
+        self.follow(request, url, None, true)
+    }
+
+    fn follow(
+        &self,
+        request: &FetchRequest,
+        url: &Url,
+        stale: Option<&CachedEntry>,
+        unlimited: bool,
+    ) -> Result<ureq::http::Response<ureq::Body>, FetchError> {
         let mut target = url.clone();
         for hop in 0..=MAX_REDIRECTS {
             let send = || {
@@ -263,7 +297,14 @@ impl NetworkService {
                         builder = builder.header("If-Modified-Since", modified.as_str());
                     }
                 }
-                builder.config().max_redirects(0).build().call()
+                let mut config = builder.config().max_redirects(0);
+                if unlimited {
+                    config = config
+                        .timeout_global(None)
+                        .timeout_connect(Some(TIMEOUT))
+                        .timeout_recv_response(Some(TIMEOUT));
+                }
+                config.build().call()
             };
             let response = match send() {
                 Err(e) if is_stale_connection(&e) => send(),
@@ -310,6 +351,9 @@ impl NetworkService {
                     body: entry.body,
                 },
             ));
+        }
+        if wants_download(request.kind, status, response.headers()) {
+            return Err(FetchError::Download);
         }
         let (final_url, content_type, allow_origin, body) = read_response(&mut response)?;
         self.forget_anonymous_cookies(request);

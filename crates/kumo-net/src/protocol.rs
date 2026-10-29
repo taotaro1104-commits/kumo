@@ -90,6 +90,8 @@ pub enum FetchError {
     Network(String),
     /// Network プロセスが落ちた・応答しない
     Disconnected,
+    /// 表示せずに保存するファイルだった（`Content-Disposition: attachment`、表示できない種類）
+    Download,
 }
 
 impl std::fmt::Display for FetchError {
@@ -101,6 +103,7 @@ impl std::fmt::Display for FetchError {
             Self::TooLarge => write!(f, "レスポンスが大きすぎます"),
             Self::Network(e) => write!(f, "{e}"),
             Self::Disconnected => write!(f, "Network プロセスとの接続が切れました"),
+            Self::Download => write!(f, "ダウンロードするファイルです"),
         }
     }
 }
@@ -119,9 +122,40 @@ pub struct NetworkStats {
     pub private_bytes: u64,
 }
 
+/// ダウンロードの状態。
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DownloadState {
+    Running,
+    /// 保存し終えた（保存先のパス）
+    Done(String),
+    Failed(String),
+    Cancelled,
+}
+
+/// ダウンロードの経過（Network → 要求した側）。
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DownloadEvent {
+    pub id: u64,
+    /// 保存するファイル名（応答のヘッダーが届くまでは空）
+    pub name: String,
+    pub received: u64,
+    pub total: Option<u64>,
+    pub state: DownloadState,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ToNetwork {
     Fetch(FetchRequest),
+    /// `url` を `dir` のファイルへ保存する（経過は [`FromNetwork::Download`]）
+    Download {
+        id: u64,
+        url: String,
+        dir: String,
+        source_url: Option<String>,
+    },
+    CancelDownload {
+        id: u64,
+    },
     Stats {
         id: u64,
     },
@@ -154,6 +188,7 @@ pub enum FromNetwork {
         id: u64,
         stats: NetworkStats,
     },
+    Download(DownloadEvent),
 }
 
 /// メッセージを1フレームとして書き出す。

@@ -20,6 +20,8 @@ impl Browser {
             ChromeAction::FocusUrlBar => self.focus_url_bar(),
             ChromeAction::ToggleBookmark => self.toggle_bookmark(),
             ChromeAction::ShowBookmarks => self.show_bookmarks(),
+            ChromeAction::ShowHistory => self.show_history(),
+            ChromeAction::ShowDownloads => self.show_downloads(),
             ChromeAction::Home => self.go_home(),
             ChromeAction::SaveLogin => self.save_pending_login(),
             ChromeAction::DismissLogin => self.dismiss_login_prompt(),
@@ -65,6 +67,8 @@ impl Browser {
         }
         if index == self.active
             && (self.remove_bookmark_link(url)
+                || self.history_link(url)
+                || self.download_link(url)
                 || self.save_home_link(url)
                 || self.password_link(url))
         {

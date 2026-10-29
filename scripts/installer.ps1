@@ -21,13 +21,13 @@ Copy-Item $exe (Join-Path $stage 'kumo.exe')
 Copy-Item (Join-Path $root 'README.md') $stage
 Copy-Item (Join-Path $root 'docs\*.md') (Join-Path $stage 'docs')
 $license = @"
-Kumo is dual-licensed under either of
+Lite Simple Rust Browser is dual-licensed under either of
 
   * Apache License, Version 2.0
   * MIT license
 
 at your option. (MIT OR Apache-2.0)
-Kumo は MIT または Apache-2.0 のどちらかを選んで使えます。
+Lite Simple Rust Browser は MIT または Apache-2.0 のどちらかを選んで使えます。
 "@
 Set-Content -Path (Join-Path $stage 'LICENSE.txt') -Value $license -Encoding UTF8
 

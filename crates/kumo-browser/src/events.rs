@@ -22,7 +22,9 @@ impl Browser {
         while let Some(message) = self.content.try_recv() {
             redraw = redraw.merge(self.handle(message));
         }
-        redraw.merge(self.recover_content())
+        redraw
+            .merge(self.recover_content())
+            .merge(self.poll_downloads())
     }
 
     fn handle(&mut self, message: FromContent) -> Redraw {
@@ -48,6 +50,7 @@ impl Browser {
                 self.load(index, url, true, false, post_body);
                 self.invalidate_chrome()
             }
+            FromContent::Download { tab, nav, url } => self.download_requested(tab, nav, &url),
             FromContent::LoginSubmitted {
                 tab,
                 url,

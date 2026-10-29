@@ -112,3 +112,38 @@ fn shutdown_on_drop_is_clean() {
         "すぐに終了する"
     );
 }
+
+#[test]
+fn downloads_through_a_real_child_process() {
+    use kumo_net::protocol::DownloadState;
+    use std::time::{Duration, Instant};
+
+    let server = TestServer::start();
+    let client = spawn(&NetworkConfig::default());
+    let dir = std::env::temp_dir().join(format!("kumo-net-proc-dl-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let id = client
+        .start_download(&server.url("/file.zip"), &dir, None)
+        .expect("開始できる");
+    let deadline = Instant::now() + Duration::from_secs(20);
+    let mut last = None;
+    while Instant::now() < deadline {
+        for event in client.take_download_events() {
+            assert_eq!(event.id, id);
+            last = Some(event);
+        }
+        if last
+            .as_ref()
+            .is_some_and(|e| e.state != DownloadState::Running)
+        {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let last = last.expect("経過が届く");
+    let DownloadState::Done(path) = last.state else {
+        panic!("{last:?}");
+    };
+    assert_eq!(std::fs::read(path).unwrap(), b"PKzipbody");
+    let _ = std::fs::remove_dir_all(&dir);
+}

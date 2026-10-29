@@ -27,7 +27,12 @@ impl Browser {
 
     /// 一覧ページを開く（表示中のタブが空の新しいタブならそこで、それ以外は新しいタブで）。
     pub fn show_bookmarks(&mut self) -> Redraw {
-        let url = Url::parse(BOOKMARKS_URL).expect("固定の URL");
+        self.show_internal(BOOKMARKS_URL)
+    }
+
+    /// `about:` の内部ページを開く（表示中のタブが空の新しいタブならそこで、それ以外は新しいタブで）。
+    pub(crate) fn show_internal(&mut self, page: &str) -> Redraw {
+        let url = Url::parse(page).expect("固定の URL");
         let on_new_tab = self
             .active_tab()
             .is_some_and(|t| t.url().is_none_or(|u| u.as_str() == crate::NEW_TAB_URL));
@@ -36,6 +41,13 @@ impl Browser {
         } else {
             self.open_tab(Some(url), true)
         }
+    }
+
+    /// 表示中のタブが内部ページ `page` か。ページ内のリンクの操作を、そのページからだけ受け付けるための判定。
+    pub(crate) fn active_url_is(&self, page: &str) -> bool {
+        self.active_tab()
+            .and_then(|t| t.url())
+            .is_some_and(|u| u.as_str() == page)
     }
 
     /// 一覧ページの「削除」リンク。一覧を表示しているときだけ受け付け、扱ったら `true`。

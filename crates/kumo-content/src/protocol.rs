@@ -166,6 +166,12 @@ pub enum FromContent {
         post_body: Option<Vec<u8>>,
         new_tab: bool,
     },
+    /// 移動先は表示せずに保存するファイルだった（ページはそのまま。保存は Browser が始める）
+    Download {
+        tab: TabId,
+        nav: u64,
+        url: String,
+    },
     /// ログインのフォームを送信した（`url` は送信したページ）。保存を確かめるのは Browser
     LoginSubmitted {
         tab: TabId,

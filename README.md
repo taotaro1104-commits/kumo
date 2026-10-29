@@ -1,4 +1,4 @@
-# Kumo — Rust製・省メモリブラウザ（Phase 3：メモリ管理）
+# Lite Simple Rust Browser（内部名 Kumo）— Rust製・省メモリブラウザ（Phase 4：互換性と速度）
 
 設計書 `Rust製・省メモリブラウザ 設計書.pdf` のロードマップ Phase 3 までの実装です。
 HTML/CSS → アリーナDOM → カスケード → Taffy + Parley レイアウト → tiny-skia 描画。

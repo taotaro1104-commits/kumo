@@ -1,5 +1,6 @@
 //! 新しいタブのページ：何をすればよいかの案内と、よく見るページのカード。
 
+use kumo_content::i18n::library::Lib;
 use kumo_content::i18n::pages::Pg;
 use kumo_content::protocol::{TabId, ToContent};
 use kumo_content::{Lang, escape};
@@ -41,11 +42,13 @@ h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #4a5058; }
 ";
 
 /// 使い方の早見（キーと説明）。
-fn shortcuts(lang: Lang) -> [(&'static str, &'static str); 8] {
+fn shortcuts(lang: Lang) -> [(&'static str, &'static str); 10] {
     [
         ("Alt+Home", Pg::KeyHome.t(lang)),
         ("Ctrl+D", Pg::KeyBookmark.t(lang)),
         ("Ctrl+B", Pg::KeyBookmarks.t(lang)),
+        ("Ctrl+H", Lib::KeyHistory.t(lang)),
+        ("Ctrl+J", Lib::KeyDownloads.t(lang)),
         ("Ctrl+L", Pg::KeyUrlBar.t(lang)),
         ("Ctrl+T", Pg::KeyNewTab.t(lang)),
         ("Ctrl+W", Pg::KeyCloseTab.t(lang)),
@@ -104,9 +107,10 @@ pub fn new_tab_html(frequent: &[HistoryEntry], lang: Lang) -> String {
     let t = |m: Pg| m.t(lang);
     let mut html = format!(
         "<html><head><title>{}</title><style>{CSS}</style></head><body><div class=wrap>\
-         <h1>Kumo</h1><div class=lead><span>{}</span><span class=key>Ctrl+L</span></div>\
+         <h1>{}</h1><div class=lead><span>{}</span><span class=key>Ctrl+L</span></div>\
          <h2>{}</h2>",
         t(Pg::NewTab),
+        kumo_content::APP_NAME,
         t(Pg::Lead),
         t(Pg::Frequent)
     );
@@ -131,10 +135,13 @@ pub fn new_tab_html(frequent: &[HistoryEntry], lang: Lang) -> String {
     }
     html.push_str(&format!(
         "</div><div class=keys><a class=set href='about:settings'>{}</a> \
-         <a class=set href='about:bookmarks'>{}</a> <a class=set href='about:passwords'>{}</a> \
+         <a class=set href='about:bookmarks'>{}</a> <a class=set href='about:history'>{}</a> \
+         <a class=set href='about:downloads'>{}</a> <a class=set href='about:passwords'>{}</a> \
          <a class=set href='about:memory'>{}</a></div></div></body></html>",
         t(Pg::Settings),
         t(Pg::Bookmarks),
+        Lib::History.t(lang),
+        Lib::Downloads.t(lang),
         t(Pg::Passwords),
         t(Pg::Memory)
     ));
@@ -201,6 +208,27 @@ impl Browser {
                 nav,
                 url: url.to_string(),
                 html: crate::bookmarks_page::bookmarks_html(&list, self.lang),
+            };
+        }
+        if url.as_str() == crate::HISTORY_URL {
+            let list = self
+                .history
+                .as_ref()
+                .map(|h| h.recent(crate::history_page::HISTORY_LIMIT))
+                .unwrap_or_default();
+            return ToContent::LoadHtml {
+                tab,
+                nav,
+                url: url.to_string(),
+                html: crate::history_page::history_html(&list, crate::history::now(), self.lang),
+            };
+        }
+        if url.as_str() == crate::DOWNLOADS_URL {
+            return ToContent::LoadHtml {
+                tab,
+                nav,
+                url: url.to_string(),
+                html: self.downloads_html(),
             };
         }
         if url.as_str() == ABOUT_MEMORY_URL {

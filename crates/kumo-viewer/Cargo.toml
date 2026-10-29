@@ -14,6 +14,10 @@ kumo-mem.workspace = true
 tiny-skia.workspace = true
 winit.workspace = true
 softbuffer.workspace = true
+image.workspace = true
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
 
 [lints]
 workspace = true

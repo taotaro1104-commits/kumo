@@ -89,6 +89,7 @@ macro_rules! messages {
 }
 
 pub mod errors;
+pub mod library;
 pub mod pages;
 pub mod ui;
 
@@ -125,6 +126,12 @@ mod tests {
         check(ui::Ui::ALL.iter().map(|m| (name(m), m.all())).collect());
         check(pages::Pg::ALL.iter().map(|m| (name(m), m.all())).collect());
         check(errors::Er::ALL.iter().map(|m| (name(m), m.all())).collect());
+        check(
+            library::Lib::ALL
+                .iter()
+                .map(|m| (name(m), m.all()))
+                .collect(),
+        );
     }
 
     #[test]

@@ -8,14 +8,14 @@ $stage = Join-Path $root "dist\$name"
 $exe = Join-Path $root 'target\release\kumo-viewer.exe'
 if (-not (Test-Path $exe)) { throw "$exe がありません。先に cargo build --release を実行してください" }
 
-Remove-Item -Recurse -Force (Join-Path $root 'dist') -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force $stage, "$stage.zip" -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force (Join-Path $stage 'docs') | Out-Null
 Copy-Item $exe (Join-Path $stage 'kumo.exe')
 Copy-Item (Join-Path $root 'README.md') $stage
 Copy-Item (Join-Path $root 'docs\*.md') (Join-Path $stage 'docs')
 
 $notes = @"
-Kumo $version（Windows x64）
+Lite Simple Rust Browser $version（Windows x64）
 
 起動: kumo.exe [URL ...]        例: kumo.exe https://example.com/
 ヘルプ: kumo.exe --help
