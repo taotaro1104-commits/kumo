@@ -11,13 +11,14 @@
   <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
   <meta name="theme-color" content="#1a66d6">
   <link rel="canonical" href="{{ .Permalink }}">
-  {{ range .Site.Languages }}<link rel="alternate" hreflang="{{ .Lang }}" href="{{ printf "/%s/" .Lang | absURL }}">{{ end }}
+  {{ range .Site.Languages }}<link rel="alternate" hreflang="{{ .LanguageCode }}" href="{{ printf "/%s/" .Lang | absURL }}">{{ end }}
+  <link rel="alternate" hreflang="x-default" href="{{ "/" | absURL }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Lite Simple Rust Browser">
   <meta property="og:title" content="{{ .Title }}">
   <meta property="og:description" content="{{ .Description }}">
   <meta property="og:url" content="{{ .Permalink }}">
-  <meta property="og:locale" content="{{ site.Language.LanguageCode }}">
+  <meta property="og:locale" content="{{ replace site.Language.LanguageCode "-" "_" }}">
   <meta property="og:image" content="{{ "og.png" | absURL }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -31,8 +32,12 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ . }}"></script>
   <script src="{{ "analytics.js" | relURL }}" data-ga="{{ . }}"></script>
   {{ end }}
+  {{ with site.Params.adsense }}
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ . }}" crossorigin="anonymous"></script>
+  {{ end }}
 </head>
 <body>
 {{ block "main" . }}{{ end }}
+{{ if site.Params.adsense }}<script src="{{ "ads.js" | relURL }}" defer></script>{{ end }}
 </body>
 </html>

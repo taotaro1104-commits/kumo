@@ -15,19 +15,25 @@ DirectoryIndex index.html
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # トップ（/）は閲覧者の言語に合わせる：日本語以外を好むなら /en/、それ以外は /ja/
-  RewriteCond %{REQUEST_URI} ^/$
-  RewriteCond %{HTTP:Accept-Language} !^ja [NC]
+  # トップ（/）は、ブラウザの優先言語に合わせて各言語のページへ（該当しなければ、言語指定があれば英語、なければ日本語）
+  RewriteCond %{HTTP:Accept-Language} ^ja [NC]
+  RewriteRule ^$ /ja/ [L,R=302]
+  RewriteCond %{HTTP:Accept-Language} ^zh [NC]
+  RewriteRule ^$ /zh/ [L,R=302]
+  RewriteCond %{HTTP:Accept-Language} ^ko [NC]
+  RewriteRule ^$ /ko/ [L,R=302]
+  RewriteCond %{HTTP:Accept-Language} ^es [NC]
+  RewriteRule ^$ /es/ [L,R=302]
   RewriteCond %{HTTP:Accept-Language} ^[a-z]
   RewriteRule ^$ /en/ [L,R=302]
   RewriteRule ^$ /ja/ [L,R=302]
 
   # ---- 許可リスト方式：公開するパスだけを通し、それ以外は 404 ----
-  # 許可：トップ、言語ごとのページ（/ja/・/en/ 以下）、ハッシュ付き CSS、アイコン、sitemap・robots、.well-known
+  # 許可：トップ、言語ごとのページ（/ja/・/en/・/zh/・/ko/・/es/ 以下）、ハッシュ付き CSS、アイコン、sitemap・robots、.well-known
   RewriteCond %{REQUEST_URI} !^/$
-  RewriteCond %{REQUEST_URI} !^/(ja|en)(/|$)
+  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)(/|$)
   RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
-  RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|analytics\.js|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|sitemap\.xml|robots\.txt)$
+  RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|analytics\.js|ads\.js|ads\.txt|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|sitemap\.xml|robots\.txt)$
   RewriteCond %{REQUEST_URI} !^/\.well-known/
   RewriteRule ^ - [R=404,L]
 
@@ -84,8 +90,9 @@ DirectoryIndex index.html
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set Strict-Transport-Security "max-age=31536000"
-  # 自分のファイルと、Google アナリティクス（gtag）の通信先だけを許可する
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://www.googletagmanager.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; style-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+  # 自分のファイルと、Google アナリティクス（gtag）・AdSense の通信先だけを許可する。
+  # AdSense は広告のためにインラインのスクリプト・スタイルと第三者のフレームを使うので、その分は緩める。
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.g.doubleclick.net https://www.googletagservices.com https://partner.googleadservices.com https://adservice.google.com https://*.adtrafficquality.google; frame-src https://*.googlesyndication.com https://*.g.doubleclick.net https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; img-src 'self' data: https:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.googlesyndication.com https://*.g.doubleclick.net https://*.adtrafficquality.google https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
 </IfModule>
 
 # ---- 隠しファイル・設定ファイルを見せない ----

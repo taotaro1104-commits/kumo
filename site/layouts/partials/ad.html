@@ -1,0 +1,17 @@
+{{- /* AdSense の広告ユニット。引数: dict "kind" (display|inarticle|feed|multiplex) "label" "広告" */ -}}
+{{- $client := site.Params.adsense -}}
+{{- $slots := site.Params.slots -}}
+{{- with $client }}
+<aside class="ad ad-{{ $.kind }}" aria-label="{{ $.label }}">
+  <span class="ad-label">{{ $.label }}</span>
+  {{- if eq $.kind "display" }}
+  <ins class="adsbygoogle" data-ad-client="{{ $client }}" data-ad-slot="{{ $slots.display }}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  {{- else if eq $.kind "inarticle" }}
+  <ins class="adsbygoogle" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="{{ $client }}" data-ad-slot="{{ $slots.inarticle }}"></ins>
+  {{- else if eq $.kind "feed" }}
+  <ins class="adsbygoogle" data-ad-format="fluid" data-ad-layout-key="{{ $slots.feedkey }}" data-ad-client="{{ $client }}" data-ad-slot="{{ $slots.feed }}"></ins>
+  {{- else }}
+  <ins class="adsbygoogle" data-ad-format="autorelaxed" data-ad-client="{{ $client }}" data-ad-slot="{{ $slots.multiplex }}"></ins>
+  {{- end }}
+</aside>
+{{- end }}

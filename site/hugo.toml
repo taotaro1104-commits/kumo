@@ -16,7 +16,38 @@ languageName = "English"
 weight = 2
 contentDir = "content/en"
 
+[languages.zh]
+languageCode = "zh-Hans"
+languageName = "简体中文"
+weight = 3
+contentDir = "content/zh"
+
+[languages.ko]
+languageCode = "ko"
+languageName = "한국어"
+weight = 4
+contentDir = "content/ko"
+
+[languages.es]
+languageCode = "es"
+languageName = "Español"
+weight = 5
+contentDir = "content/es"
+
 [params]
 repo = "https://github.com/taotaro1104-commits/kumo"
 download = "https://drive.google.com/drive/folders/1QNuxUUjx4ZFg1fEMYfnRhtGv99VOiIKc?usp=drive_link"
+# Google アナリティクス（gtag）の測定 ID
 ga = "G-WLJV141P9J"
+# Google AdSense：パブリッシャー ID と、広告ユニットごとの広告スロット
+adsense = "ca-pub-4753914051961102"
+# アフィリエイト：楽天（アフィリエイト用の計測つきリンク）と Amazon アソシエイトのトラッキング ID
+rakuten = "https://hb.afl.rakuten.co.jp/hgc/1ea40c3e.de2b7104.1ea40c3f.e845ba8e/?pc=https%3A%2F%2Fwww.rakuten.co.jp%2F&link_type=text&ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9"
+amazon = "https://www.amazon.co.jp/?tag=yutayuta0120c-22"
+
+[params.slots]
+display = "9189081571"
+multiplex = "3752662578"
+inarticle = "2324160796"
+feed = "6705891600"
+feedkey = "-fb+5w+4e-db+86"

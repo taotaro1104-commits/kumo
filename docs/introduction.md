@@ -25,6 +25,8 @@
 - **パスワードマネージャ** — ログイン時に保存を確認し、同じサイトで自動入力。パスワードは暗号化し、鍵は Windows の資格情報マネージャに置きます。
 - **ブックマーク** — Ctrl+D で追加、Ctrl+B で一覧。ホームページも設定で決められます。
 - **閲覧履歴・ダウンロード** — Ctrl+H で履歴、Ctrl+J でダウンロード一覧。ファイルへのリンクはページを離れずに保存し、進み具合を表示します。
+- **拡大・縮小** — Ctrl+`+` / Ctrl+`-` / Ctrl+ホイールで 25〜500%、Ctrl+0 で元の大きさ。倍率はタブごとに持ち、URL 欄の右に表示します。
+- **日本語入力** — IME で変換した文字を URL 欄や入力欄に入れられます。変換中の文字は URL 欄に表示します。
 - **5 か国語の表示** — 日本語・English・简体中文・한국어・Español。
 - **コンテンツブロック** — フィルタリストで広告などの読み込みを止められます。
 
@@ -74,6 +76,8 @@ A light, simple web browser written from scratch in Rust with low memory use as 
 - **Password manager** — Asks to save when you sign in and fills it in next time. Passwords are encrypted, with the key kept in the Windows Credential Manager.
 - **Bookmarks** — Ctrl+D to add, Ctrl+B for the list. Choose your home page in Settings.
 - **History and downloads** — Ctrl+H for history, Ctrl+J for downloads. Links to files are saved without leaving the page, with live progress.
+- **Page zoom** — Ctrl+`+` / Ctrl+`-` / Ctrl+wheel from 25% to 500%, Ctrl+0 to reset. The zoom is kept per tab and shown beside the address bar.
+- **Japanese input (IME)** — Text converted with an IME goes into the address bar and page fields, with the composing text shown in the address bar.
 - **Five display languages** — Japanese, English, Simplified Chinese, Korean and Spanish.
 - **Content blocking** — Block ads and other unwanted requests with filter lists.
 

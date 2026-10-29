@@ -1,44 +1,89 @@
 {{ define "main" }}
+{{ $p := .Params }}
 <header class="top">
-  <a class="brand" href="{{ .Site.Home.RelPermalink }}"><img src="{{ "icon.svg" | relURL }}" alt="" width="32" height="32"><span>{{ .Title }}</span></a>
-  <nav>
-    {{ range .Site.Languages }}{{ if ne .Lang $.Site.Language.Lang }}<a href="{{ printf "/%s/" .Lang | relURL }}" hreflang="{{ .Lang }}">{{ .LanguageName }}</a>{{ end }}{{ end }}
-    <a href="{{ site.Params.repo }}">GitHub</a>
-  </nav>
+  <div class="top-in">
+    <a class="brand" href="{{ .Site.Home.RelPermalink }}"><img src="{{ "icon.svg" | relURL }}" alt="" width="32" height="32"><span>{{ .Title }}</span></a>
+    <nav aria-label="menu">
+      <a class="nav-link" href="#features">{{ $p.nav_features }}</a>
+      <a class="nav-link" href="#get">{{ $p.nav_get }}</a>
+      <a class="nav-link" href="{{ site.Params.repo }}">GitHub</a>
+      <details class="lang">
+        <summary>{{ site.Language.LanguageName }}</summary>
+        <ul>
+          {{ range .Site.Languages }}{{ if ne .Lang $.Site.Language.Lang }}<li><a href="{{ printf "/%s/" .Lang | relURL }}" hreflang="{{ .LanguageCode }}" lang="{{ .LanguageCode }}">{{ .LanguageName }}</a></li>{{ end }}{{ end }}
+        </ul>
+      </details>
+    </nav>
+  </div>
 </header>
 <main>
   <section class="hero">
-    <img src="{{ "icon.svg" | relURL }}" alt="" width="112" height="112">
-    <h1>{{ .Params.tagline }}</h1>
-    <p>{{ .Params.lead }}</p>
-    <p class="cta">
-      <a class="btn primary" href="{{ site.Params.download }}" rel="noopener">{{ .Params.cta_download }}</a>
-      <a class="btn" href="{{ site.Params.repo }}">{{ .Params.cta_source }}</a>
-    </p>
+    <div class="hero-text">
+      <h1>{{ $p.tagline }}</h1>
+      <p class="lead">{{ $p.lead }}</p>
+      <p class="cta">
+        <a class="btn primary" href="{{ site.Params.download }}" rel="noopener">{{ $p.download_button }}</a>
+        <a class="btn" href="{{ site.Params.repo }}">{{ $p.cta_source }}</a>
+      </p>
+      <p class="hero-meta">{{ $p.release_version }} · Windows 11 (64-bit)</p>
+    </div>
+    <div class="hero-art"><img src="{{ "icon.svg" | relURL }}" alt="" width="220" height="220"></div>
   </section>
-  <section>
-    <h2>{{ .Params.stats_title }}</h2>
+
+  <section id="memory">
+    <h2>{{ $p.stats_title }}</h2>
     <ul class="stats">
-      {{ range .Params.stats }}<li><strong>{{ .value }}</strong><span>{{ .label }}</span></li>{{ end }}
+      {{ range $p.stats }}<li><strong>{{ .value }}</strong><span>{{ .label }}</span></li>{{ end }}
     </ul>
   </section>
-  <section>
-    <h2>{{ .Params.features_title }}</h2>
+
+  {{ partial "ad.html" (dict "kind" "display" "label" $p.ad_label) }}
+
+  <section id="features">
+    <h2>{{ $p.features_title }}</h2>
     <ul class="grid">
-      {{ range .Params.features }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}
+      {{ range $p.features }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}
     </ul>
   </section>
-  <section>
-    <h2>{{ .Params.start_title }}</h2>
-    <ul class="list">{{ range .Params.start }}<li>{{ . }}</li>{{ end }}</ul>
+
+  {{ partial "ad.html" (dict "kind" "inarticle" "label" $p.ad_label) }}
+
+  <section id="start">
+    <h2>{{ $p.start_title }}</h2>
+    <ul class="list">{{ range $p.start }}<li>{{ . }}</li>{{ end }}</ul>
   </section>
+
   <section id="get">
-    <h2>{{ .Params.download_title }}</h2>
-    <p>{{ .Params.download_body }}</p>
-    <p class="cta"><a class="btn primary" href="{{ site.Params.download }}" rel="noopener">{{ .Params.download_button }}</a></p>
-    <h3>{{ .Params.limits_title }}</h3>
-    <p>{{ .Params.limits_body }}</p>
+    <h2>{{ $p.download_title }}</h2>
+    <p>{{ $p.download_body }}</p>
+    <p class="cta"><a class="btn primary" href="{{ site.Params.download }}" rel="noopener">{{ $p.download_button }}</a></p>
+    <h3>{{ $p.release_title }} — {{ $p.release_version }}</h3>
+    <p>{{ $p.sha_note }}</p>
+    <ul class="files">
+      {{ range $p.release_files }}<li><strong>{{ .name }}</strong> <span>{{ .kind }} · {{ .size }}</span><code>SHA-256: {{ .sha }}</code></li>{{ end }}
+    </ul>
+    <h3>{{ $p.changes_title }}</h3>
+    <ul class="list">{{ range $p.changes }}<li>{{ . }}</li>{{ end }}</ul>
+    <h3>{{ $p.limits_title }}</h3>
+    <p>{{ $p.limits_body }}</p>
   </section>
+
+  {{ partial "ad.html" (dict "kind" "feed" "label" $p.ad_label) }}
+
+  <section id="shop" class="shop">
+    <h2>{{ $p.shop_title }} <span class="pr">{{ $p.ad_label }}</span></h2>
+    <p>{{ $p.shop_lead }}</p>
+    <p class="cta">
+      <a class="btn shop-rakuten" href="{{ site.Params.rakuten }}" target="_blank" rel="nofollow sponsored noopener">{{ $p.rakuten_label }}</a>
+      <a class="btn shop-amazon" href="{{ site.Params.amazon }}" target="_blank" rel="nofollow sponsored noopener">{{ $p.amazon_label }}</a>
+    </p>
+    <p class="note">{{ $p.shop_disclosure }}</p>
+  </section>
+
+  {{ partial "ad.html" (dict "kind" "multiplex" "label" $p.ad_label) }}
 </main>
-<footer>© Lite Simple Rust Browser · MIT / Apache-2.0</footer>
+<footer>
+  <p>© Lite Simple Rust Browser · MIT / Apache-2.0</p>
+  <p class="note">{{ $p.shop_disclosure }}</p>
+</footer>
 {{ end }}

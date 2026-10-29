@@ -3,8 +3,10 @@ title: "Lite Simple Rust Browser"
 description: "メモリの少なさを一番に考えて Rust で一から書いた、軽くてシンプルな Web ブラウザ。"
 tagline: "軽くて、シンプル。Rust で作った Web ブラウザ。"
 lead: "HTML・CSS の解釈から、レイアウト、描画、通信、JavaScript の実行まで自前のエンジンで行い、タブを何枚開いても軽く動きます。"
-cta_download: "入手方法"
+nav_features: "特長"
+nav_get: "入手方法"
 cta_source: "ソースコード"
+ad_label: "広告"
 stats_title: "メモリ使用量（リリースビルドでの実測）"
 stats:
   - { value: "約 22 MB", label: "空のタブ" }
@@ -19,6 +21,8 @@ features:
   - { title: "パスワードマネージャ", body: "ログイン時に保存を確認し、同じサイトで自動入力。パスワードは暗号化し、鍵は Windows の資格情報マネージャに置きます。" }
   - { title: "ブックマーク", body: "Ctrl+D で追加、Ctrl+B で一覧。ホームページも設定で決められます。" }
   - { title: "閲覧履歴・ダウンロード", body: "Ctrl+H で履歴、Ctrl+J でダウンロード一覧。ファイルへのリンクはページを離れずに保存し、進み具合を表示します。" }
+  - { title: "拡大・縮小", body: "Ctrl+「+」「-」やCtrl+ホイールで 25〜500%。Ctrl+0 で元の大きさに戻ります。" }
+  - { title: "日本語入力", body: "IME で変換した文字を URL 欄や入力欄に入れられます。" }
   - { title: "5 か国語の表示", body: "日本語・English・简体中文・한국어・Español。" }
   - { title: "コンテンツブロック", body: "フィルタリストで広告などの読み込みを止められます。" }
 start_title: "使い方"
@@ -26,9 +30,27 @@ start:
   - "起動すると新しいタブが開きます。上の欄に URL か調べたい言葉を入力します（Ctrl+L）。"
   - "Ctrl+T 新しいタブ / Ctrl+W 閉じる / Alt+← 戻る / Alt+Home ホーム / Ctrl+クリック 背景のタブで開く"
   - "設定は about:settings、パスワードは about:passwords、メモリの状況は about:memory。"
-download_button: "Google ドライブからダウンロード"
 download_title: "入手方法"
+download_button: "Google ドライブからダウンロード"
 download_body: "Windows 11（64 ビット）用です。インストーラーを実行するか、zip を展開するだけで使えます。履歴と設定は %LOCALAPPDATA%\\Kumo に保存されます。ライセンスは MIT または Apache-2.0 から選べます。"
+release_title: "最新版"
+release_version: "バージョン 0.1.0（2026-10-29）"
+release_files:
+  - { name: "kumo-0.1.0-windows-x64-setup.exe", kind: "インストーラー", size: "8.8 MB", sha: "2f2a017fdaf6d8f85c7e70e497facdd4a00bfc2f6081c84974105158da1d1e84" }
+  - { name: "kumo-0.1.0-windows-x64.zip", kind: "zip（展開するだけで使えます）", size: "10.4 MB", sha: "d78c7542a9a61225636428c30e1b2fc8d30df193cc19554963bbc030317bdba8" }
+sha_note: "ダウンロードしたファイルの SHA-256 が下の値と同じか確かめられます。"
+changes_title: "最近の更新"
+changes:
+  - "ページの拡大・縮小（Ctrl+「+」「-」、Ctrl+ホイール、Ctrl+0）を追加"
+  - "日本語入力（IME）に対応。変換中の文字は URL 欄に表示"
+  - "閲覧履歴（Ctrl+H）とダウンロード一覧（Ctrl+J）を追加。ファイルへのリンクはページを離れずに保存"
+  - "アプリ名を Lite Simple Rust Browser にし、独自アイコンを追加"
+  - "パスワードマネージャと 5 か国語の表示を追加"
 limits_title: "現在の制限"
 limits_body: "開発中のため、すべてのサイトが完全に表示されるわけではありません。ES モジュール、iframe、canvas、GPU 描画、インラインの SVG などは未対応です。"
+shop_title: "おすすめ"
+shop_lead: "パソコンや周辺機器、ふだんの買い物はこちらから探せます。"
+rakuten_label: "楽天市場で探す"
+amazon_label: "Amazon.co.jp で探す"
+shop_disclosure: "当サイトは広告（Google AdSense）とアフィリエイトプログラム（楽天アフィリエイト・Amazon アソシエイト）を利用しています。Amazon のアソシエイトとして、当サイトは適格販売により収入を得ています。"
 ---
