@@ -40,22 +40,24 @@ download_title: "入手方法"
 download_button: "Google ドライブからダウンロード"
 recommended: "おすすめ"
 sha_summary: "チェックサム（SHA-256）を見る"
-download_body: "Windows 11（64 ビット）用です。インストーラーを実行するか、zip を展開するだけで使えます。履歴と設定は %LOCALAPPDATA%\\Kumo に保存されます。ライセンスは MIT または Apache-2.0 から選べます。"
+download_body: "Windows 11（64 ビット）用です。インストーラーを実行するか、zip を展開するだけで使えます。履歴と設定は %LOCALAPPDATA%\\Kumo に保存されます。ライセンスは MIT または Apache-2.0 から選べます。 Android 8.0 以上の端末に入れられます（提供元不明のアプリの許可が必要）。"
 release_title: "最新版"
 release_version: "バージョン 0.1.0（2026-10-29）"
 release_files:
   - { name: "kumo-0.1.0-windows-x64-setup.exe", kind: "インストーラー", size: "8.8 MB", sha: "2f2a017fdaf6d8f85c7e70e497facdd4a00bfc2f6081c84974105158da1d1e84" }
   - { name: "kumo-0.1.0-windows-x64.zip", kind: "zip（展開するだけで使えます）", size: "10.4 MB", sha: "d78c7542a9a61225636428c30e1b2fc8d30df193cc19554963bbc030317bdba8" }
+  - { name: "kumo-0.1.0-android-arm64.apk", kind: "Android アプリ（arm64）", size: "12.1 MB", sha: "68bb339dc891b375dd2fcc8f3ae131e8fa8a32a42c1517e2316f92eda4b29478" }
 sha_note: "ダウンロードしたファイルの SHA-256 が下の値と同じか確かめられます。"
 changes_title: "最近の更新"
 changes:
+  - "Android 版を追加（タッチでスクロール・タップ・つまみ操作、ソフトキーボード、変換入力、パスワード保存）"
   - "ページの拡大・縮小（Ctrl+「+」「-」、Ctrl+ホイール、Ctrl+0）を追加"
   - "日本語入力（IME）に対応。変換中の文字は URL 欄に表示"
   - "閲覧履歴（Ctrl+H）とダウンロード一覧（Ctrl+J）を追加。ファイルへのリンクはページを離れずに保存"
   - "アプリ名を Lite Simple Rust Browser にし、独自アイコンを追加"
   - "パスワードマネージャと 5 か国語の表示を追加"
 limits_title: "現在の制限"
-limits_body: "開発中のため、すべてのサイトが完全に表示されるわけではありません。ES モジュール、iframe、canvas、GPU 描画、インラインの SVG などは未対応です。"
+limits_body: "開発中のため、すべてのサイトが完全に表示されるわけではありません。ES モジュール、iframe、canvas、GPU 描画、インラインの SVG などは未対応です。 Android 版は試験的です。変換入力はキーボードアプリ側の対応に依存し、ページ内の入力欄では変換中の文字が表示されません。"
 shop_title: "おすすめ"
 shop_lead: "パソコンや周辺機器、ふだんの買い物はこちらから探せます。"
 rakuten_label: "楽天市場で探す"

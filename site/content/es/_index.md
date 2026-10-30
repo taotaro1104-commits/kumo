@@ -40,22 +40,24 @@ download_title: "Descargar"
 download_button: "Descargar desde Google Drive"
 recommended: "Recomendado"
 sha_summary: "Ver sumas de comprobación (SHA-256)"
-download_body: "Para Windows 11 (64 bits). Ejecuta el instalador o simplemente descomprime el zip. El historial y los ajustes se guardan en %LOCALAPPDATA%\\Kumo. Licencia a tu elección: MIT o Apache-2.0."
+download_body: "Para Windows 11 (64 bits). Ejecuta el instalador o simplemente descomprime el zip. El historial y los ajustes se guardan en %LOCALAPPDATA%\\Kumo. Licencia a tu elección: MIT o Apache-2.0. Para Android 8.0 o superior (hay que permitir apps de origen desconocido)."
 release_title: "Última versión"
 release_version: "Versión 0.1.0 (2026-10-29)"
 release_files:
   - { name: "kumo-0.1.0-windows-x64-setup.exe", kind: "Instalador", size: "8.8 MB", sha: "2f2a017fdaf6d8f85c7e70e497facdd4a00bfc2f6081c84974105158da1d1e84" }
   - { name: "kumo-0.1.0-windows-x64.zip", kind: "Zip (descomprime y usa)", size: "10.4 MB", sha: "d78c7542a9a61225636428c30e1b2fc8d30df193cc19554963bbc030317bdba8" }
+  - { name: "kumo-0.1.0-android-arm64.apk", kind: "Aplicación Android (arm64)", size: "12.1 MB", sha: "68bb339dc891b375dd2fcc8f3ae131e8fa8a32a42c1517e2316f92eda4b29478" }
 sha_note: "Compara el SHA-256 del archivo descargado con los valores siguientes."
 changes_title: "Cambios recientes"
 changes:
+  - "Versión para Android (desplazamiento táctil, toque, zoom con pellizco, teclado en pantalla, composición con IME, guardar contraseñas)"
   - "Zoom de página (Ctrl+más, Ctrl+menos, Ctrl+rueda, Ctrl+0)"
   - "Compatibilidad con la entrada en japonés (IME), con el texto en composición en la barra de direcciones"
   - "Historial (Ctrl+H) y descargas (Ctrl+J). Los enlaces a archivos se guardan sin salir de la página"
   - "Nuevo nombre, Lite Simple Rust Browser, y un icono original"
   - "Gestor de contraseñas y cinco idiomas de interfaz"
 limits_title: "Limitaciones actuales"
-limits_body: "Está en desarrollo, así que no todos los sitios se muestran perfectamente. Aún no admite módulos ES, iframes, canvas, renderizado por GPU ni SVG en línea."
+limits_body: "Está en desarrollo, así que no todos los sitios se muestran perfectamente. Aún no admite módulos ES, iframes, canvas, renderizado por GPU ni SVG en línea. La versión de Android es experimental: la composición con IME depende de tu app de teclado y el texto en composición no se muestra dentro de los campos de la página."
 shop_title: "Recomendado"
 shop_lead: "Busca ordenadores, accesorios y artículos cotidianos en las tiendas japonesas siguientes."
 rakuten_label: "Buscar en Rakuten Ichiba"

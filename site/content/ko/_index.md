@@ -40,22 +40,24 @@ download_title: "받기"
 download_button: "Google 드라이브에서 다운로드"
 recommended: "추천"
 sha_summary: "체크섬(SHA-256) 보기"
-download_body: "Windows 11(64비트)용입니다. 설치 프로그램을 실행하거나 zip을 풀기만 하면 사용할 수 있습니다. 기록과 설정은 %LOCALAPPDATA%\\Kumo에 저장됩니다. 라이선스는 MIT 또는 Apache-2.0 중에서 선택할 수 있습니다."
+download_body: "Windows 11(64비트)용입니다. 설치 프로그램을 실행하거나 zip을 풀기만 하면 사용할 수 있습니다. 기록과 설정은 %LOCALAPPDATA%\\Kumo에 저장됩니다. 라이선스는 MIT 또는 Apache-2.0 중에서 선택할 수 있습니다. Android 8.0 이상에서 설치할 수 있습니다(출처를 알 수 없는 앱 허용 필요)."
 release_title: "최신 버전"
 release_version: "버전 0.1.0 (2026-10-29)"
 release_files:
   - { name: "kumo-0.1.0-windows-x64-setup.exe", kind: "설치 프로그램", size: "8.8 MB", sha: "2f2a017fdaf6d8f85c7e70e497facdd4a00bfc2f6081c84974105158da1d1e84" }
   - { name: "kumo-0.1.0-windows-x64.zip", kind: "zip (풀기만 하면 사용 가능)", size: "10.4 MB", sha: "d78c7542a9a61225636428c30e1b2fc8d30df193cc19554963bbc030317bdba8" }
+  - { name: "kumo-0.1.0-android-arm64.apk", kind: "Android 앱 (arm64)", size: "12.1 MB", sha: "68bb339dc891b375dd2fcc8f3ae131e8fa8a32a42c1517e2316f92eda4b29478" }
 sha_note: "내려받은 파일의 SHA-256이 아래 값과 같은지 확인할 수 있습니다."
 changes_title: "최근 업데이트"
 changes:
+  - "Android 버전 추가(터치 스크롤, 탭, 핀치 확대·축소, 화면 키보드, IME 조합 입력, 비밀번호 저장)"
   - "페이지 확대·축소 추가 (Ctrl+「+」「-」, Ctrl+휠, Ctrl+0)"
   - "일본어 입력(IME) 지원, 변환 중인 글자는 주소창에 표시"
   - "방문 기록(Ctrl+H)과 다운로드 목록(Ctrl+J) 추가. 파일 링크는 페이지를 떠나지 않고 저장"
   - "앱 이름을 Lite Simple Rust Browser로 바꾸고 고유 아이콘 추가"
   - "비밀번호 관리자와 5개 언어 표시 추가"
 limits_title: "현재의 제한"
-limits_body: "개발 중이므로 모든 사이트가 완벽하게 표시되지는 않습니다. ES 모듈, iframe, canvas, GPU 렌더링, 인라인 SVG 등은 아직 지원하지 않습니다."
+limits_body: "개발 중이므로 모든 사이트가 완벽하게 표시되지는 않습니다. ES 모듈, iframe, canvas, GPU 렌더링, 인라인 SVG 등은 아직 지원하지 않습니다. Android 버전은 시험 단계입니다. IME 조합 입력은 키보드 앱에 따라 동작하며, 페이지 안의 입력란에서는 조합 중인 글자가 표시되지 않습니다."
 shop_title: "추천"
 shop_lead: "컴퓨터, 주변기기, 일상 용품은 아래 일본 쇼핑몰에서 찾아볼 수 있습니다."
 rakuten_label: "라쿠텐 이치바에서 찾기"

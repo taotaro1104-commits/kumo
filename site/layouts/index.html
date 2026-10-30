@@ -28,7 +28,7 @@
         <a class="btn sunny" href="{{ site.Params.download }}" rel="noopener">{{ $p.download_button }}</a>
         <a class="btn ghost" href="{{ site.Params.repo }}">{{ $p.cta_source }}</a>
       </p>
-      <p class="pills"><span class="pill">{{ $p.release_version }}</span><span class="pill">Windows 11 (64-bit)</span></p>
+      <p class="pills"><span class="pill">{{ $p.release_version }}</span><span class="pill">Windows 11 (64-bit)</span><span class="pill">Android 8+</span></p>
     </div>
     <figure class="scene" aria-label="{{ $p.stats_title }}">
       {{ range $p.stats }}
@@ -74,7 +74,7 @@
       {{ range $i, $f := $p.release_files }}
       <li class="{{ if eq $i 0 }}dl-main{{ end }}">
         <a href="{{ site.Params.download }}" rel="noopener">
-          <span class="ico" aria-hidden="true">{{ if eq $i 0 }}💿{{ else }}📦{{ end }}</span>
+          <span class="ico" aria-hidden="true">{{ if eq $i 0 }}💿{{ else if eq $i 1 }}📦{{ else }}📱{{ end }}</span>
           <span class="dl-body"><strong>{{ $f.kind }}</strong><span>{{ $f.name }} ・ {{ $f.size }}</span></span>
           {{ if eq $i 0 }}<em class="badge">{{ $p.recommended }}</em>{{ end }}
         </a>

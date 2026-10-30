@@ -40,22 +40,24 @@ download_title: "Get it"
 download_button: "Download from Google Drive"
 recommended: "Recommended"
 sha_summary: "Show checksums (SHA-256)"
-download_body: "For Windows 11 (64-bit). Run the installer, or just unzip the package. History and settings are stored in %LOCALAPPDATA%\\Kumo. Licensed under your choice of MIT or Apache-2.0."
+download_body: "For Windows 11 (64-bit). Run the installer, or just unzip the package. History and settings are stored in %LOCALAPPDATA%\\Kumo. Licensed under your choice of MIT or Apache-2.0. For Android 8.0 or later (allow installs from unknown sources)."
 release_title: "Latest release"
 release_version: "Version 0.1.0 (2026-10-29)"
 release_files:
   - { name: "kumo-0.1.0-windows-x64-setup.exe", kind: "Installer", size: "8.8 MB", sha: "2f2a017fdaf6d8f85c7e70e497facdd4a00bfc2f6081c84974105158da1d1e84" }
   - { name: "kumo-0.1.0-windows-x64.zip", kind: "Zip (just unzip and run)", size: "10.4 MB", sha: "d78c7542a9a61225636428c30e1b2fc8d30df193cc19554963bbc030317bdba8" }
+  - { name: "kumo-0.1.0-android-arm64.apk", kind: "Android app (arm64)", size: "12.1 MB", sha: "68bb339dc891b375dd2fcc8f3ae131e8fa8a32a42c1517e2316f92eda4b29478" }
 sha_note: "Compare the SHA-256 of the file you downloaded with the values below."
 changes_title: "Recent changes"
 changes:
+  - "Android version added (touch scrolling, tap, pinch zoom, on-screen keyboard, IME composition, password saving)"
   - "Page zoom (Ctrl+plus, Ctrl+minus, Ctrl+wheel, Ctrl+0)"
   - "Japanese input (IME) support, with the composing text shown in the address bar"
   - "History (Ctrl+H) and downloads (Ctrl+J). Links to files are saved without leaving the page"
   - "Renamed to Lite Simple Rust Browser, with an original icon"
   - "Password manager and five display languages"
 limits_title: "Current limitations"
-limits_body: "This is a work in progress, so not every site renders perfectly. ES modules, iframes, canvas, GPU rendering and inline SVG are not supported yet."
+limits_body: "This is a work in progress, so not every site renders perfectly. ES modules, iframes, canvas, GPU rendering and inline SVG are not supported yet. The Android version is experimental: IME composition relies on your keyboard app, and composing text is not shown inside page input fields."
 shop_title: "Recommended"
 shop_lead: "Shop for computers, accessories and everyday items at the Japanese stores below."
 rakuten_label: "Search on Rakuten Ichiba"

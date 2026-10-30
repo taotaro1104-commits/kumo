@@ -40,22 +40,24 @@ download_title: "获取"
 download_button: "从 Google 云端硬盘下载"
 recommended: "推荐"
 sha_summary: "查看校验值（SHA-256）"
-download_body: "适用于 Windows 11（64 位）。运行安装程序，或直接解压 zip 即可使用。历史记录和设置保存在 %LOCALAPPDATA%\\Kumo。可在 MIT 或 Apache-2.0 许可证中任选其一。"
+download_body: "适用于 Windows 11（64 位）。运行安装程序，或直接解压 zip 即可使用。历史记录和设置保存在 %LOCALAPPDATA%\\Kumo。可在 MIT 或 Apache-2.0 许可证中任选其一。 适用于 Android 8.0 及以上（需允许安装未知来源的应用）。"
 release_title: "最新版本"
 release_version: "版本 0.1.0（2026-10-29）"
 release_files:
   - { name: "kumo-0.1.0-windows-x64-setup.exe", kind: "安装程序", size: "8.8 MB", sha: "2f2a017fdaf6d8f85c7e70e497facdd4a00bfc2f6081c84974105158da1d1e84" }
   - { name: "kumo-0.1.0-windows-x64.zip", kind: "zip（解压即用）", size: "10.4 MB", sha: "d78c7542a9a61225636428c30e1b2fc8d30df193cc19554963bbc030317bdba8" }
+  - { name: "kumo-0.1.0-android-arm64.apk", kind: "Android 应用（arm64）", size: "12.1 MB", sha: "68bb339dc891b375dd2fcc8f3ae131e8fa8a32a42c1517e2316f92eda4b29478" }
 sha_note: "可将下载文件的 SHA-256 与下列数值对比校验。"
 changes_title: "最近更新"
 changes:
+  - "新增 Android 版（触摸滚动、点按、双指缩放、屏幕键盘、输入法组合输入、密码保存）"
   - "新增页面缩放（Ctrl+加号、Ctrl+减号、Ctrl+滚轮、Ctrl+0）"
   - "支持日语输入（IME），转换中的文字显示在地址栏"
   - "新增历史记录（Ctrl+H）和下载列表（Ctrl+J），点击文件链接无需离开页面即可保存"
   - "更名为 Lite Simple Rust Browser，并新增原创图标"
   - "新增密码管理器和 5 种显示语言"
 limits_title: "当前限制"
-limits_body: "软件仍在开发中，并非所有网站都能完美显示。尚不支持 ES 模块、iframe、canvas、GPU 渲染和内联 SVG 等。"
+limits_body: "软件仍在开发中，并非所有网站都能完美显示。尚不支持 ES 模块、iframe、canvas、GPU 渲染和内联 SVG 等。 Android 版为试验性质。输入法组合输入取决于键盘应用，页面输入框内不显示组合中的文字。"
 shop_title: "推荐"
 shop_lead: "电脑、周边设备和日常用品，可在下方日本商城搜索。"
 rakuten_label: "在乐天市场搜索"
