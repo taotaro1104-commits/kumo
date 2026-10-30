@@ -8,6 +8,7 @@ use kumo_content::i18n::ui::Ui;
 use kumo_content::{Lang, escape};
 
 use crate::chrome_css::CSS;
+use crate::glyph;
 use crate::url_display::format_url;
 
 /// UI の高さ（px）。コンテンツはこの下に描く。
@@ -220,8 +221,18 @@ pub fn chrome_html(state: &ChromeState<'_>) -> String {
         "→",
         Ui::Forward.t(state.lang),
     ));
-    html.push_str(&button(true, "kumo:reload", "↻", Ui::Reload.t(state.lang)));
-    html.push_str(&button(true, "kumo:home", "⌂", Ui::Home.t(state.lang)));
+    html.push_str(&button(
+        true,
+        "kumo:reload",
+        glyph::RELOAD,
+        Ui::Reload.t(state.lang),
+    ));
+    html.push_str(&button(
+        true,
+        "kumo:home",
+        glyph::HOME,
+        Ui::Home.t(state.lang),
+    ));
     if let Some(prompt) = state.login_prompt {
         html.push_str(&login_prompt_html(state, prompt));
         html.push_str("</div></body></html>");
@@ -252,7 +263,7 @@ pub fn chrome_html(state: &ChromeState<'_>) -> String {
     html.push_str(&button(
         true,
         "kumo:bookmarks",
-        "☰",
+        glyph::LIST,
         Ui::BookmarkList.t(state.lang),
     ));
     if state.zoom != 100 {

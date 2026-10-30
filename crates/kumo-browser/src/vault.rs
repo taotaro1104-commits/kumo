@@ -5,7 +5,8 @@
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Nonce};
 
-const KEY_LEN: usize = 32;
+/// 鍵の長さ（バイト）。
+pub const KEY_LEN: usize = 32;
 const NONCE_LEN: usize = 12;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -68,9 +69,25 @@ impl Vault {
 
     /// OS の資格情報ストアにある鍵を使う。なければ（`create` なら）作って入れる。
     /// ストアが使えない環境では `None`。
+    /// [`set_key_provider`] で提供元が登録されていれば、そちらを使う。
     pub fn system(create: bool) -> Option<Self> {
-        system::load(create).map(Self::from_key)
+        let key = match KEY_PROVIDER.get() {
+            Some(provider) => provider(create),
+            None => system::load(create),
+        };
+        key.map(Self::from_key)
     }
+}
+
+/// 鍵の提供元（`create` なら、なければ作る）。OS の資格情報ストアを直接使えない環境
+/// （Android の Keystore は Java 経由）が登録する。
+pub type KeyProvider = fn(create: bool) -> Option<[u8; KEY_LEN]>;
+
+static KEY_PROVIDER: std::sync::OnceLock<KeyProvider> = std::sync::OnceLock::new();
+
+/// 鍵の提供元を登録する（最初の1回だけ有効）。
+pub fn set_key_provider(provider: KeyProvider) {
+    let _ = KEY_PROVIDER.set(provider);
 }
 
 #[cfg(windows)]

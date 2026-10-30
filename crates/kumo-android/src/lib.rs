@@ -2,6 +2,8 @@
 //! 画面・入力・ブラウザ本体は `kumo-viewer` にあり、ここは起動前の環境づくりだけを受け持つ。
 #![cfg(target_os = "android")]
 
+mod jni_bridge;
+
 use android_activity::AndroidApp;
 use kumo_mem::TaggedAllocator;
 
@@ -29,5 +31,12 @@ fn prepare_environment(app: &AndroidApp) {
 #[unsafe(no_mangle)]
 fn android_main(app: AndroidApp) {
     prepare_environment(&app);
-    kumo_viewer::android::run(app);
+    jni_bridge::set_activity(app.activity_as_ptr());
+    // 保存するパスワードの鍵は Android Keystore に置く
+    kumo_browser::set_key_provider(jni_bridge::vault_key);
+    kumo_viewer::android::run(
+        app,
+        Box::new(jni_bridge::show_keyboard),
+        Box::new(jni_bridge::top_inset),
+    );
 }

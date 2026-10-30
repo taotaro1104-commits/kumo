@@ -116,6 +116,28 @@ pub fn commit(browser: &mut Browser, text: &str) -> Outcome {
     Outcome::redraw(preedit.merge(typed))
 }
 
+/// ソフトキーボードの BackSpace。フォーカスがある URL 欄か入力欄の末尾を1文字消す。
+pub fn backspace(browser: &mut Browser) -> Outcome {
+    Outcome::redraw(if browser.url_focused() {
+        browser.backspace()
+    } else if browser.field_focused() {
+        browser.backspace_field()
+    } else {
+        Redraw::default()
+    })
+}
+
+/// ソフトキーボードの Enter（実行）。URL 欄なら開き、入力欄なら送信（textarea なら改行）。
+pub fn enter(browser: &mut Browser) -> Outcome {
+    Outcome::redraw(if browser.url_focused() {
+        browser.submit_url()
+    } else if browser.field_focused() {
+        browser.submit_field()
+    } else {
+        Redraw::default()
+    })
+}
+
 /// ページ内の入力欄に文字を入れる。
 fn field_key(browser: &mut Browser, event: &KeyEvent) -> Outcome {
     let redraw = match &event.logical_key {

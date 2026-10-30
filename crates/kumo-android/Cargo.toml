@@ -11,11 +11,14 @@ crate-type = ["cdylib"]
 
 [dependencies]
 kumo-mem.workspace = true
+kumo-browser.workspace = true
 kumo-viewer = { path = "../kumo-viewer" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android-activity = { version = "0.6", features = ["native-activity"] }
+jni = "0.21"
+ndk-context = "0.1"
 
-# android_main の公開と環境変数の設定にだけ unsafe が要る（下のコメント参照）
+# android_main の公開・環境変数の設定・JNI にだけ unsafe が要る（各所のコメント参照）
 [lints.clippy]
 all = { level = "warn", priority = -1 }

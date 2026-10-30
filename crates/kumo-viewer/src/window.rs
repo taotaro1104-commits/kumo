@@ -16,6 +16,7 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::keyboard::ModifiersState;
 use winit::window::{Window, WindowId};
 
+use crate::ime::ImeInput;
 use crate::input::{self, LINE_SCROLL, Outcome};
 use crate::touch::{Gesture, Touches};
 
@@ -37,7 +38,14 @@ pub struct Platform {
     pub event_loop: Option<EventLoop<ContentWake>>,
     /// ダウンロードの保存先（なければ「ダウンロード」フォルダ）
     pub download_dir: Option<std::path::PathBuf>,
+    /// ソフトキーボードを出す・隠す関数（なければウィンドウの IME 設定で切り替える）
+    pub keyboard: Option<Box<dyn Fn(bool)>>,
+    /// 画面の上端を覆うもの（ステータスバー）の高さを物理 px で返す関数。その分だけ描画を下げる
+    pub top_inset: Option<Box<dyn Fn() -> u32>>,
 }
+
+/// 上端の余白に敷く色（UI の背景に合わせる）
+const INSET_COLOR: u32 = 0x00e3_e6ea;
 
 /// 描画面の大きさを画面の物理 px の何分の一にするか。
 /// Android は高密度（物理 px が dp の2〜3倍）なので、dp 相当の大きさで描いて OS に拡大させる。
@@ -78,9 +86,28 @@ pub struct Viewer {
     touches: Touches,
     /// 今 IME（ソフトキーボード）を有効にしているか
     ime_on: bool,
+    keyboard: Option<Box<dyn Fn(bool)>>,
+    top_inset: Option<Box<dyn Fn() -> u32>>,
+    /// 画面の上端を避ける高さ（論理 px）。描画面の最初の `top` 行は UI もページも描かない
+    top: u32,
 }
 
 impl Viewer {
+    /// 上端の余白を取り直す。変わっていたら、ページの大きさと UI を描き直す。
+    fn refresh_top(&mut self) {
+        let Some(inset) = &self.top_inset else { return };
+        let top = (f64::from(inset()) / self.scale).round() as u32;
+        if top == self.top {
+            return;
+        }
+        self.top = top;
+        self.chrome_dirty = true;
+        let redraw = self
+            .browser
+            .resize(self.size.0 as f32, self.size.1.saturating_sub(top) as f32);
+        self.mark(redraw);
+    }
+
     fn request_redraw(&self) {
         if let Some(s) = &self.surface {
             s.window.request_redraw();
@@ -134,7 +161,11 @@ impl Viewer {
             eprintln!("[window] サーフェスの再確保に失敗: {e}");
             return;
         }
-        let redraw = self.browser.resize(width as f32, height as f32);
+        self.top = 0;
+        self.refresh_top();
+        let redraw = self
+            .browser
+            .resize(width as f32, height.saturating_sub(self.top) as f32);
         self.mark(redraw);
     }
 
@@ -142,7 +173,12 @@ impl Viewer {
         if self.surface.is_none() {
             return;
         }
-        let (w, h) = (self.size.0 as usize, self.size.1 as usize);
+        self.refresh_top();
+        let top = self.top as usize;
+        let (w, h) = (
+            self.size.0 as usize,
+            (self.size.1 as usize).saturating_sub(top),
+        );
         let chrome_rows = (CHROME_HEIGHT as usize).min(h);
         if w == 0 || h <= chrome_rows {
             return;
@@ -167,8 +203,13 @@ impl Viewer {
             }
         };
         let buffer_valid = buffer.age() > 0;
-        let (chrome_out, content_out) = buffer.split_at_mut(chrome_rows * w);
+        let (inset_out, below) = buffer.split_at_mut(top * w);
+        let (chrome_out, content_out) = below.split_at_mut(chrome_rows * w);
         let mut damage = Vec::new();
+        if top > 0 && (self.chrome_dirty || !buffer_valid) {
+            inset_out.fill(INSET_COLOR);
+            damage.push(0..top);
+        }
         if self.chrome_dirty || !buffer_valid {
             self.chrome_renderer.invalidate();
             let viewport = RectF::new(0.0, 0.0, w as f32, chrome_rows as f32);
@@ -181,7 +222,7 @@ impl Viewer {
                 chrome_out,
                 false,
             ) {
-                damage.push(rows);
+                damage.push(rows.start + top..rows.end + top);
             }
             self.chrome_dirty = false;
         }
@@ -204,7 +245,7 @@ impl Viewer {
                 .map(|frame| copy_frame(&frame, content_out, w, content_rows, false));
         }
         if let Some(rows) = copied {
-            damage.push(rows.start + chrome_rows..rows.end + chrome_rows);
+            damage.push(rows.start + chrome_rows + top..rows.end + chrome_rows + top);
         }
         let status = crate::overlay::draw_status(
             &mut self.browser,
@@ -216,7 +257,7 @@ impl Viewer {
         damage.extend(
             status
                 .into_iter()
-                .map(|r| r.start + chrome_rows..r.end + chrome_rows),
+                .map(|r| r.start + chrome_rows + top..r.end + chrome_rows + top),
         );
         let width = NonZeroU32::new(w as u32).expect("w > 0");
         let rects: Vec<softbuffer::Rect> = damage
@@ -376,7 +417,10 @@ impl ApplicationHandler<ContentWake> for Viewer {
         event_loop.set_control_flow(ControlFlow::WaitUntil(now + wait));
     }
 
-    fn user_event(&mut self, _event_loop: &ActiveEventLoop, _event: ContentWake) {
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, _event: ContentWake) {
+        for input in crate::ime::drain() {
+            self.soft_keyboard(input, event_loop);
+        }
         let redraw = self.browser.pump();
         self.mark(redraw);
         self.update_cursor();
@@ -390,8 +434,10 @@ impl ApplicationHandler<ContentWake> for Viewer {
             WindowEvent::RedrawRequested => self.redraw(),
             WindowEvent::ModifiersChanged(mods) => self.mods = mods.state(),
             WindowEvent::CursorMoved { position, .. } => {
-                self.cursor =
-                    PhysicalPosition::new(position.x / self.scale, position.y / self.scale);
+                self.cursor = PhysicalPosition::new(
+                    position.x / self.scale,
+                    position.y / self.scale - f64::from(self.top),
+                );
                 let (x, y) = (self.cursor.x as f32, self.cursor.y as f32);
                 let redraw = if y < CHROME_HEIGHT {
                     self.browser.hover_chrome(x, y)
@@ -446,10 +492,29 @@ impl ApplicationHandler<ContentWake> for Viewer {
 }
 
 impl Viewer {
+    /// ソフトキーボード（Java の InputConnection）から届いた入力。
+    fn soft_keyboard(&mut self, input: ImeInput, event_loop: &ActiveEventLoop) {
+        match input {
+            ImeInput::Preedit(text) => self.ime(Ime::Preedit(text, None), event_loop),
+            ImeInput::Commit(text) => self.ime(Ime::Commit(text), event_loop),
+            ImeInput::Backspace => {
+                let outcome = input::backspace(&mut self.browser);
+                self.apply(outcome, event_loop);
+            }
+            ImeInput::Enter => {
+                let outcome = input::enter(&mut self.browser);
+                self.apply(outcome, event_loop);
+            }
+        }
+    }
+
     /// 指の動きを、スクロール・クリック・拡大縮小にする。
     fn touch(&mut self, touch: winit::event::Touch, event_loop: &ActiveEventLoop) {
         use winit::event::TouchPhase;
-        let pos = (touch.location.x / self.scale, touch.location.y / self.scale);
+        let pos = (
+            touch.location.x / self.scale,
+            touch.location.y / self.scale - f64::from(self.top),
+        );
         let gesture = match touch.phase {
             TouchPhase::Started => self.touches.down(touch.id, pos),
             TouchPhase::Moved => self.touches.moved(touch.id, pos),
@@ -493,9 +558,13 @@ impl Viewer {
             return;
         }
         let wanted = self.browser.url_focused() || self.browser.field_focused();
-        if wanted != self.ime_on
-            && let Some(s) = &self.surface
-        {
+        if wanted == self.ime_on {
+            return;
+        }
+        if let Some(keyboard) = &self.keyboard {
+            keyboard(wanted);
+            self.ime_on = wanted;
+        } else if let Some(s) = &self.surface {
             s.window.set_ime_allowed(wanted);
             self.ime_on = wanted;
         }
@@ -515,6 +584,10 @@ pub fn run(
             .map_err(|e| e.to_string())?,
     };
     let proxy = event_loop.create_proxy();
+    let ime_proxy = proxy.clone();
+    crate::ime::set_waker(Box::new(move || {
+        let _ = ime_proxy.send_event(ContentWake);
+    }));
     let mut browser = browser;
     browser.set_notify(Arc::new(move || {
         let _ = proxy.send_event(ContentWake);
@@ -536,6 +609,9 @@ pub fn run(
         size: (0, 0),
         touches: Touches::default(),
         ime_on: false,
+        keyboard: platform.keyboard,
+        top_inset: platform.top_inset,
+        top: 0,
     };
     // 通知を設定する前に届いていた分を取り込む
     let redraw = viewer.browser.pump();

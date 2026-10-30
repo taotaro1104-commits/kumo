@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ステータスバーを UI の背景色にそろえ、時計や電池を暗い色で見せる -->
+    <style name="KumoTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#e3e6ea</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

@@ -17,6 +17,7 @@ pub mod android;
 mod args;
 mod headless;
 mod icon;
+pub mod ime;
 mod input;
 mod overlay;
 mod processes;

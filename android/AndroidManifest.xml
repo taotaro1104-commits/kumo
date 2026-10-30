@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Kumo (Lite Simple Rust Browser) for Android: NativeActivity が libkumo.so の android_main を呼ぶ。Java のコードは無い -->
+<!-- Kumo (Lite Simple Rust Browser) for Android: NativeActivity が libkumo.so の android_main を呼ぶ。Java は変換入力用の ImeBridge と KeyVault だけ（android/java） -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kumo.browser"
     android:versionCode="1"
@@ -13,12 +13,13 @@
     <application
         android:label="Kumo"
         android:icon="@mipmap/ic_launcher"
-        android:hasCode="false"
+        android:hasCode="true"
         android:allowBackup="true"
         android:usesCleartextTraffic="true">
 
         <activity
             android:name="android.app.NativeActivity"
+            android:theme="@style/KumoTheme"
             android:label="Kumo"
             android:exported="true"
             android:launchMode="singleTask"
