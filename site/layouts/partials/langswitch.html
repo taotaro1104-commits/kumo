@@ -1,0 +1,9 @@
+{{- /* 言語の切り替え。同じ内容の他言語ページへ飛ぶ (無ければ出さない) */ -}}
+{{- with .Translations }}
+<details class="lang">
+  <summary>{{ site.Language.LanguageName }}</summary>
+  <ul>
+    {{ range . }}<li><a href="{{ .RelPermalink }}" hreflang="{{ .Language.LanguageCode }}" lang="{{ .Language.LanguageCode }}">{{ .Language.LanguageName }}</a></li>{{ end }}
+  </ul>
+</details>
+{{- end }}

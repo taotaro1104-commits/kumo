@@ -38,17 +38,20 @@ DirectoryIndex index.html
   RewriteRule ^ - [R=404,L]
 
   # 3) 言語ページの正規の URL は /ja/ のような形（/ja/index.html は 301 で寄せる）
-  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/index\.html[\s?]
-  RewriteRule ^ /%1/ [L,R=301]
+  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/((browser|watchtower)/)?index\.html[\s?]
+  RewriteRule ^ /%1/%2 [L,R=301]
 
   # 4) 許可するパス（上から順に、どれにも当てはまらなければ 404）
   #    - /                              トップ（上で言語ページへ転送済み）
   #    - /ja/ /en/ /zh/ /ko/ /es/       言語ページのディレクトリと、その中の index.html・404.html・sitemap.xml だけ
+  #    - /ja/browser/ /ja/watchtower/ など  アプリごとの紹介ページ（各言語）と、その index.html
   #    - /style.min.<ハッシュ>.css       ハッシュ付きの CSS
   #    - アイコン・OGP 画像・スクリプト・ads.txt・sitemap.xml・robots.txt
   #    - /.well-known/                  証明書の更新などの標準の置き場
   RewriteCond %{REQUEST_URI} !^/$
   RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/?$
+  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/(browser|watchtower)/?$
+  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/(browser|watchtower)/index\.html$
   RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/((index|404)\.html|sitemap\.xml)$
   RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
   RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png)$

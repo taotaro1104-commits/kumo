@@ -1,0 +1,68 @@
+{{ define "main" }}
+{{ $p := .Params }}
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="{{ .RelPermalink }}"><img src="{{ "icon.svg" | relURL }}" alt="" width="34" height="34"><span>{{ .Title }}</span></a>
+    <nav aria-label="menu">
+      <a class="nav-link" href="{{ site.Home.RelPermalink }}">{{ $p.nav_all }}</a>
+      <a class="nav-link" href="#features">{{ $p.nav_features }}</a>
+      <a class="nav-link" href="#start">{{ $p.nav_start }}</a>
+      <a class="nav-link" href="#status">{{ $p.nav_status }}</a>
+      {{ partial "langswitch.html" . }}
+    </nav>
+  </div>
+</header>
+
+<div class="sky">
+  <div class="sun" aria-hidden="true"></div>
+  <section class="hero hero-single">
+    <div class="hero-text">
+      <h1>{{ $p.tagline }}</h1>
+      <p class="lead">{{ $p.lead }}</p>
+      <ul class="pills">{{ range $p.pills }}<li class="pill">{{ . }}</li>{{ end }}</ul>
+    </div>
+  </section>
+</div>
+
+<main>
+  <section id="numbers">
+    <h2>{{ $p.stats_title }}</h2>
+    <ul class="core">
+      {{ range $i, $s := $p.stats }}<li class="core-{{ $i }}"><h3 class="big">{{ $s.value }}</h3><p>{{ $s.label }}</p></li>{{ end }}
+    </ul>
+    <p class="note">{{ $p.stats_note }}</p>
+  </section>
+
+  <section id="features">
+    <h2>{{ $p.features_title }}</h2>
+    <ul class="more">
+      {{ range $p.features }}<li><span class="ico" aria-hidden="true">{{ .icon }}</span><div><h3>{{ .title }}</h3><p>{{ .body }}</p></div></li>{{ end }}
+    </ul>
+  </section>
+
+  <section id="how">
+    <h2>{{ $p.how_title }}</h2>
+    <ol class="steps">
+      {{ range $p.how }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}
+    </ol>
+  </section>
+
+  <section id="start">
+    <h2>{{ $p.start_title }}</h2>
+    <p>{{ $p.start_lead }}</p>
+    <pre class="code"><code>{{ $p.start_code }}</code></pre>
+    <p class="note">{{ $p.start_note }}</p>
+  </section>
+
+  <section id="status">
+    <h2>{{ $p.status_title }}</h2>
+    <p>{{ $p.status_body }}</p>
+    <h3>{{ $p.todo_title }}</h3>
+    <ul class="news">{{ range $p.todo }}<li>{{ . }}</li>{{ end }}</ul>
+  </section>
+</main>
+<footer>
+  <img src="{{ "icon.svg" | relURL }}" alt="" width="40" height="40">
+  <p>{{ $p.footer }}</p>
+</footer>
+{{ end }}

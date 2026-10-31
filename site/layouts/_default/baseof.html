@@ -11,10 +11,10 @@
   <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
   <meta name="theme-color" content="#1a66d6">
   <link rel="canonical" href="{{ .Permalink }}">
-  {{ range .Site.Languages }}<link rel="alternate" hreflang="{{ .LanguageCode }}" href="{{ printf "/%s/" .Lang | absURL }}">{{ end }}
+  {{ range .AllTranslations }}<link rel="alternate" hreflang="{{ .Language.LanguageCode }}" href="{{ .Permalink }}">{{ end }}
   <link rel="alternate" hreflang="x-default" href="{{ "/" | absURL }}">
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Lite Simple Rust Browser">
+  <meta property="og:site_name" content="{{ .Params.site_name | default "Lite Simple Rust Browser" }}">
   <meta property="og:title" content="{{ .Title }}">
   <meta property="og:description" content="{{ .Description }}">
   <meta property="og:url" content="{{ .Permalink }}">

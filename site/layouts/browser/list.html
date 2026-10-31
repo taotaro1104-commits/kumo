@@ -1,0 +1,113 @@
+{{ define "main" }}
+{{ $p := .Params }}
+{{ $max := 1 }}{{ range $p.stats }}{{ if gt .mb $max }}{{ $max = .mb }}{{ end }}{{ end }}
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="{{ .RelPermalink }}"><img src="{{ "icon.svg" | relURL }}" alt="" width="34" height="34"><span>{{ .Title }}</span></a>
+    <nav aria-label="menu">
+      <a class="nav-link" href="{{ site.Home.RelPermalink }}">{{ $p.nav_all }}</a>
+      <a class="nav-link" href="#features">{{ $p.nav_features }}</a>
+      <a class="nav-link" href="#get">{{ $p.nav_get }}</a>
+      <a class="nav-link" href="{{ site.Params.repo }}">GitHub</a>
+      {{ partial "langswitch.html" . }}
+    </nav>
+  </div>
+</header>
+
+<div class="sky">
+  <div class="sun" aria-hidden="true"></div>
+  <section class="hero">
+    <div class="hero-text">
+      <h1>{{ $p.tagline }}</h1>
+      <p class="lead">{{ $p.lead }}</p>
+      <p class="cta">
+        <a class="btn sunny" href="{{ site.Params.download }}" rel="noopener">{{ $p.download_button }}</a>
+        <a class="btn ghost" href="{{ site.Params.repo }}">{{ $p.cta_source }}</a>
+      </p>
+      <p class="pills"><span class="pill">{{ $p.release_version }}</span><span class="pill">Windows 11 (64-bit)</span><span class="pill">Android 8+</span></p>
+    </div>
+    <figure class="scene" aria-label="{{ $p.stats_title }}">
+      {{ range $p.stats }}
+      {{ $r := div (math.Sqrt .mb) (math.Sqrt $max) }}
+      <div class="cloud" style="--r:{{ printf "%.3f" $r }}">
+        <svg viewBox="28 70 198 124" aria-hidden="true"><path d="M70 190a38 38 0 0 1-2-76a50 50 0 0 1 94-12a40 40 0 0 1 30 88z"/></svg>
+        <p><strong>{{ .value }}</strong><span>{{ .label }}</span></p>
+      </div>
+      {{ end }}
+      <figcaption>{{ $p.stats_title }}</figcaption>
+    </figure>
+  </section>
+</div>
+
+<main>
+  {{ partial "ad.html" (dict "kind" "display" "label" $p.ad_label) }}
+
+  <section id="features">
+    <h2>{{ $p.features_title }}</h2>
+    <ul class="core">
+      {{ range $i, $f := first 3 $p.features }}<li class="core-{{ $i }}"><span class="ico" aria-hidden="true">{{ $f.icon }}</span><h3>{{ $f.title }}</h3><p>{{ $f.body }}</p></li>{{ end }}
+    </ul>
+    <ul class="more">
+      {{ range after 3 $p.features }}<li><span class="ico" aria-hidden="true">{{ .icon }}</span><div><h3>{{ .title }}</h3><p>{{ .body }}</p></div></li>{{ end }}
+    </ul>
+  </section>
+
+  {{ partial "ad.html" (dict "kind" "inarticle" "label" $p.ad_label) }}
+
+  <section id="start">
+    <h2>{{ $p.start_title }}</h2>
+    <p>{{ $p.start_lead }}</p>
+    <ul class="keys">
+      {{ range $p.keys }}<li><span class="caps">{{ range $j, $t := split .k " " }}{{ if $j }}<i>+</i>{{ end }}<kbd>{{ $t }}</kbd>{{ end }}</span><span>{{ .d }}</span></li>{{ end }}
+    </ul>
+    <p class="note">{{ $p.start_note }}</p>
+  </section>
+
+  <section id="get">
+    <h2>{{ $p.download_title }}</h2>
+    <p>{{ $p.download_body }}</p>
+    <ul class="dl">
+      {{ range $i, $f := $p.release_files }}
+      <li class="{{ if eq $i 0 }}dl-main{{ end }}">
+        <a href="{{ site.Params.download }}" rel="noopener">
+          <span class="ico" aria-hidden="true">{{ if eq $i 0 }}💿{{ else if eq $i 1 }}📦{{ else }}📱{{ end }}</span>
+          <span class="dl-body"><strong>{{ $f.kind }}</strong><span>{{ $f.name }} ・ {{ $f.size }}</span></span>
+          {{ if eq $i 0 }}<em class="badge">{{ $p.recommended }}</em>{{ end }}
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+    <details class="sums">
+      <summary>{{ $p.sha_summary }}</summary>
+      <p>{{ $p.sha_note }}</p>
+      <ul>{{ range $p.release_files }}<li><strong>{{ .name }}</strong><code>{{ .sha }}</code></li>{{ end }}</ul>
+    </details>
+  </section>
+
+  {{ partial "ad.html" (dict "kind" "feed" "label" $p.ad_label) }}
+
+  <section id="news">
+    <h2>{{ $p.changes_title }} <small>{{ $p.release_version }}</small></h2>
+    <ul class="news">{{ range $p.changes }}<li>{{ . }}</li>{{ end }}</ul>
+    <h3>{{ $p.limits_title }}</h3>
+    <p>{{ $p.limits_body }}</p>
+  </section>
+
+  <section id="shop" class="shop">
+    <h2><span aria-hidden="true">🛍️</span> {{ $p.shop_title }} <span class="pr">{{ $p.ad_label }}</span></h2>
+    <p>{{ $p.shop_lead }}</p>
+    <p class="cta">
+      <a class="btn shop-rakuten" href="{{ site.Params.rakuten }}" target="_blank" rel="nofollow sponsored noopener">{{ $p.rakuten_label }}</a>
+      <a class="btn shop-amazon" href="{{ site.Params.amazon }}" target="_blank" rel="nofollow sponsored noopener">{{ $p.amazon_label }}</a>
+    </p>
+    <p class="note">{{ $p.shop_disclosure }}</p>
+  </section>
+
+  {{ partial "ad.html" (dict "kind" "multiplex" "label" $p.ad_label) }}
+</main>
+<footer>
+  <img src="{{ "icon.svg" | relURL }}" alt="" width="40" height="40">
+  <p>© Lite Simple Rust Browser — MIT / Apache-2.0</p>
+  <p class="note">{{ $p.shop_disclosure }}</p>
+</footer>
+{{ end }}
