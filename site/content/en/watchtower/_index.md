@@ -8,6 +8,7 @@ pills: ["Single binary", "SQLite", "changedetection.io compatible", "REST API"]
 nav_all: "All apps"
 nav_features: "Features"
 nav_start: "Getting started"
+nav_get: "Download"
 nav_status: "Status"
 stats_title: "Memory use (measured on a Windows release build)"
 stats:
@@ -26,6 +27,8 @@ features:
   - { icon: "🛠️", title: "Fine control of fetching", body: "Set headers, method, body, proxy and interval per watch, per tag or globally. The closest setting wins." }
   - { icon: "🛡️", title: "Built with safety in mind", body: "SSRF protection against internal addresses, argon2 passwords, CSRF protection and a Host name allow-list. Header values and notification secrets stay out of logs." }
   - { icon: "📈", title: "Easy to operate", body: "OpenAPI docs, a Prometheus /metrics endpoint, an RSS feed, backup and restore, and a health check. Docker files are included." }
+  - { icon: "📊", title: "Dashboard", body: "See the number of watches, the failing ones, the notification queue and the latest changes on one page." }
+  - { icon: "🚀", title: "One-command start", body: "watchtower ui starts the server and opens the admin page in your browser." }
 how_title: "How it works"
 how:
   - { title: "Fetch", body: "Pages are fetched at the interval you set. Connections to internal addresses are refused by default." }
@@ -34,17 +37,28 @@ how:
 start_title: "Getting started"
 start_lead: "Set a password and start it from the command line. The admin UI opens on 127.0.0.1:5000 by default."
 start_code: |-
-  watchtower set-password     # UI password (one line from standard input)
+  watchtower set-password     # admin password (one line from standard input)
   watchtower api-key          # issue a REST API key
   watchtower watch add https://example.com/ --interval 300
-  watchtower run              # start scheduled checks and the admin UI
+  watchtower ui               # start and open the admin page in a browser (run does not open it)
 start_note: "Configure it with environment variables (WATCHTOWER_DATA_DIR, WATCHTOWER_LISTEN, WATCHTOWER_BASE_URL and more) or a config file."
+download_title: "Download"
+download_button: "Download from Google Drive"
+download_body: "A zip for Windows 11 (64-bit), about 11 MB. Extract it and run watchtower.exe; there is no installer. Static Linux binaries (x86_64 and aarch64) are on the GitHub releases page."
+cta_source: "Source code"
+sha_label: "SHA-256 (zip)"
+release_label: "Linux binaries and source (GitHub)"
+download_url: "https://drive.google.com/drive/folders/1349ZQeTtuH27DqxitP2U3XoAaON8HTG0?usp=sharing"
+repo_url: "https://github.com/taotaro1104-commits/watchtower-rs"
+release_url: "https://github.com/taotaro1104-commits/watchtower-rs/releases"
+download_file: "watchtower-rs-0.1.0-windows-x64.zip"
+download_sha: "398abd5f1c571416bcd61d00f63711b1313fffbf5022b766fa0ba8810a10e3a9"
 status_title: "Status"
-status_body: "Under development. Downloads and the source code are not published yet. It has been tested on Windows 11."
+status_body: "In development (v0.1.0, pre-release). It has been run as a real binary on Windows 11 and driven through the browser. The source code is on GitHub."
 todo_title: "Not verified yet"
 todo:
-  - "Building and running the Docker image"
-  - "A static Linux binary (musl) and aarch64"
-  - "Sending through a real mail server over TLS or STARTTLS"
+  - "The Docker image (it builds in CI, but has not been run yet)"
+  - "Static Linux (musl) and aarch64 binaries (they build, but have not been run yet)"
+  - "Sending through a real mail server with TLS or STARTTLS"
 footer: "© watchtower-rs — Apache-2.0"
 ---

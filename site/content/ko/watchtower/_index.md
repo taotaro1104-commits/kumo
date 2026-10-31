@@ -8,6 +8,7 @@ pills: ["단일 실행 파일", "SQLite", "changedetection.io 호환", "REST API
 nav_all: "앱 목록"
 nav_features: "특징"
 nav_start: "사용법"
+nav_get: "다운로드"
 nav_status: "개발 상황"
 stats_title: "메모리 사용량(Windows 릴리스 빌드 실측)"
 stats:
@@ -26,6 +27,8 @@ features:
   - { icon: "🛠️", title: "세밀한 가져오기 설정", body: "감시 항목별, 태그별, 전체로 헤더·메서드·본문·프록시·간격을 정할 수 있고, 가까운 설정이 우선합니다." }
   - { icon: "🛡️", title: "안전을 고려", body: "내부 주소 접속을 막는 SSRF 대책, argon2 비밀번호, CSRF 대책, Host 이름 허용 목록. 헤더 값과 알림 비밀 정보는 로그에 남기지 않습니다." }
   - { icon: "📈", title: "운영하기 쉬움", body: "OpenAPI 문서, Prometheus 형식의 /metrics, RSS 피드, 백업과 복원, 상태 확인을 제공하며 Docker 파일도 들어 있습니다." }
+  - { icon: "📊", title: "대시보드", body: "감시 수, 실패 중인 항목, 알림 대기열, 최근 변화를 한 화면에서 볼 수 있습니다." }
+  - { icon: "🚀", title: "명령 하나로 시작", body: "watchtower ui는 서버를 시작하고 브라우저에서 관리 화면을 엽니다." }
 how_title: "동작 방식"
 how:
   - { title: "가져오기", body: "정한 간격으로 페이지를 가져옵니다. 내부 주소 접속은 기본적으로 거부합니다." }
@@ -37,14 +40,25 @@ start_code: |-
   watchtower set-password     # 관리 화면 비밀번호(표준 입력에서 한 줄)
   watchtower api-key          # REST API 키 발급
   watchtower watch add https://example.com/ --interval 300
-  watchtower run              # 정기 확인과 관리 화면 시작
+  watchtower ui               # 시작하고 브라우저에서 관리 화면 열기(run은 화면을 열지 않음)
 start_note: "환경 변수(WATCHTOWER_DATA_DIR, WATCHTOWER_LISTEN, WATCHTOWER_BASE_URL 등)나 설정 파일로 바꿉니다."
+download_title: "다운로드"
+download_button: "Google 드라이브에서 다운로드"
+download_body: "Windows 11(64비트)용 zip이며 크기는 약 11 MB입니다. 압축을 풀고 watchtower.exe를 실행하면 되고, 설치 과정은 없습니다. Linux(x86_64, aarch64)용 정적 바이너리는 GitHub 릴리스 페이지에 있습니다."
+cta_source: "소스 코드"
+sha_label: "SHA-256(zip)"
+release_label: "Linux 바이너리와 소스 코드(GitHub)"
+download_url: "https://drive.google.com/drive/folders/1349ZQeTtuH27DqxitP2U3XoAaON8HTG0?usp=sharing"
+repo_url: "https://github.com/taotaro1104-commits/watchtower-rs"
+release_url: "https://github.com/taotaro1104-commits/watchtower-rs/releases"
+download_file: "watchtower-rs-0.1.0-windows-x64.zip"
+download_sha: "398abd5f1c571416bcd61d00f63711b1313fffbf5022b766fa0ba8810a10e3a9"
 status_title: "개발 상황"
-status_body: "개발 중입니다. 배포 파일과 소스 코드는 아직 공개하지 않았습니다. Windows 11에서 동작을 확인했습니다."
+status_body: "개발 중입니다(v0.1.0, 프리릴리스). Windows 11에서 실제 바이너리를 실행하고 브라우저로 조작해 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
 todo_title: "아직 확인하지 못한 것"
 todo:
-  - "Docker 이미지 빌드와 실행"
-  - "Linux 정적 바이너리(musl)와 aarch64"
-  - "TLS·STARTTLS를 쓰는 실제 메일 서버로의 전송"
+  - "Docker 이미지(CI에서 빌드는 되지만 아직 실행해 보지 않음)"
+  - "Linux 정적 바이너리(musl)와 aarch64(빌드는 되지만 아직 실행해 보지 않음)"
+  - "TLS 또는 STARTTLS를 쓰는 실제 메일 서버로의 전송"
 footer: "© watchtower-rs — Apache-2.0"
 ---

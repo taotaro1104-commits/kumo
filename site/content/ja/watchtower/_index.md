@@ -8,6 +8,7 @@ pills: ["単一バイナリ", "SQLite", "changedetection.io 互換", "REST API"]
 nav_all: "アプリ一覧"
 nav_features: "特長"
 nav_start: "使い方"
+nav_get: "入手方法"
 nav_status: "開発の状況"
 stats_title: "メモリ使用量（Windows のリリースビルドでの実測）"
 stats:
@@ -26,6 +27,8 @@ features:
   - { icon: "🛠️", title: "取得の細かな指定", body: "ウォッチごと、タグごと、全体で、ヘッダ・メソッド・ボディ・プロキシ・間隔を決められます。近い設定が優先されます。" }
   - { icon: "🛡️", title: "安全に配慮", body: "内部のアドレスへの接続を断つ SSRF 対策、argon2 のパスワード、CSRF 対策、Host 名の許可リスト。ヘッダの値や通知先の秘密はログに出しません。" }
   - { icon: "📈", title: "運用しやすい", body: "OpenAPI の文書、Prometheus 形式の /metrics、RSS フィード、バックアップと復元、ヘルスチェック。Docker 用のファイルも付いています。" }
+  - { icon: "📊", title: "ダッシュボード", body: "ウォッチの数、失敗中のもの、通知キューの滞り、直近の変化を 1 画面で見られます。" }
+  - { icon: "🚀", title: "ワンコマンドで起動", body: "watchtower ui で、サーバを起動してブラウザで管理画面を開きます。" }
 how_title: "しくみ"
 how:
   - { title: "取得する", body: "決めた間隔でページを取得します。内部アドレスへの接続は既定で断ります。" }
@@ -37,14 +40,25 @@ start_code: |-
   watchtower set-password     # 管理画面のパスワード（標準入力から 1 行）
   watchtower api-key          # REST API のキーを発行
   watchtower watch add https://example.com/ --interval 300
-  watchtower run              # 定期チェックと管理画面を開始
+  watchtower ui               # 起動して、ブラウザで管理画面を開く（run なら画面は開かない）
 start_note: "設定は環境変数（WATCHTOWER_DATA_DIR・WATCHTOWER_LISTEN・WATCHTOWER_BASE_URL など）か設定ファイルで変えます。"
+download_title: "入手方法"
+download_button: "Google ドライブからダウンロード"
+download_body: "Windows 11（64 ビット）用の zip です（約 11 MB）。展開して watchtower.exe を実行するだけで、インストールは要りません。Linux（x86_64・aarch64）用の静的バイナリは GitHub のリリースにあります。"
+cta_source: "ソースコード"
+sha_label: "SHA-256（zip）"
+release_label: "Linux 用バイナリ・ソースコード（GitHub）"
+download_url: "https://drive.google.com/drive/folders/1349ZQeTtuH27DqxitP2U3XoAaON8HTG0?usp=sharing"
+repo_url: "https://github.com/taotaro1104-commits/watchtower-rs"
+release_url: "https://github.com/taotaro1104-commits/watchtower-rs/releases"
+download_file: "watchtower-rs-0.1.0-windows-x64.zip"
+download_sha: "398abd5f1c571416bcd61d00f63711b1313fffbf5022b766fa0ba8810a10e3a9"
 status_title: "開発の状況"
-status_body: "開発中です。配布用のファイルとソースコードの公開は、まだ行っていません。Windows 11 で動作を確かめています。"
+status_body: "開発中です（v0.1.0・プレリリース）。Windows 11 の実機で、実際のバイナリを起動してブラウザから操作できることを確かめています。ソースコードは GitHub で公開しています。"
 todo_title: "まだ確かめていないこと"
 todo:
-  - "Docker イメージのビルドと実行"
-  - "Linux 用の静的バイナリ（musl）と aarch64"
+  - "Docker イメージ（CI でビルドは通っていますが、起動はまだ確かめていません）"
+  - "Linux 用の静的バイナリ（musl）と aarch64（ビルドは通っていますが、実行はまだ確かめていません）"
   - "TLS・STARTTLS を使う実際のメールサーバーへの送信"
 footer: "© watchtower-rs — Apache-2.0"
 ---

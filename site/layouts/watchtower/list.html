@@ -7,6 +7,7 @@
       <a class="nav-link" href="{{ site.Home.RelPermalink }}">{{ $p.nav_all }}</a>
       <a class="nav-link" href="#features">{{ $p.nav_features }}</a>
       <a class="nav-link" href="#start">{{ $p.nav_start }}</a>
+      <a class="nav-link" href="#get">{{ $p.nav_get }}</a>
       <a class="nav-link" href="#status">{{ $p.nav_status }}</a>
       {{ partial "langswitch.html" . }}
     </nav>
@@ -19,6 +20,10 @@
     <div class="hero-text">
       <h1>{{ $p.tagline }}</h1>
       <p class="lead">{{ $p.lead }}</p>
+      <p class="cta">
+        <a class="btn sunny" href="{{ $p.download_url }}" rel="noopener">{{ $p.download_button }}</a>
+        <a class="btn ghost" href="{{ $p.repo_url }}" rel="noopener">{{ $p.cta_source }}</a>
+      </p>
       <ul class="pills">{{ range $p.pills }}<li class="pill">{{ . }}</li>{{ end }}</ul>
     </div>
   </section>
@@ -52,6 +57,26 @@
     <p>{{ $p.start_lead }}</p>
     <pre class="code"><code>{{ $p.start_code }}</code></pre>
     <p class="note">{{ $p.start_note }}</p>
+  </section>
+
+  <section id="get">
+    <h2>{{ $p.download_title }}</h2>
+    <p>{{ $p.download_body }}</p>
+    <ul class="dl">
+      <li class="dl-main">
+        <a href="{{ $p.download_url }}" rel="noopener">
+          <span class="ico" aria-hidden="true">💿</span>
+          <span class="dl-body"><strong>Windows 11 (64-bit)</strong><span>{{ $p.download_file }}</span></span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ $p.release_url }}" rel="noopener">
+          <span class="ico" aria-hidden="true">🐧</span>
+          <span class="dl-body"><strong>Linux (x86_64 / aarch64)</strong><span>{{ $p.release_label }}</span></span>
+        </a>
+      </li>
+    </ul>
+    <p class="note">{{ $p.sha_label }}: <code>{{ $p.download_sha }}</code></p>
   </section>
 
   <section id="status">
