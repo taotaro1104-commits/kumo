@@ -25,6 +25,7 @@ shots:
   - { img: "ja-reader-magnifier.jpg", caption: "돋보기" }
   - { img: "ja-reader-fullscreen.jpg", caption: "전체 화면 맞춤" }
   - { img: "ja-novel-vertical.jpg", caption: "문장 EPUB (세로쓰기)" }
+  - { img: "ja-novel-sepia.jpg", caption: "세피아 배색의 세로쓰기" }
   - { img: "ja-novel-mincho.jpg", caption: "명조체·큰 글자" }
   - { img: "ja-novel-text-settings.jpg", caption: "글자 설정 (크기·줄 간격·글꼴)" }
   - { img: "en-shelf.jpg", caption: "영어 화면의 책장" }
@@ -43,7 +44,7 @@ features:
   - { icon: "🛡️", title: "안전 고려", body: "풀 수 있는 크기와 파일 수에 상한이 있고, 남은 공간이 적으면 도중에 멈춥니다. 압축 파일 안의 ../ 같은 경로는 무효로 처리합니다." }
   - { icon: "🔢", title: "페이지 지정과 책갈피", body: "페이지 번호를 입력해 바로 이동하거나, 책갈피 목록에서 이동할 수 있습니다. 한 번 눌러 책갈피를 추가·해제합니다(Android 버전)." }
   - { icon: "⚙️", title: "설정", body: "기본 보기 방식, 제본 방향, 맞춤, 볼륨 키 넘김, 화면 켜 두기, 책장 정렬과 이미지 캐시가 쓸 메모리를 정할 수 있습니다(Android 버전)." }
-  - { icon: "📘", title: "EPUB(만화도 소설도)", body: "한 페이지가 이미지 한 장인 EPUB(만화·사진집)을 읽는 순서대로 엽니다. 웹 소설처럼 이미지가 없는 텍스트 EPUB은 기기의 일본어 글꼴로 세로쓰기 페이지로 그려 보여 주며, 열람 메뉴와 설정 화면에서 글자 크기·줄 간격·고딕체/명조체를 바꿀 수 있습니다." }
+  - { icon: "📘", title: "EPUB(만화도 소설도)", body: "한 페이지가 이미지 한 장인 EPUB(만화·사진집)을 읽는 순서대로 엽니다. 웹 소설처럼 이미지가 없는 텍스트 EPUB은 기기의 일본어 글꼴로 세로쓰기 페이지로 그려 보여 주며, 열람 메뉴와 설정 화면에서 글자 크기·줄 간격·글꼴(고딕체/명조체)·글자 색과 배경 색을 바꿀 수 있습니다." }
   - { icon: "⚡", title: "두 번째부터 빠르게", body: "페이지 크기를 기억해 두므로, 폴더와 압축 파일을 다음에 열 때 더 빠릅니다." }
 how_title: "사용법"
 how:
@@ -55,17 +56,17 @@ download_button: "Google 드라이브에서 다운로드"
 download_body: "Android용 APK와 Windows용 exe를 Google 드라이브에서 배포합니다. 설치 프로그램은 없으며, exe는 실행만 하면 됩니다."
 download_note: "APK는 직접 만든 키로 서명했기 때문에 기기에서 '출처를 알 수 없는 앱'을 허용해야 합니다. exe는 서명하지 않아 Windows SmartScreen이 경고를 표시할 수 있습니다."
 cta_source: "소스 코드"
-sha_label: "SHA-256(v0.1.6)"
+sha_label: "SHA-256(v0.1.7)"
 release_label: "변경 내역·소스 코드(GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.6-android.apk"
+android_file: "RustHighBookViewer-0.1.7-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "f2d49ac8881c08a9a1d29fd48b257859a5e0268629c0fa136e35ad6b3f9f8db3"
-windows_sha: "e04117ef3eebbc54ea4d0b528a0230171695ca64baa54266e6a173a67ca8b5fe"
+android_sha: "4fe2ebc513de975801085e8cae9bfcae780d51fa6050fe31ec76e3b56e3943f9"
+windows_sha: "6f83ea2fde6b0d948581f9a3ad6481c33685cf28d5903a2dc9505a59ae041850"
 status_title: "개발 상황"
-status_body: "개발 중입니다(v0.1.6, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로쓰기 텍스트 EPUB 포함), 폴더 일괄 가져오기, 그룹, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
+status_body: "개발 중입니다(v0.1.7, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로쓰기 텍스트 EPUB 포함), 폴더 일괄 가져오기, 그룹, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
 todo_title: "아직 확인하지 못한 것·지원하지 않는 것"
 todo:
   - "Android 실제 기기에서의 동작(에뮬레이터에서만 확인)"
