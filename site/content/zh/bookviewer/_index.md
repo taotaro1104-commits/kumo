@@ -15,7 +15,7 @@ stats:
   - { value: "5 种", label: "可打开 ZIP/CBZ、7z、RAR、EPUB 和图片文件夹" }
   - { value: "4 种显示", label: "单页、双页、自动双页、纵向滚动" }
   - { value: "2 个平台", label: "Android 8.0 及以上，以及 Windows" }
-stats_note: "支持 RAR 4.x / 5.x（未加密）。7z 和 RAR 在打开时会先解压到设备的存储空间。EPUB 支持每页为一张图片的书（漫画、写真集）。"
+stats_note: "支持 RAR 4.x / 5.x（未加密）。7z 和 RAR 在打开时会先解压到设备的存储空间。EPUB 支持每页一张图片的书（漫画、写真集），也支持纯文字书籍（横排）。"
 features_title: "特点"
 features:
   - { icon: "📖", title: "右开本、左开本都行", body: "可切换装订方向，双页的排列也随之改变。封面可单独显示，横向的页面单页显示。" }

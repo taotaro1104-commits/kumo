@@ -15,7 +15,7 @@ stats:
   - { value: "5 kinds", label: "Opens ZIP/CBZ, 7z, RAR, EPUB and image folders" }
   - { value: "4 layouts", label: "Single page, spread, auto spread and vertical scroll" }
   - { value: "2 platforms", label: "Android 8.0 or later, and Windows" }
-stats_note: "RAR 4.x / 5.x are supported (not encrypted). 7z and RAR are unpacked into the device's storage when you open them. EPUB support covers books with one image per page (comics, photo books)."
+stats_note: "RAR 4.x / 5.x are supported (not encrypted). 7z and RAR are unpacked into the device's storage when you open them. EPUB support covers image-based books (comics, photo books) and text books (horizontal writing)."
 features_title: "Features"
 features:
   - { icon: "📖", title: "Right-to-left or left-to-right", body: "Switch the binding direction and the spread order follows. The cover can stand alone, and wide pages are shown by themselves." }

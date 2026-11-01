@@ -15,7 +15,7 @@ stats:
   - { value: "5 tipos", label: "Abre ZIP/CBZ, 7z, RAR, EPUB y carpetas de imágenes" }
   - { value: "4 vistas", label: "Una página, doble página, doble automática y desplazamiento vertical" }
   - { value: "2 plataformas", label: "Android 8.0 o superior y Windows" }
-stats_note: "Admite RAR 4.x / 5.x (sin cifrar). Los archivos 7z y RAR se descomprimen en el almacenamiento del dispositivo al abrirlos. EPUB admite libros con una imagen por página (cómics, libros de fotos)."
+stats_note: "Admite RAR 4.x / 5.x (sin cifrar). Los archivos 7z y RAR se descomprimen en el almacenamiento del dispositivo al abrirlos. EPUB admite libros con una imagen por página (cómics, libros de fotos) y libros de texto (escritura horizontal)."
 features_title: "Características"
 features:
   - { icon: "📖", title: "De derecha a izquierda o al revés", body: "Cambia el sentido de encuadernación y el orden de la doble página se ajusta. La portada puede ir sola y las páginas apaisadas se muestran de una en una." }
