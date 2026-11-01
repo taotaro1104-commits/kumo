@@ -24,7 +24,7 @@ features:
   - { icon: "🎨", title: "색 조정", body: "밝기, 대비, 감마, 흑백, 세피아, 반전. 설정은 책마다 기억합니다(Android 버전)." }
   - { icon: "⏱️", title: "자동 넘김", body: "3·5·10·20초마다 자동으로 페이지를 넘기고, 마지막 페이지에서 멈춥니다(Android 버전)." }
   - { icon: "📚", title: "책장과 이어 읽기", body: "기록, 즐겨찾기, 제목 검색이 있는 책장. 닫아도 읽던 위치를 저장하므로 이어서 읽을 수 있습니다." }
-  - { icon: "📁", title: "폴더도 열기", body: "이미지가 들어 있는 폴더를 그대로 한 권으로 읽을 수 있습니다. Android에서는 기기의 폴더를 고르기만 하면 됩니다." }
+  - { icon: "📁", title: "폴더도 열기", body: "폴더를 고르면 각 폴더의 이미지는 한 권으로, EPUB·ZIP·7z·RAR는 파일 하나당 한 권으로 묶어 하위 폴더까지 한꺼번에 책장에 추가합니다. Android에서는 “모든 파일 액세스”를 허용하면 Download 같은 폴더도 바로 고를 수 있습니다." }
   - { icon: "🛡️", title: "안전 고려", body: "풀 수 있는 크기와 파일 수에 상한이 있고, 남은 공간이 적으면 도중에 멈춥니다. 압축 파일 안의 ../ 같은 경로는 무효로 처리합니다." }
   - { icon: "🔢", title: "페이지 지정과 책갈피", body: "페이지 번호를 입력해 바로 이동하거나, 책갈피 목록에서 이동할 수 있습니다. 한 번 눌러 책갈피를 추가·해제합니다(Android 버전)." }
   - { icon: "⚙️", title: "설정", body: "기본 보기 방식, 제본 방향, 맞춤, 볼륨 키 넘김, 화면 켜 두기, 책장 정렬과 이미지 캐시가 쓸 메모리를 정할 수 있습니다(Android 버전)." }
@@ -40,17 +40,17 @@ download_button: "Google 드라이브에서 다운로드"
 download_body: "Android용 APK와 Windows용 exe를 Google 드라이브에서 배포합니다. 설치 프로그램은 없으며, exe는 실행만 하면 됩니다."
 download_note: "APK는 직접 만든 키로 서명했기 때문에 기기에서 '출처를 알 수 없는 앱'을 허용해야 합니다. exe는 서명하지 않아 Windows SmartScreen이 경고를 표시할 수 있습니다."
 cta_source: "소스 코드"
-sha_label: "SHA-256(v0.1.2)"
+sha_label: "SHA-256(v0.1.3)"
 release_label: "변경 내역·소스 코드(GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.2-android.apk"
+android_file: "RustHighBookViewer-0.1.3-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "62c258c2303115c7b2556aebd0135f49afdb78cda652151849282ea77ec62bc2"
-windows_sha: "d001de8acacd093ddd04c504c771dc9e218bddb4962dcb7edd0ce48880d6662b"
+android_sha: "2bef5262f6cbb348b7961bee0426102f33318eae24f88c17bb6ad4bf15d6d5fc"
+windows_sha: "5211618dec0cff0fc5f1179d5a7de8f4f4556fc6baadc59ac90c4b095672854a"
 status_title: "개발 상황"
-status_body: "개발 중입니다(v0.1.2, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB, 폴더를 열어 읽을 수 있음을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
+status_body: "개발 중입니다(v0.1.3, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB, 폴더 일괄 가져오기가 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
 todo_title: "아직 확인하지 못한 것·지원하지 않는 것"
 todo:
   - "Android 실제 기기에서의 동작(에뮬레이터에서만 확인)"

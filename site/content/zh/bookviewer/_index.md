@@ -24,7 +24,7 @@ features:
   - { icon: "🎨", title: "调色", body: "亮度、对比度、伽马，以及黑白、复古棕、反色。设置会按每本书分别记住（Android 版）。" }
   - { icon: "⏱️", title: "自动翻页", body: "每 3、5、10、20 秒自动翻页，到最后一页停止（Android 版）。" }
   - { icon: "📚", title: "书架与继续阅读", body: "带有历史、收藏和标题搜索的书架。关闭时会保存读到的位置，下次可从上次的位置继续。" }
-  - { icon: "📁", title: "也能打开文件夹", body: "可把装有图片的文件夹直接当作一本书来读。在 Android 上，只需选择设备上的文件夹。" }
+  - { icon: "📁", title: "也能打开文件夹", body: "选择文件夹后，每个文件夹里的图片合为一本，EPUB、ZIP、7z、RAR 则每个文件各算一本，子文件夹也一并处理，全部加入书架。在 Android 上允许“所有文件访问权限”后，可直接选择 Download 等文件夹。" }
   - { icon: "🛡️", title: "注重安全", body: "对解压的大小和文件数量设有上限，可用空间不足时会中途停止。压缩包内含 ../ 之类的路径会被忽略。" }
   - { icon: "🔢", title: "页面跳转与书签", body: "输入页码即可跳转，也可从书签列表跳转。一键添加或取消书签（Android 版）。" }
   - { icon: "⚙️", title: "设置", body: "可设定默认的显示方式、装订方向、适应方式、音量键翻页、保持亮屏和书架排序，以及图像缓存可使用的内存（Android 版）。" }
@@ -40,17 +40,17 @@ download_button: "从 Google 云端硬盘下载"
 download_body: "Android 用的 APK 和 Windows 用的 exe 都通过 Google 云端硬盘提供。没有安装程序，exe 直接运行即可使用。"
 download_note: "APK 使用我们自己生成的密钥签名，因此设备会要求允许安装来自未知来源的应用。exe 没有签名，Windows 的 SmartScreen 可能会给出警告。"
 cta_source: "源代码"
-sha_label: "SHA-256（v0.1.2）"
+sha_label: "SHA-256（v0.1.3）"
 release_label: "更新记录与源代码（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.2-android.apk"
+android_file: "RustHighBookViewer-0.1.3-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "62c258c2303115c7b2556aebd0135f49afdb78cda652151849282ea77ec62bc2"
-windows_sha: "d001de8acacd093ddd04c504c771dc9e218bddb4962dcb7edd0ce48880d6662b"
+android_sha: "2bef5262f6cbb348b7961bee0426102f33318eae24f88c17bb6ad4bf15d6d5fc"
+windows_sha: "5211618dec0cff0fc5f1179d5a7de8f4f4556fc6baadc59ac90c4b095672854a"
 status_title: "开发状态"
-status_body: "开发中（v0.1.2，预发布版）。在 Android 上，已在 Android 15 模拟器中确认可以打开并阅读 7z、RAR、EPUB 和文件夹。源代码已在 GitHub 公开。"
+status_body: "开发中（v0.1.3，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB 和文件夹批量导入可用。源代码已在 GitHub 公开。"
 todo_title: "尚未验证或不支持的内容"
 todo:
   - "Android 真机上的运行情况（目前只在模拟器中确认）"
