@@ -16,6 +16,19 @@ stats:
   - { value: "4 种显示", label: "单页、双页、自动双页、纵向滚动" }
   - { value: "2 个平台", label: "Android 8.0 及以上，以及 Windows" }
 stats_note: "支持 RAR 4.x / 5.x（未加密）。7z 和 RAR 在打开时会先解压到设备的存储空间。EPUB 支持每页一张图片的书（漫画、写真集），也支持纯文字书籍（竖排）。"
+shots_title: "截图"
+shots_note: "示例图片是为本应用绘制的插图，以及青空文库中夏目漱石《我是猫》（已过版权期）的开头。画面截取自 Android 15 模拟器。"
+shots:
+  - { img: "ja-shelf.jpg", caption: "书架" }
+  - { img: "ja-group-books.jpg", caption: "分组" }
+  - { img: "ja-reader-spread.jpg", caption: "双页（右开本）" }
+  - { img: "ja-reader-magnifier.jpg", caption: "放大镜" }
+  - { img: "ja-reader-fullscreen.jpg", caption: "全屏适应" }
+  - { img: "ja-novel-vertical.jpg", caption: "文字 EPUB（竖排）" }
+  - { img: "ja-novel-mincho.jpg", caption: "宋体与较大文字" }
+  - { img: "ja-novel-text-settings.jpg", caption: "文字设置（大小、行距、字体）" }
+  - { img: "en-shelf.jpg", caption: "英文界面的书架" }
+  - { img: "ja-folder-browser.jpg", caption: "选择文件夹" }
 features_title: "特点"
 features:
   - { icon: "📖", title: "右开本、左开本都行", body: "可切换装订方向，双页的排列也随之改变。封面可单独显示，横向的页面单页显示。" }
@@ -30,7 +43,7 @@ features:
   - { icon: "🛡️", title: "注重安全", body: "对解压的大小和文件数量设有上限，可用空间不足时会中途停止。压缩包内含 ../ 之类的路径会被忽略。" }
   - { icon: "🔢", title: "页面跳转与书签", body: "输入页码即可跳转，也可从书签列表跳转。一键添加或取消书签（Android 版）。" }
   - { icon: "⚙️", title: "设置", body: "可设定默认的显示方式、装订方向、适应方式、音量键翻页、保持亮屏和书架排序，以及图像缓存可使用的内存（Android 版）。" }
-  - { icon: "📘", title: "EPUB（漫画与小说）", body: "按阅读顺序打开每页一张图片的 EPUB（漫画、写真集）。网络小说这类没有图片的纯文字 EPUB，会用设备上的日文字体绘制成竖排页面，并可调整文字大小、在黑体与宋体之间切换。" }
+  - { icon: "📘", title: "EPUB（漫画与小说）", body: "按阅读顺序打开每页一张图片的 EPUB（漫画、写真集）。网络小说这类没有图片的纯文字 EPUB，会用设备上的日文字体绘制成竖排页面，并可在阅读菜单和设置画面中调整文字大小、行距，以及黑体与宋体。" }
   - { icon: "⚡", title: "再次打开更快", body: "会记住页面尺寸，因此文件夹和压缩包从第二次起打开更快。" }
 how_title: "使用方法"
 how:
@@ -42,17 +55,17 @@ download_button: "从 Google 云端硬盘下载"
 download_body: "Android 用的 APK 和 Windows 用的 exe 都通过 Google 云端硬盘提供。没有安装程序，exe 直接运行即可使用。"
 download_note: "APK 使用我们自己生成的密钥签名，因此设备会要求允许安装来自未知来源的应用。exe 没有签名，Windows 的 SmartScreen 可能会给出警告。"
 cta_source: "源代码"
-sha_label: "SHA-256（v0.1.5）"
+sha_label: "SHA-256（v0.1.6）"
 release_label: "更新记录与源代码（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.5-android.apk"
+android_file: "RustHighBookViewer-0.1.6-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "277533ee9f3241ffe6bc21df47029e565f3cf11ef9e6e4f07c62f2838fd9c608"
-windows_sha: "5ab7d0987890ec477718b2d9dbecac9b1d2cde30d725f17f0bb552f88fe799e3"
+android_sha: "f2d49ac8881c08a9a1d29fd48b257859a5e0268629c0fa136e35ad6b3f9f8db3"
+windows_sha: "e04117ef3eebbc54ea4d0b528a0230171695ca64baa54266e6a173a67ca8b5fe"
 status_title: "开发状态"
-status_body: "开发中（v0.1.5，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（含竖排的纯文字 EPUB）、文件夹批量导入、分组以及五种界面语言可用。源代码已在 GitHub 公开。"
+status_body: "开发中（v0.1.6，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（含竖排的纯文字 EPUB）、文件夹批量导入、分组以及五种界面语言可用。源代码已在 GitHub 公开。"
 todo_title: "尚未验证或不支持的内容"
 todo:
   - "Android 真机上的运行情况（目前只在模拟器中确认）"

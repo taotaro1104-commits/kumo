@@ -188,3 +188,11 @@ footer p{margin:6px 0}
 #status h3{margin:28px 0 8px}
 @media (max-width:960px){.apps,.steps{grid-template-columns:1fr}}
 @media (max-width:640px){.hero-single{padding-top:36px;padding-bottom:56px}.app{padding:22px 18px}}
+
+.shots{list-style:none;padding:0;margin:24px 0 8px;display:flex;gap:16px;overflow-x:auto;padding-bottom:12px;scroll-snap-type:x proximity}
+.shots li{flex:none;width:200px;scroll-snap-align:start;text-align:center}
+.shots img{display:block;width:100%;height:auto;border-radius:18px;border:2px solid var(--line);background:var(--cloud)}
+.shots p{margin:8px 0 0;font-size:.85rem;line-height:1.5;color:var(--mute)}
+@media (min-width:900px){.shots li{width:212px}}
+
+.dl code,.note code{overflow-wrap:anywhere;word-break:break-all;max-width:100%}

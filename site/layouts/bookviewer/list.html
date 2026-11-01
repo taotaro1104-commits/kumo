@@ -2,9 +2,10 @@
 {{ $p := .Params }}
 <header class="top">
   <div class="top-in">
-    <a class="brand" href="{{ .RelPermalink }}"><img src="{{ "icon.svg" | relURL }}" alt="" width="34" height="34"><span>{{ .Title }}</span></a>
+    <a class="brand" href="{{ .RelPermalink }}"><img src="{{ "bookviewer/icon-64.png" | relURL }}" alt="" width="34" height="34"><span>{{ .Title }}</span></a>
     <nav aria-label="menu">
       <a class="nav-link" href="{{ site.Home.RelPermalink }}">{{ $p.nav_all }}</a>
+      {{ if $p.shots }}<a class="nav-link" href="#shots">{{ $p.shots_title }}</a>{{ end }}
       <a class="nav-link" href="#features">{{ $p.nav_features }}</a>
       <a class="nav-link" href="#how">{{ $p.nav_how }}</a>
       <a class="nav-link" href="#get">{{ $p.nav_get }}</a>
@@ -37,6 +38,16 @@
     </ul>
     <p class="note">{{ $p.stats_note }}</p>
   </section>
+
+  {{ with $p.shots }}
+  <section id="shots">
+    <h2>{{ $p.shots_title }}</h2>
+    <ul class="shots">
+      {{ range . }}<li><img src="{{ printf "bookviewer/shots/%s" .img | relURL }}" alt="{{ .caption }}" width="480" loading="lazy" decoding="async"><p>{{ .caption }}</p></li>{{ end }}
+    </ul>
+    <p class="note">{{ $p.shots_note }}</p>
+  </section>
+  {{ end }}
 
   <section id="features">
     <h2>{{ $p.features_title }}</h2>

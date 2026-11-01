@@ -16,6 +16,19 @@ stats:
   - { value: "4 layouts", label: "Single page, spread, auto spread and vertical scroll" }
   - { value: "2 platforms", label: "Android 8.0 or later, and Windows" }
 stats_note: "RAR 4.x / 5.x are supported (not encrypted). 7z and RAR are unpacked into the device's storage when you open them. EPUB support covers image-based books (comics, photo books) and text books (vertical writing)."
+shots_title: "Screenshots"
+shots_note: "The sample images are artwork made for this app and the opening of “I Am a Cat” by Natsume Soseki (public domain, from Aozora Bunko). Screens were captured in an Android 15 emulator."
+shots:
+  - { img: "ja-shelf.jpg", caption: "Shelf" }
+  - { img: "ja-group-books.jpg", caption: "Groups" }
+  - { img: "ja-reader-spread.jpg", caption: "Two pages (right binding)" }
+  - { img: "ja-reader-magnifier.jpg", caption: "Magnifier" }
+  - { img: "ja-reader-fullscreen.jpg", caption: "Fullscreen fit" }
+  - { img: "ja-novel-vertical.jpg", caption: "Text EPUB (vertical writing)" }
+  - { img: "ja-novel-mincho.jpg", caption: "Mincho, larger text" }
+  - { img: "ja-novel-text-settings.jpg", caption: "Text settings (size, spacing, typeface)" }
+  - { img: "en-shelf.jpg", caption: "Shelf in English" }
+  - { img: "ja-folder-browser.jpg", caption: "Folder browser" }
 features_title: "Features"
 features:
   - { icon: "📖", title: "Right-to-left or left-to-right", body: "Switch the binding direction and the spread order follows. The cover can stand alone, and wide pages are shown by themselves." }
@@ -30,7 +43,7 @@ features:
   - { icon: "🛡️", title: "Careful about safety", body: "There are limits on the unpacked size and the number of files, and unpacking stops when free space runs low. Paths such as ../ inside an archive are neutralized." }
   - { icon: "🔢", title: "Go to a page, and bookmarks", body: "Type a page number to jump there, or jump from your bookmark list. Add or remove a bookmark with one tap (Android version)." }
   - { icon: "⚙️", title: "Settings", body: "Choose the defaults for layout, binding direction, fit, volume-key page turning, screen-on and shelf order, and how much memory the image cache may use (Android version)." }
-  - { icon: "📘", title: "EPUB (comics and novels)", body: "Opens image-based EPUBs (comics, photo books) in reading order. Text-only EPUBs such as web novels are drawn as vertical-writing pages with a Japanese font from your device, and you can change the text size and switch between Gothic and Mincho (serif) typefaces." }
+  - { icon: "📘", title: "EPUB (comics and novels)", body: "Opens image-based EPUBs (comics, photo books) in reading order. Text-only EPUBs such as web novels are drawn as vertical-writing pages with a Japanese font from your device, and you can change the text size, the line spacing and the typeface (Gothic or Mincho/serif) from the reader menu and the settings screen." }
   - { icon: "⚡", title: "Quicker the second time", body: "Page sizes are remembered, so folders and archives open faster the next time." }
 how_title: "How to use"
 how:
@@ -42,17 +55,17 @@ download_button: "Download from Google Drive"
 download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
 download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
 cta_source: "Source code"
-sha_label: "SHA-256 (v0.1.5)"
+sha_label: "SHA-256 (v0.1.6)"
 release_label: "Release notes and source (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.5-android.apk"
+android_file: "RustHighBookViewer-0.1.6-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "277533ee9f3241ffe6bc21df47029e565f3cf11ef9e6e4f07c62f2838fd9c608"
-windows_sha: "5ab7d0987890ec477718b2d9dbecac9b1d2cde30d725f17f0bb552f88fe799e3"
+android_sha: "f2d49ac8881c08a9a1d29fd48b257859a5e0268629c0fa136e35ad6b3f9f8db3"
+windows_sha: "e04117ef3eebbc54ea4d0b528a0230171695ca64baa54266e6a173a67ca8b5fe"
 status_title: "Status"
-status_body: "Under development (v0.1.5, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (including vertical-writing text EPUBs), bulk folder import, groups and the five display languages work. The source code is on GitHub."
+status_body: "Under development (v0.1.6, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (including vertical-writing text EPUBs), bulk folder import, groups and the five display languages work. The source code is on GitHub."
 todo_title: "Not yet verified, or not supported"
 todo:
   - "Android on a real device (only checked in an emulator)"

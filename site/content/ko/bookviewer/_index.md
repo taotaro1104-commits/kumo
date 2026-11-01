@@ -16,6 +16,19 @@ stats:
   - { value: "4가지 보기", label: "한 페이지, 펼침, 자동 펼침, 세로 스크롤" }
   - { value: "2개 환경", label: "Android 8.0 이상, 그리고 Windows" }
 stats_note: "RAR은 4.x / 5.x(암호 없음)를 지원합니다. 7z와 RAR은 열 때 기기의 저장 공간에 먼저 풀어 둡니다. EPUB은 한 페이지가 이미지 한 장인 책(만화·사진집)과 텍스트 책(세로쓰기)을 지원합니다."
+shots_title: "스크린샷"
+shots_note: "샘플 이미지는 이 앱을 위해 그린 그림과, 아오조라 문고의 나쓰메 소세키 『나는 고양이로소이다』(저작권 만료) 첫머리입니다. 화면은 Android 15 에뮬레이터에서 촬영했습니다."
+shots:
+  - { img: "ja-shelf.jpg", caption: "책장" }
+  - { img: "ja-group-books.jpg", caption: "그룹" }
+  - { img: "ja-reader-spread.jpg", caption: "두 페이지 (오른쪽 제본)" }
+  - { img: "ja-reader-magnifier.jpg", caption: "돋보기" }
+  - { img: "ja-reader-fullscreen.jpg", caption: "전체 화면 맞춤" }
+  - { img: "ja-novel-vertical.jpg", caption: "문장 EPUB (세로쓰기)" }
+  - { img: "ja-novel-mincho.jpg", caption: "명조체·큰 글자" }
+  - { img: "ja-novel-text-settings.jpg", caption: "글자 설정 (크기·줄 간격·글꼴)" }
+  - { img: "en-shelf.jpg", caption: "영어 화면의 책장" }
+  - { img: "ja-folder-browser.jpg", caption: "폴더 선택" }
 features_title: "특징"
 features:
   - { icon: "📖", title: "오른쪽 제본도 왼쪽 제본도", body: "제본 방향을 바꿀 수 있고, 펼침 순서도 함께 바뀝니다. 표지는 혼자 보여 주고, 가로로 긴 페이지는 한 장으로 표시합니다." }
@@ -30,7 +43,7 @@ features:
   - { icon: "🛡️", title: "안전 고려", body: "풀 수 있는 크기와 파일 수에 상한이 있고, 남은 공간이 적으면 도중에 멈춥니다. 압축 파일 안의 ../ 같은 경로는 무효로 처리합니다." }
   - { icon: "🔢", title: "페이지 지정과 책갈피", body: "페이지 번호를 입력해 바로 이동하거나, 책갈피 목록에서 이동할 수 있습니다. 한 번 눌러 책갈피를 추가·해제합니다(Android 버전)." }
   - { icon: "⚙️", title: "설정", body: "기본 보기 방식, 제본 방향, 맞춤, 볼륨 키 넘김, 화면 켜 두기, 책장 정렬과 이미지 캐시가 쓸 메모리를 정할 수 있습니다(Android 버전)." }
-  - { icon: "📘", title: "EPUB(만화도 소설도)", body: "한 페이지가 이미지 한 장인 EPUB(만화·사진집)을 읽는 순서대로 엽니다. 웹 소설처럼 이미지가 없는 텍스트 EPUB은 기기의 일본어 글꼴로 세로쓰기 페이지로 그려 보여 주며, 글자 크기와 고딕체·명조체를 바꿀 수 있습니다." }
+  - { icon: "📘", title: "EPUB(만화도 소설도)", body: "한 페이지가 이미지 한 장인 EPUB(만화·사진집)을 읽는 순서대로 엽니다. 웹 소설처럼 이미지가 없는 텍스트 EPUB은 기기의 일본어 글꼴로 세로쓰기 페이지로 그려 보여 주며, 열람 메뉴와 설정 화면에서 글자 크기·줄 간격·고딕체/명조체를 바꿀 수 있습니다." }
   - { icon: "⚡", title: "두 번째부터 빠르게", body: "페이지 크기를 기억해 두므로, 폴더와 압축 파일을 다음에 열 때 더 빠릅니다." }
 how_title: "사용법"
 how:
@@ -42,17 +55,17 @@ download_button: "Google 드라이브에서 다운로드"
 download_body: "Android용 APK와 Windows용 exe를 Google 드라이브에서 배포합니다. 설치 프로그램은 없으며, exe는 실행만 하면 됩니다."
 download_note: "APK는 직접 만든 키로 서명했기 때문에 기기에서 '출처를 알 수 없는 앱'을 허용해야 합니다. exe는 서명하지 않아 Windows SmartScreen이 경고를 표시할 수 있습니다."
 cta_source: "소스 코드"
-sha_label: "SHA-256(v0.1.5)"
+sha_label: "SHA-256(v0.1.6)"
 release_label: "변경 내역·소스 코드(GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.5-android.apk"
+android_file: "RustHighBookViewer-0.1.6-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "277533ee9f3241ffe6bc21df47029e565f3cf11ef9e6e4f07c62f2838fd9c608"
-windows_sha: "5ab7d0987890ec477718b2d9dbecac9b1d2cde30d725f17f0bb552f88fe799e3"
+android_sha: "f2d49ac8881c08a9a1d29fd48b257859a5e0268629c0fa136e35ad6b3f9f8db3"
+windows_sha: "e04117ef3eebbc54ea4d0b528a0230171695ca64baa54266e6a173a67ca8b5fe"
 status_title: "개발 상황"
-status_body: "개발 중입니다(v0.1.5, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로쓰기 텍스트 EPUB 포함), 폴더 일괄 가져오기, 그룹, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
+status_body: "개발 중입니다(v0.1.6, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로쓰기 텍스트 EPUB 포함), 폴더 일괄 가져오기, 그룹, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
 todo_title: "아직 확인하지 못한 것·지원하지 않는 것"
 todo:
   - "Android 실제 기기에서의 동작(에뮬레이터에서만 확인)"
