@@ -15,12 +15,13 @@ stats:
   - { value: "5 種類", label: "ZIP/CBZ・7z・RAR・EPUB・画像フォルダを開けます" }
   - { value: "4 つの表示", label: "単ページ・見開き・自動見開き・縦スクロール" }
   - { value: "2 つの環境", label: "Android 8.0 以上と、Windows" }
-stats_note: "RAR は 4.x / 5.x（暗号化なし）に対応。7z と RAR は、開くときに端末の保存領域へ展開します。EPUB は 1 ページが 1 枚の画像の本（コミック・写真集）に加えて、文章の本（横書き）にも対応します。"
+stats_note: "RAR は 4.x / 5.x（暗号化なし）に対応。7z と RAR は、開くときに端末の保存領域へ展開します。EPUB は 1 ページが 1 枚の画像の本（コミック・写真集）に加えて、文章の本（縦書き）にも対応します。"
 features_title: "特長"
 features:
   - { icon: "📖", title: "右綴じも左綴じも", body: "綴じ方向を切り替えられ、見開きの並びも合わせて変わります。表紙だけ単独で出し、横長のページは 1 枚で表示します。" }
   - { icon: "🔍", title: "拡大とルーペ", body: "ピンチやダブルタップで拡大してパンできます。Android 版には、指でなぞった所を 2 倍に拡大するルーペもあります。" }
   - { icon: "🗂️", title: "ページ一覧", body: "全ページのサムネイルから、読みたいページへ移れます（Android 版）。" }
+  - { icon: "🌐", title: "5 か国語の画面", body: "画面の言語を、日本語・English・中文・한국어・Español から選べます（Android 版）。端末の言語に合わせることもできます。" }
   - { icon: "🎨", title: "色調整", body: "明るさ・コントラスト・ガンマ、白黒・セピア・反転。本ごとに設定を覚えます（Android 版）。" }
   - { icon: "⏱️", title: "オートめくり", body: "3・5・10・20 秒ごとに自動でページをめくります。最後のページで止まります（Android 版）。" }
   - { icon: "📚", title: "本棚と続きから読む", body: "履歴・お気に入り・タイトル検索のある本棚。閉じても読んでいた位置を保存して、続きから開けます。" }
@@ -29,7 +30,7 @@ features:
   - { icon: "🛡️", title: "安全に配慮", body: "展開するサイズとファイル数に上限があり、空き容量が少ないときは途中で止めます。書庫の中の ../ のようなパスは無効にします。" }
   - { icon: "🔢", title: "ページ指定としおり", body: "ページ番号を入力して移動できます。しおりの一覧から飛ぶことも、ワンタップで付け外しすることもできます（Android 版）。" }
   - { icon: "⚙️", title: "設定画面", body: "表示モード・綴じ方向・フィットの既定、音量キーでのページ送り、画面の点灯、本棚の並び順、画像キャッシュに使うメモリを決められます（Android 版）。" }
-  - { icon: "📘", title: "EPUB（コミックも小説も）", body: "1 ページが 1 枚の画像の EPUB（コミック・写真集）を読む順に開きます。画像の無い文章の EPUB（Web 小説など）は、端末の日本語フォントで本文をページに描いて表示します（横書き。縦書きは未対応）。" }
+  - { icon: "📘", title: "EPUB（コミックも小説も）", body: "1 ページが 1 枚の画像の EPUB（コミック・写真集）を読む順に開きます。画像の無い文章の EPUB（Web 小説など）は、端末の日本語フォントで縦書きのページに描いて表示します。文字の大きさとゴシック体・明朝体を切り替えられます。" }
   - { icon: "⚡", title: "2 回目から速い", body: "ページの大きさを覚えておくので、フォルダや書庫を次に開くときの読み込みが速くなります。" }
 how_title: "使い方"
 how:
@@ -41,17 +42,17 @@ download_button: "Google ドライブからダウンロード"
 download_body: "Android 用の APK と、Windows 用の exe を、Google ドライブで配布しています。インストーラは無く、exe は実行するだけで使えます。"
 download_note: "APK は自分で作った鍵で署名しています。端末で「提供元不明のアプリ」の許可が必要です。exe は署名しておらず、Windows の SmartScreen が警告を出すことがあります。"
 cta_source: "ソースコード"
-sha_label: "SHA-256（v0.1.4）"
+sha_label: "SHA-256（v0.1.5）"
 release_label: "更新履歴・ソースコード（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.4-android.apk"
+android_file: "RustHighBookViewer-0.1.5-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "520d42ac92db1367f27b8b2bd68c874f4f409f20d8d6deac9d6cb9755a95c226"
-windows_sha: "beff3384f4534bdea6054baba0dbd2dbea76552831047a7e07f9e72b0e81c5e0"
+android_sha: "277533ee9f3241ffe6bc21df47029e565f3cf11ef9e6e4f07c62f2838fd9c608"
+windows_sha: "5ab7d0987890ec477718b2d9dbecac9b1d2cde30d725f17f0bb552f88fe799e3"
 status_title: "開発の状況"
-status_body: "開発中です（v0.1.4・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（文章の EPUB を含む）・フォルダの一括読み込みとグループ化を確かめています。ソースコードは GitHub で公開しています。"
+status_body: "開発中です（v0.1.5・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書きの文章の EPUB を含む）・フォルダの一括読み込みとグループ化、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
 todo_title: "まだ確かめていないこと・できないこと"
 todo:
   - "Android の実機での動作（確認はエミュレータのみ）"
