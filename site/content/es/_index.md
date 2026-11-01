@@ -1,6 +1,6 @@
 ---
 title: "Apps ligeras hechas en Rust"
-description: "Apps ligeras y sencillas escritas en Rust con el bajo uso de memoria como primer objetivo: un navegador web y watchtower-rs, un vigilante de cambios en páginas."
+description: "Apps ligeras y sencillas escritas en Rust con el bajo uso de memoria como primer objetivo: un navegador web, watchtower-rs (un vigilante de cambios en páginas) y RustHighBookViewer (un visor de cómics)."
 tagline: "Ligeras y sencillas. Apps hechas en Rust."
 lead: "Todas están escritas desde cero en Rust con el bajo uso de memoria como primer objetivo. Buscamos herramientas que no se vuelvan más pesadas cuanto más se usan."
 nav_apps: "Apps"
@@ -20,5 +20,12 @@ apps:
     body: "Un vigilante de páginas compatible con changedetection.io en un solo ejecutable. Vigila 5.000 páginas con unos 25 MB."
     tags: ["Un solo binario", "REST API", "~24 MB (5.000 vigilancias)"]
     cta: "Ver watchtower-rs"
+  - slug: "bookviewer"
+    icon: "📚"
+    name: "RustHighBookViewer"
+    tagline: "Un visor: abre un libro y empieza a leer"
+    body: "Abre ZIP/CBZ, 7z, RAR, EPUB y carpetas de imágenes y léelos con doble página de derecha a izquierda y más. Recuerda por dónde ibas."
+    tags: ["Android", "Windows", "ZIP / 7z / RAR / EPUB"]
+    cta: "Ver RustHighBookViewer"
 footer: "© Apps ligeras hechas en Rust"
 ---

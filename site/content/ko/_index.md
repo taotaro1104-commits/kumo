@@ -1,6 +1,6 @@
 ---
 title: "Rust로 만든 가벼운 앱"
-description: "메모리를 적게 쓰는 것을 가장 우선해 Rust로 만든 가볍고 단순한 앱: 웹 브라우저와, 웹 페이지의 변화를 지켜보는 watchtower-rs."
+description: "메모리를 적게 쓰는 것을 가장 우선해 Rust로 만든 가볍고 단순한 앱: 웹 브라우저, 웹 페이지의 변화를 지켜보는 watchtower-rs, 만화 뷰어 RustHighBookViewer."
 tagline: "가볍고 단순하게. Rust로 만든 앱들."
 lead: "모두 메모리를 적게 쓰는 것을 가장 우선해 Rust로 처음부터 만들었습니다. 쓸수록 무거워지지 않는 도구를 목표로 합니다."
 nav_apps: "앱"
@@ -20,5 +20,12 @@ apps:
     body: "changedetection.io와 호환되는, 실행 파일 하나로 동작하는 페이지 감시 도구. 5,000개를 감시해도 약 25 MB입니다."
     tags: ["단일 실행 파일", "REST API", "약 24 MB(5,000개)"]
     cta: "watchtower-rs 소개 보기"
+  - slug: "bookviewer"
+    icon: "📚"
+    name: "RustHighBookViewer"
+    tagline: "열면 바로 읽히는 뷰어"
+    body: "ZIP/CBZ, 7z, RAR, EPUB, 이미지 폴더를 열어 오른쪽에서 왼쪽으로 넘기는 펼침 보기 등으로 읽을 수 있고, 읽던 위치도 기억합니다."
+    tags: ["Android", "Windows", "ZIP / 7z / RAR / EPUB"]
+    cta: "RustHighBookViewer 소개 보기"
 footer: "© Rust로 만든 가벼운 앱"
 ---

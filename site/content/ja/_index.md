@@ -1,6 +1,6 @@
 ---
 title: "Rust で作る、軽いアプリ"
-description: "メモリの少なさを一番に考えて Rust で書いた、軽くてシンプルなアプリ。Web ブラウザと、Web ページの変化を見張る watchtower-rs。"
+description: "メモリの少なさを一番に考えて Rust で書いた、軽くてシンプルなアプリ。Web ブラウザ、Web ページの変化を見張る watchtower-rs、コミック・画像ビューアの RustHighBookViewer。"
 tagline: "軽くて、シンプル。Rust で作ったアプリたち。"
 lead: "どれも、メモリの少なさを一番に考えて Rust で一から書いています。使うほどに重くならない道具を目指しています。"
 nav_apps: "アプリ"
@@ -20,5 +20,12 @@ apps:
     body: "changedetection.io 互換の、1 つの実行ファイルで動くページ監視ツール。5,000 件を見張っても 25 MB ほどです。"
     tags: ["単一バイナリ", "REST API", "約 24 MB（5,000 件）"]
     cta: "watchtower-rs の紹介を見る"
+  - slug: "bookviewer"
+    icon: "📚"
+    name: "RustHighBookViewer"
+    tagline: "本を開いて、すぐ読めるビューア"
+    body: "ZIP/CBZ・7z・RAR・EPUB・画像フォルダを開いて、右綴じの見開きなどで読めます。読みかけの位置も覚えています。"
+    tags: ["Android", "Windows", "ZIP / 7z / RAR / EPUB"]
+    cta: "RustHighBookViewer の紹介を見る"
 footer: "© Rust で作る、軽いアプリ"
 ---

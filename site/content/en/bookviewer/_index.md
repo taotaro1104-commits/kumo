@@ -1,0 +1,60 @@
+---
+title: "RustHighBookViewer"
+site_name: "RustHighBookViewer"
+description: "A comic and image viewer written in Rust. Read ZIP/CBZ, 7z, RAR, EPUB and image folders, with right-to-left spreads and more. For Android and Windows."
+tagline: "Open a book and start reading."
+lead: "RustHighBookViewer opens archives and folders full of comics or images. It supports right-to-left spreads, zooming, color adjustment and remembering where you stopped, on Android and Windows."
+pills: ["Android", "Windows", "ZIP / CBZ / 7z / RAR / EPUB", "Right-to-left"]
+nav_all: "All apps"
+nav_features: "Features"
+nav_how: "How to use"
+nav_get: "Download"
+nav_status: "Status"
+stats_title: "What it supports"
+stats:
+  - { value: "5 kinds", label: "Opens ZIP/CBZ, 7z, RAR, EPUB and image folders" }
+  - { value: "4 layouts", label: "Single page, spread, auto spread and vertical scroll" }
+  - { value: "2 platforms", label: "Android 8.0 or later, and Windows" }
+stats_note: "RAR 4.x / 5.x are supported (not encrypted). 7z and RAR are unpacked into the device's storage when you open them. EPUB support covers books with one image per page (comics, photo books)."
+features_title: "Features"
+features:
+  - { icon: "📖", title: "Right-to-left or left-to-right", body: "Switch the binding direction and the spread order follows. The cover can stand alone, and wide pages are shown by themselves." }
+  - { icon: "🔍", title: "Zoom and magnifier", body: "Pinch or double-tap to zoom and pan. The Android version also has a magnifier that enlarges whatever you trace with a finger by 2x." }
+  - { icon: "🗂️", title: "Page grid", body: "Jump to any page from thumbnails of the whole book (Android version)." }
+  - { icon: "🎨", title: "Color adjustment", body: "Brightness, contrast, gamma, black and white, sepia and invert. Settings are remembered for each book (Android version)." }
+  - { icon: "⏱️", title: "Auto page turn", body: "Turns pages by itself every 3, 5, 10 or 20 seconds and stops on the last page (Android version)." }
+  - { icon: "📚", title: "Shelf and resume", body: "A shelf with history, favorites and title search. Your position is saved when you close a book, so you can pick up where you left off." }
+  - { icon: "📁", title: "Folders too", body: "Read a folder of images as a single book. On Android, just pick a folder on your device." }
+  - { icon: "🛡️", title: "Careful about safety", body: "There are limits on the unpacked size and the number of files, and unpacking stops when free space runs low. Paths such as ../ inside an archive are neutralized." }
+  - { icon: "🔢", title: "Go to a page, and bookmarks", body: "Type a page number to jump there, or jump from your bookmark list. Add or remove a bookmark with one tap (Android version)." }
+  - { icon: "⚙️", title: "Settings", body: "Choose the defaults for layout, binding direction, fit, volume-key page turning, screen-on and shelf order, and how much memory the image cache may use (Android version)." }
+  - { icon: "📘", title: "EPUB comics", body: "Opens EPUB books made of one image per page, in reading order. Text-based EPUBs are not supported." }
+  - { icon: "⚡", title: "Quicker the second time", body: "Page sizes are remembered, so folders and archives open faster the next time." }
+how_title: "How to use"
+how:
+  - { title: "Open", body: "On Android, choose \"File\" or \"Folder\" on the shelf. On Windows, drag and drop a file or folder onto the exe." }
+  - { title: "Read", body: "Tap the left or right side of the screen to turn pages. Tap the center for a menu where you can change the layout and binding direction." }
+  - { title: "Resume", body: "Closing a book saves your position. Pick it from the shelf to continue." }
+download_title: "Download"
+download_button: "Download from Google Drive"
+download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
+download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
+cta_source: "Source code"
+sha_label: "SHA-256 (v0.1.2)"
+release_label: "Release notes and source (GitHub)"
+download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
+repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
+release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
+android_file: "RustHighBookViewer-0.1.2-android.apk"
+windows_file: "RustHighBookViewer-desktop.exe"
+android_sha: "62c258c2303115c7b2556aebd0135f49afdb78cda652151849282ea77ec62bc2"
+windows_sha: "d001de8acacd093ddd04c504c771dc9e218bddb4962dcb7edd0ce48880d6662b"
+status_title: "Status"
+status_body: "Under development (v0.1.2, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB and folders open and can be read. The source code is on GitHub."
+todo_title: "Not yet verified, or not supported"
+todo:
+  - "Android on a real device (only checked in an emulator)"
+  - "How the Windows version looks and feels (only confirmed that it starts and keeps running)"
+  - "Password-protected archives and RAR split across several files (not supported)"
+footer: "© RustHighBookViewer — MIT License"
+---
