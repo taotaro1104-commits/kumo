@@ -48,10 +48,10 @@ DirectoryIndex index.html
   #    - /ja/index.html・404.html・sitemap.xml  言語ページ直下の公開ファイルだけ
   #    - /ja/browser/ /ja/watchtower/ /ja/bookviewer/ など  アプリごとの紹介ページ（各言語）と、その index.html
   #    - /style.min.<ハッシュ>.css          ハッシュ付きの CSS
-  #    - /bookviewer/icon-*.png・/bookviewer/shots/*.jpg  BookViewer ページの画像
+  #    - /bookviewer/icon-*.png・/bookviewer/banner(-en).jpg・/bookviewer/shots/*.jpg  BookViewer ページの画像（banner は共有時の OGP 画像）
   #    - アイコン・OGP 画像・スクリプト・ads.txt・sitemap.xml・robots.txt
   #    - /.well-known/                     証明書の更新などの標準の置き場
-  RewriteCond %{REQUEST_URI} !^/(?:(?:(?:ja|en|zh|ko|es)(?:/(?:(?:browser|watchtower|bookviewer)(?:/(?:index\.html)?)?|(?:index|404)\.html|sitemap\.xml)?)?)?|style\.min\.[0-9a-f]{64}\.css|icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|bookviewer/icon-(?:64|192)\.png|bookviewer/shots/[A-Za-z0-9_-]+\.jpg|analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt|\.well-known/[A-Za-z0-9._/-]+)$
+  RewriteCond %{REQUEST_URI} !^/(?:(?:(?:ja|en|zh|ko|es)(?:/(?:(?:browser|watchtower|bookviewer)(?:/(?:index\.html)?)?|(?:index|404)\.html|sitemap\.xml)?)?)?|style\.min\.[0-9a-f]{64}\.css|icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|bookviewer/icon-(?:64|192)\.png|bookviewer/banner(?:-en)?\.jpg|bookviewer/shots/[A-Za-z0-9_-]+\.jpg|analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt|\.well-known/[A-Za-z0-9._/-]+)$
   RewriteRule ^ - [R=404,L]
 </IfModule>
 
