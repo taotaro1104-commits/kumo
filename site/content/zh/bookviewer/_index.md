@@ -44,7 +44,7 @@ features:
   - { icon: "🛡️", title: "注重安全", body: "对解压的大小和文件数量设有上限，可用空间不足时会中途停止。压缩包内含 ../ 之类的路径会被忽略。" }
   - { icon: "🔢", title: "页面跳转与书签", body: "输入页码即可跳转，也可从书签列表跳转。一键添加或取消书签（Android 版）。" }
   - { icon: "⚙️", title: "设置", body: "可设定默认的显示方式、装订方向、适应方式、音量键翻页、保持亮屏和书架排序，以及图像缓存可使用的内存（Android 版）。" }
-  - { icon: "📘", title: "EPUB（漫画与小说）", body: "按阅读顺序打开每页一张图片的 EPUB（漫画、写真集）。网络小说这类没有图片的纯文字 EPUB，会用设备上的日文字体绘制成竖排页面，并可在阅读菜单和设置画面中调整文字大小、行距、字体（黑体与宋体）以及文字和背景颜色。" }
+  - { icon: "📘", title: "EPUB（漫画与小说）", body: "按阅读顺序打开每页一张图片的 EPUB（漫画、写真集）。网络小说这类没有图片的纯文字 EPUB，会用设备上的日文字体绘制成竖排页面，并可在阅读菜单和设置画面中调整文字大小（最大 160）、行距（最小 100%）、字间距、粗体、斜体、字体（黑体与宋体）以及文字和背景颜色。" }
   - { icon: "⚡", title: "再次打开更快", body: "会记住页面尺寸，因此文件夹和压缩包从第二次起打开更快。" }
 how_title: "使用方法"
 how:
@@ -56,17 +56,17 @@ download_button: "从 Google 云端硬盘下载"
 download_body: "Android 用的 APK 和 Windows 用的 exe 都通过 Google 云端硬盘提供。没有安装程序，exe 直接运行即可使用。"
 download_note: "APK 使用我们自己生成的密钥签名，因此设备会要求允许安装来自未知来源的应用。exe 没有签名，Windows 的 SmartScreen 可能会给出警告。"
 cta_source: "源代码"
-sha_label: "SHA-256（v0.1.7）"
+sha_label: "SHA-256（v0.1.8）"
 release_label: "更新记录与源代码（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.7-android.apk"
+android_file: "RustHighBookViewer-0.1.8-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "4fe2ebc513de975801085e8cae9bfcae780d51fa6050fe31ec76e3b56e3943f9"
-windows_sha: "6f83ea2fde6b0d948581f9a3ad6481c33685cf28d5903a2dc9505a59ae041850"
+android_sha: "460f4abd254780f90287afcc4ebc64aa31950f28b93d3f3a717235ccc524d755"
+windows_sha: "fa82afa79b477da664be775af12ba1ef1c427f663ca1ac6d30c7fdc03630e762"
 status_title: "开发状态"
-status_body: "开发中（v0.1.7，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（含竖排的纯文字 EPUB）、文件夹批量导入、分组以及五种界面语言可用。源代码已在 GitHub 公开。"
+status_body: "开发中（v0.1.8，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（含竖排的纯文字 EPUB）、文件夹批量导入、分组以及五种界面语言可用。源代码已在 GitHub 公开。"
 todo_title: "尚未验证或不支持的内容"
 todo:
   - "Android 真机上的运行情况（目前只在模拟器中确认）"
