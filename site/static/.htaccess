@@ -38,25 +38,20 @@ DirectoryIndex index.html
   RewriteRule ^ - [R=404,L]
 
   # 3) 言語ページの正規の URL は /ja/ のような形（/ja/index.html は 301 で寄せる）
-  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/((browser|watchtower)/)?index\.html[\s?]
+  #    アプリの紹介ページを増やしたら、ここと下の 4) の (browser|watchtower|bookviewer) に足す
+  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/((browser|watchtower|bookviewer)/)?index\.html[\s?]
   RewriteRule ^ /%1/%2 [L,R=301]
 
-  # 4) 許可するパス（上から順に、どれにも当てはまらなければ 404）
-  #    - /                              トップ（上で言語ページへ転送済み）
-  #    - /ja/ /en/ /zh/ /ko/ /es/       言語ページのディレクトリと、その中の index.html・404.html・sitemap.xml だけ
-  #    - /ja/browser/ /ja/watchtower/ など  アプリごとの紹介ページ（各言語）と、その index.html
-  #    - /style.min.<ハッシュ>.css       ハッシュ付きの CSS
+  # 4) 許可するパス（どれにも当てはまらなければ 404）。条件は 1 本の正規表現にまとめて、リクエストごとの照合を 1 回で済ませる。
+  #    - /                                 トップ（上で言語ページへ転送済み）
+  #    - /ja/ /en/ /zh/ /ko/ /es/          言語ページのディレクトリ
+  #    - /ja/index.html・404.html・sitemap.xml  言語ページ直下の公開ファイルだけ
+  #    - /ja/browser/ /ja/watchtower/ /ja/bookviewer/ など  アプリごとの紹介ページ（各言語）と、その index.html
+  #    - /style.min.<ハッシュ>.css          ハッシュ付きの CSS
+  #    - /bookviewer/icon-*.png・/bookviewer/shots/*.jpg  BookViewer ページの画像
   #    - アイコン・OGP 画像・スクリプト・ads.txt・sitemap.xml・robots.txt
-  #    - /.well-known/                  証明書の更新などの標準の置き場
-  RewriteCond %{REQUEST_URI} !^/$
-  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/?$
-  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/(browser|watchtower)/?$
-  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/(browser|watchtower)/index\.html$
-  RewriteCond %{REQUEST_URI} !^/(ja|en|zh|ko|es)/((index|404)\.html|sitemap\.xml)$
-  RewriteCond %{REQUEST_URI} !^/style\.min\.[0-9a-f]{64}\.css$
-  RewriteCond %{REQUEST_URI} !^/(icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png)$
-  RewriteCond %{REQUEST_URI} !^/(analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt)$
-  RewriteCond %{REQUEST_URI} !^/\.well-known/[A-Za-z0-9._/-]+$
+  #    - /.well-known/                     証明書の更新などの標準の置き場
+  RewriteCond %{REQUEST_URI} !^/(?:(?:(?:ja|en|zh|ko|es)(?:/(?:(?:browser|watchtower|bookviewer)(?:/(?:index\.html)?)?|(?:index|404)\.html|sitemap\.xml)?)?)?|style\.min\.[0-9a-f]{64}\.css|icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|bookviewer/icon-(?:64|192)\.png|bookviewer/shots/[A-Za-z0-9_-]+\.jpg|analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt|\.well-known/[A-Za-z0-9._/-]+)$
   RewriteRule ^ - [R=404,L]
 </IfModule>
 
@@ -85,6 +80,7 @@ DirectoryIndex index.html
   ExpiresByType image/svg+xml "access plus 1 month"
   ExpiresByType image/x-icon "access plus 1 month"
   ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
   ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType text/css "access plus 1 year"
   ExpiresByType application/javascript "access plus 1 day"
@@ -121,7 +117,7 @@ DirectoryIndex index.html
   <FilesMatch "^.*$">
     Require all denied
   </FilesMatch>
-  <FilesMatch "\.(html|css|js|svg|png|ico|txt|xml)$">
+  <FilesMatch "\.(html|css|js|svg|png|jpg|ico|txt|xml)$">
     Require all granted
   </FilesMatch>
   <FilesMatch "^\.">
