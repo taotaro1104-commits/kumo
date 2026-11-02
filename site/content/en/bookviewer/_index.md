@@ -43,6 +43,7 @@ features:
   - { icon: "🗂️", title: "Groups", body: "Put several books into a group. Long-press a book to add it, or import a folder with several books and a group named after the folder is created automatically. The shelf can show thumbnails or a plain list of file and folder names." }
   - { icon: "📂", title: "Folder view and sorting", body: "The shelf’s “Folder” tab lets you walk through the folders your books live in (with an “include subfolders” option). Sort by name, last opened, date added or size, ascending or descending, and filter by unread, reading or finished." }
   - { icon: "🔖", title: "Resume where you left off", body: "If the app is closed by the system while you use another app, it reopens the same book on the same page with the same menu state." }
+  - { icon: "📑", title: "EPUB table of contents", body: "For EPUBs that have one, the “Contents” button in the reader menu opens the chapter list and jumps to the first page of the chapter. It is nested and highlights the chapter you are in (EPUB3 and EPUB2 tables of contents are supported)." }
   - { icon: "📁", title: "Folders too", body: "Pick a folder and the images in each folder become one book, while every EPUB, ZIP, 7z or RAR file becomes its own book, subfolders included, all added to your shelf at once. On Android, allowing “All files access” lets you pick folders such as Download directly." }
   - { icon: "🛡️", title: "Careful about safety", body: "There are limits on the unpacked size and the number of files, and unpacking stops when free space runs low. Paths such as ../ inside an archive are neutralized." }
   - { icon: "🔢", title: "Go to a page, and bookmarks", body: "Type a page number to jump there, or jump from your bookmark list. Add or remove a bookmark with one tap (Android version)." }
@@ -59,17 +60,17 @@ download_button: "Download from Google Drive"
 download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
 download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
 cta_source: "Source code"
-sha_label: "SHA-256 (v0.1.10)"
+sha_label: "SHA-256 (v0.1.11)"
 release_label: "Release notes and source (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.10-android.apk"
+android_file: "RustHighBookViewer-0.1.11-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "08c0ae38991d62db56eed9ec5c61f01f27c336be944827a0da79d7338e8742f6"
-windows_sha: "e47fcf7f48fab3e2ab6e09d9342ec57bce5145a862ea66fa33c9be39502c4384"
+android_sha: "ca00de64a5df0d43818838b21c5a185fb83df0885d0e366a0921d5ef4a721e1c"
+windows_sha: "f41ed4afa8b8cd96208b865b7595ac64209540e63055367e06cb805500fbe4a6"
 status_title: "Status"
-status_body: "Under development (v0.1.10, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, including mixed text and images), bulk folder import, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
+status_body: "Under development (v0.1.11, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, and the table of contents), bulk folder import, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
 todo_title: "Not yet verified, or not supported"
 todo:
   - "Android on a real device (only checked in an emulator)"

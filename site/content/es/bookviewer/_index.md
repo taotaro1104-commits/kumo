@@ -43,6 +43,7 @@ features:
   - { icon: "🗂️", title: "Grupos", body: "Reúne varios libros en un grupo. Mantén pulsado un libro para añadirlo, o importa una carpeta con varios libros y se crea automáticamente un grupo con el nombre de la carpeta. La estantería puede mostrar miniaturas o una lista de nombres de archivo y carpeta." }
   - { icon: "📂", title: "Vista de carpetas y orden", body: "En la pestaña «Carpeta» de la estantería puedes recorrer por niveles las carpetas donde están tus libros (con la opción de incluir subcarpetas). Ordena por nombre, apertura reciente, fecha de adición o tamaño, de forma ascendente o descendente, y filtra por sin leer, leyendo o terminado." }
   - { icon: "🔖", title: "Continúa donde lo dejaste", body: "Si el sistema cierra la app mientras usas otra, al volver se reabre el mismo libro en la misma página y con el mismo estado del menú." }
+  - { icon: "📑", title: "Índice del EPUB", body: "En los EPUB que lo tienen, el botón «Índice» del menú del lector abre la lista de capítulos y salta a la primera página del capítulo. Tiene niveles y resalta el capítulo en el que estás (admite los índices de EPUB3 y EPUB2)." }
   - { icon: "📁", title: "También carpetas", body: "Elige una carpeta: las imágenes de cada carpeta forman un libro y cada archivo EPUB, ZIP, 7z o RAR es otro libro, subcarpetas incluidas, y todo se añade a la estantería de una vez. En Android, al permitir «Acceso a todos los archivos» puedes elegir carpetas como Download directamente." }
   - { icon: "🛡️", title: "Pensado para la seguridad", body: "Hay límites para el tamaño descomprimido y el número de archivos, y la descompresión se detiene si queda poco espacio libre. Las rutas como ../ dentro de un archivo se anulan." }
   - { icon: "🔢", title: "Ir a una página y marcadores", body: "Escribe un número de página para saltar, o salta desde la lista de marcadores. Añade o quita un marcador con un toque (versión de Android)." }
@@ -59,17 +60,17 @@ download_button: "Descargar desde Google Drive"
 download_body: "El APK de Android y el exe de Windows se comparten en Google Drive. No hay instalador; basta con ejecutar el exe."
 download_note: "El APK está firmado con una clave que generamos nosotros, así que el dispositivo te pedirá permitir apps de orígenes desconocidos. El exe no está firmado y Windows SmartScreen puede mostrar una advertencia."
 cta_source: "Código fuente"
-sha_label: "SHA-256 (v0.1.10)"
+sha_label: "SHA-256 (v0.1.11)"
 release_label: "Notas de versión y código (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.10-android.apk"
+android_file: "RustHighBookViewer-0.1.11-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "08c0ae38991d62db56eed9ec5c61f01f27c336be944827a0da79d7338e8742f6"
-windows_sha: "e47fcf7f48fab3e2ab6e09d9342ec57bce5145a862ea66fa33c9be39502c4384"
+android_sha: "ca00de64a5df0d43818838b21c5a185fb83df0885d0e366a0921d5ef4a721e1c"
+windows_sha: "f41ed4afa8b8cd96208b865b7595ac64209540e63055367e06cb805500fbe4a6"
 status_title: "Estado"
-status_body: "En desarrollo (v0.1.10, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, incluidos los de texto e imágenes mezclados), la importación de carpetas completas, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
+status_body: "En desarrollo (v0.1.11, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, e índice), la importación de carpetas completas, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
 todo_title: "Aún sin verificar o no admitido"
 todo:
   - "Android en un dispositivo real (solo comprobado en emulador)"
