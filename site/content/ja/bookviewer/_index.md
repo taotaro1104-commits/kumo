@@ -44,7 +44,7 @@ features:
   - { icon: "🛡️", title: "安全に配慮", body: "展開するサイズとファイル数に上限があり、空き容量が少ないときは途中で止めます。書庫の中の ../ のようなパスは無効にします。" }
   - { icon: "🔢", title: "ページ指定としおり", body: "ページ番号を入力して移動できます。しおりの一覧から飛ぶことも、ワンタップで付け外しすることもできます（Android 版）。" }
   - { icon: "⚙️", title: "設定画面", body: "表示モード・綴じ方向・フィットの既定、音量キーでのページ送り、画面の点灯、本棚の並び順、画像キャッシュに使うメモリを決められます（Android 版）。" }
-  - { icon: "📘", title: "EPUB（コミックも小説も）", body: "1 ページが 1 枚の画像の EPUB（コミック・写真集）を読む順に開きます。画像の無い文章の EPUB（Web 小説など）は、端末の日本語フォントで縦書きのページに描いて表示します。文字の大きさ（最大 160）・行間（最小 100%）・文字間・太字・斜体・ゴシック体／明朝体・文字色と背景色を、閲覧メニューと設定画面から変えられます。" }
+  - { icon: "📘", title: "EPUB（コミックも小説も）", body: "1 ページが 1 枚の画像の EPUB（コミック・写真集）を読む順に開きます。画像の無い文章の EPUB（Web 小説など）は、端末の日本語フォントで、縦書き（横書きにも切り替えられます）のページに描いて表示します。文字の大きさ（最大 160）・行間（最小 100%）・文字間・太字・斜体・ゴシック体／明朝体・文字色と背景色を、閲覧メニューと設定画面から変えられます。" }
   - { icon: "⚡", title: "2 回目から速い", body: "ページの大きさを覚えておくので、フォルダや書庫を次に開くときの読み込みが速くなります。" }
 how_title: "使い方"
 how:
@@ -56,17 +56,17 @@ download_button: "Google ドライブからダウンロード"
 download_body: "Android 用の APK と、Windows 用の exe を、Google ドライブで配布しています。インストーラは無く、exe は実行するだけで使えます。"
 download_note: "APK は自分で作った鍵で署名しています。端末で「提供元不明のアプリ」の許可が必要です。exe は署名しておらず、Windows の SmartScreen が警告を出すことがあります。"
 cta_source: "ソースコード"
-sha_label: "SHA-256（v0.1.8）"
+sha_label: "SHA-256（v0.1.9）"
 release_label: "更新履歴・ソースコード（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.8-android.apk"
+android_file: "RustHighBookViewer-0.1.9-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "460f4abd254780f90287afcc4ebc64aa31950f28b93d3f3a717235ccc524d755"
-windows_sha: "fa82afa79b477da664be775af12ba1ef1c427f663ca1ac6d30c7fdc03630e762"
+android_sha: "9628357bf94a4759c5baad1fdb6ccf18c06e782e7d6ac85c172dc6c8e8c38cbc"
+windows_sha: "028417dba3ed89c17b7c4191f7589d0bbee82c282a298d2331461db3733ee60e"
 status_title: "開発の状況"
-status_body: "開発中です（v0.1.8・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書きの文章の EPUB を含む）・フォルダの一括読み込みとグループ化、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
+status_body: "開発中です（v0.1.9・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書きの文章の EPUB を含む）・フォルダの一括読み込みとグループ化、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
 todo_title: "まだ確かめていないこと・できないこと"
 todo:
   - "Android の実機での動作（確認はエミュレータのみ）"
