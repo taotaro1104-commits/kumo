@@ -1,4 +1,5 @@
 ---
+og_image: "bookviewer/banner-en.jpg"
 title: "RustHighBookViewer"
 site_name: "RustHighBookViewer"
 description: "A comic and image viewer written in Rust. Read ZIP/CBZ, 7z, RAR, EPUB and image folders, with right-to-left spreads and more. For Android and Windows."
@@ -40,11 +41,13 @@ features:
   - { icon: "⏱️", title: "Auto page turn", body: "Turns pages by itself every 3, 5, 10 or 20 seconds and stops on the last page (Android version)." }
   - { icon: "📚", title: "Shelf and resume", body: "A shelf with history, favorites and title search. Your position is saved when you close a book, so you can pick up where you left off." }
   - { icon: "🗂️", title: "Groups", body: "Put several books into a group. Long-press a book to add it, or import a folder with several books and a group named after the folder is created automatically. The shelf can show thumbnails or a plain list of file and folder names." }
+  - { icon: "📂", title: "Folder view and sorting", body: "The shelf’s “Folder” tab lets you walk through the folders your books live in (with an “include subfolders” option). Sort by name, last opened, date added or size, ascending or descending, and filter by unread, reading or finished." }
+  - { icon: "🔖", title: "Resume where you left off", body: "If the app is closed by the system while you use another app, it reopens the same book on the same page with the same menu state." }
   - { icon: "📁", title: "Folders too", body: "Pick a folder and the images in each folder become one book, while every EPUB, ZIP, 7z or RAR file becomes its own book, subfolders included, all added to your shelf at once. On Android, allowing “All files access” lets you pick folders such as Download directly." }
   - { icon: "🛡️", title: "Careful about safety", body: "There are limits on the unpacked size and the number of files, and unpacking stops when free space runs low. Paths such as ../ inside an archive are neutralized." }
   - { icon: "🔢", title: "Go to a page, and bookmarks", body: "Type a page number to jump there, or jump from your bookmark list. Add or remove a bookmark with one tap (Android version)." }
   - { icon: "⚙️", title: "Settings", body: "Choose the defaults for layout, binding direction, fit, volume-key page turning, screen-on and shelf order, and how much memory the image cache may use (Android version)." }
-  - { icon: "📘", title: "EPUB (comics and novels)", body: "Opens image-based EPUBs (comics, photo books) in reading order. Text-only EPUBs such as web novels are drawn as pages with a Japanese font from your device, in vertical writing (switchable to horizontal), and you can change the text size (up to 160), the line spacing (down to 100%), the letter spacing, bold, italic, the typeface (Gothic or Mincho/serif) and the text and background colors from the reader menu and the settings screen." }
+  - { icon: "📘", title: "EPUB (comics and novels)", body: "Opens image-based EPUBs (comics, photo books) in reading order. Text-only EPUBs such as web novels, and EPUBs that mix text and illustrations, are drawn as pages with a Japanese font from your device, in vertical writing (switchable to horizontal), and you can change the text size (up to 160), the line spacing (down to 100%), the letter spacing, bold, italic, the typeface (Gothic or Mincho/serif) and the text and background colors from the reader menu and the settings screen." }
   - { icon: "⚡", title: "Quicker the second time", body: "Page sizes are remembered, so folders and archives open faster the next time." }
 how_title: "How to use"
 how:
@@ -56,17 +59,17 @@ download_button: "Download from Google Drive"
 download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
 download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
 cta_source: "Source code"
-sha_label: "SHA-256 (v0.1.9)"
+sha_label: "SHA-256 (v0.1.10)"
 release_label: "Release notes and source (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.9-android.apk"
+android_file: "RustHighBookViewer-0.1.10-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "9628357bf94a4759c5baad1fdb6ccf18c06e782e7d6ac85c172dc6c8e8c38cbc"
-windows_sha: "028417dba3ed89c17b7c4191f7589d0bbee82c282a298d2331461db3733ee60e"
+android_sha: "08c0ae38991d62db56eed9ec5c61f01f27c336be944827a0da79d7338e8742f6"
+windows_sha: "e47fcf7f48fab3e2ab6e09d9342ec57bce5145a862ea66fa33c9be39502c4384"
 status_title: "Status"
-status_body: "Under development (v0.1.9, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (including vertical-writing text EPUBs), bulk folder import, groups and the five display languages work. The source code is on GitHub."
+status_body: "Under development (v0.1.10, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, including mixed text and images), bulk folder import, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
 todo_title: "Not yet verified, or not supported"
 todo:
   - "Android on a real device (only checked in an emulator)"
