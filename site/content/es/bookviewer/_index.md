@@ -45,6 +45,7 @@ features:
   - { icon: "🔖", title: "Continúa donde lo dejaste", body: "Si el sistema cierra la app mientras usas otra, al volver se reabre el mismo libro en la misma página y con el mismo estado del menú." }
   - { icon: "📑", title: "Índice del EPUB", body: "En los EPUB que lo tienen, el botón «Índice» del menú del lector abre la lista de capítulos y salta a la primera página del capítulo. Tiene niveles y resalta el capítulo en el que estás (admite los índices de EPUB3 y EPUB2)." }
   - { icon: "📥", title: "Añadir varios archivos a la vez", body: "Elige varios archivos con «Archivo» y se añaden a la estantería sin abrirlos (si eliges solo uno, se abre como antes). Se registran de pocos en pocos en paralelo, con progreso y cancelación." }
+  - { icon: "🖼️", title: "Compatibilidad con AVIF", body: "Se pueden leer imágenes AVIF, en carpetas y dentro de archivos como ZIP o CBZ, incluidas las que tienen transparencia y las de escala de grises. No se pueden leer en dispositivos ARM de 32 bits." }
   - { icon: "📁", title: "También carpetas", body: "Elige una carpeta: las imágenes de cada carpeta forman un libro y cada archivo EPUB, ZIP, 7z o RAR es otro libro, subcarpetas incluidas, y todo se añade a la estantería de una vez. En Android, al permitir «Acceso a todos los archivos» puedes elegir carpetas como Download directamente." }
   - { icon: "🛡️", title: "Pensado para la seguridad", body: "Hay límites para el tamaño descomprimido y el número de archivos, y la descompresión se detiene si queda poco espacio libre. Las rutas como ../ dentro de un archivo se anulan." }
   - { icon: "🔢", title: "Ir a una página y marcadores", body: "Escribe un número de página para saltar, o salta desde la lista de marcadores. Añade o quita un marcador con un toque (versión de Android)." }
@@ -61,17 +62,17 @@ download_button: "Descargar desde Google Drive"
 download_body: "El APK de Android y el exe de Windows se comparten en Google Drive. No hay instalador; basta con ejecutar el exe."
 download_note: "El APK está firmado con una clave que generamos nosotros, así que el dispositivo te pedirá permitir apps de orígenes desconocidos. El exe no está firmado y Windows SmartScreen puede mostrar una advertencia."
 cta_source: "Código fuente"
-sha_label: "SHA-256 (v0.1.13)"
+sha_label: "SHA-256 (v0.1.14)"
 release_label: "Notas de versión y código (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.13-android.apk"
+android_file: "RustHighBookViewer-0.1.14-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "483ce2ebed7ac6666babd3ac8617bd14433589487552804dffa30fa4118b330f"
-windows_sha: "70f66f713ac617799df776e5ce330ef3ff1e9417746271cee3d68bb326d38d6a"
+android_sha: "04fd8fe86ca80360b5e5ccc137b40e527869940bfdeeefd9ba601ec369d9129f"
+windows_sha: "62616031b8ce5d4048f25eea468668fbc01889eca4ac3f7e5b718fb4e3c78c26"
 status_title: "Estado"
-status_body: "En desarrollo (v0.1.13, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, e índice), la importación de carpetas completas y la adición de varios archivos a la vez, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
+status_body: "En desarrollo (v0.1.14, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, índice, y símbolos y selectores de variación), AVIF, la importación de carpetas completas y la adición de varios archivos a la vez, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
 todo_title: "Aún sin verificar o no admitido"
 todo:
   - "Android en un dispositivo real (solo comprobado en emulador)"
