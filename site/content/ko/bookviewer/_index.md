@@ -44,6 +44,7 @@ features:
   - { icon: "📂", title: "폴더 보기와 정렬", body: "책장의 “폴더” 탭에서 책이 있는 폴더를 계층으로 탐색할 수 있습니다(하위 폴더까지 모두 표시도 가능). 이름·최근 연 순·추가한 순·크기로 오름차순·내림차순 정렬하고, 읽지 않음·읽는 중·읽음으로 걸러 볼 수 있습니다." }
   - { icon: "🔖", title: "이어서 읽기", body: "책을 연 채로 다른 앱을 쓰다가 시스템이 앱을 종료해도, 돌아오면 같은 책을 같은 페이지, 같은 메뉴 상태로 다시 엽니다." }
   - { icon: "📑", title: "EPUB 목차", body: "목차가 있는 EPUB은 열람 메뉴의 “목차”에서 장 목록을 열고, 그 장의 첫 페이지로 이동할 수 있습니다. 계층 구조로 표시되며 지금 있는 장을 강조합니다(EPUB3와 EPUB2 목차 지원)." }
+  - { icon: "📥", title: "여러 파일을 한 번에 추가", body: "“파일”에서 여러 파일을 선택하면 열지 않고 책장에 한꺼번에 추가합니다(하나만 선택하면 지금처럼 바로 엽니다). 몇 권씩 병렬로 등록하며 진행 표시와 취소를 지원합니다." }
   - { icon: "📁", title: "폴더도 열기", body: "폴더를 고르면 각 폴더의 이미지는 한 권으로, EPUB·ZIP·7z·RAR는 파일 하나당 한 권으로 묶어 하위 폴더까지 한꺼번에 책장에 추가합니다. Android에서는 “모든 파일 액세스”를 허용하면 Download 같은 폴더도 바로 고를 수 있습니다." }
   - { icon: "🛡️", title: "안전 고려", body: "풀 수 있는 크기와 파일 수에 상한이 있고, 남은 공간이 적으면 도중에 멈춥니다. 압축 파일 안의 ../ 같은 경로는 무효로 처리합니다." }
   - { icon: "🔢", title: "페이지 지정과 책갈피", body: "페이지 번호를 입력해 바로 이동하거나, 책갈피 목록에서 이동할 수 있습니다. 한 번 눌러 책갈피를 추가·해제합니다(Android 버전)." }
@@ -60,17 +61,17 @@ download_button: "Google 드라이브에서 다운로드"
 download_body: "Android용 APK와 Windows용 exe를 Google 드라이브에서 배포합니다. 설치 프로그램은 없으며, exe는 실행만 하면 됩니다."
 download_note: "APK는 직접 만든 키로 서명했기 때문에 기기에서 '출처를 알 수 없는 앱'을 허용해야 합니다. exe는 서명하지 않아 Windows SmartScreen이 경고를 표시할 수 있습니다."
 cta_source: "소스 코드"
-sha_label: "SHA-256(v0.1.11)"
+sha_label: "SHA-256(v0.1.12)"
 release_label: "변경 내역·소스 코드(GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.11-android.apk"
+android_file: "RustHighBookViewer-0.1.12-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "ca00de64a5df0d43818838b21c5a185fb83df0885d0e366a0921d5ef4a721e1c"
-windows_sha: "f41ed4afa8b8cd96208b865b7595ac64209540e63055367e06cb805500fbe4a6"
+android_sha: "d3d6c7129c243ae201f2b497eaa089e0364cb8903cfc4ea43d7acf8d50f4a125"
+windows_sha: "36f2ad0c73d4f55440885dbede79057e26f45d06f841fa1d9fcf13d20d570c9c"
 status_title: "개발 상황"
-status_body: "개발 중입니다(v0.1.11, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로·가로쓰기, 이미지와 글이 섞인 것, 목차 포함), 폴더 일괄 가져오기, 그룹, 폴더 보기와 정렬, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
+status_body: "개발 중입니다(v0.1.12, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로·가로쓰기, 이미지와 글이 섞인 것, 목차 포함), 폴더 일괄 가져오기와 여러 파일 일괄 추가, 그룹, 폴더 보기와 정렬, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
 todo_title: "아직 확인하지 못한 것·지원하지 않는 것"
 todo:
   - "Android 실제 기기에서의 동작(에뮬레이터에서만 확인)"

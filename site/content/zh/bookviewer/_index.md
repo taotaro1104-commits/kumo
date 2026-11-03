@@ -44,6 +44,7 @@ features:
   - { icon: "📂", title: "文件夹视图与排序", body: "在书架的“文件夹”标签中，可按层级浏览书籍所在的文件夹（也可显示全部子文件夹内容）。可按名称、最近打开、添加时间、大小升序或降序排列，并按未读、阅读中、已读筛选。" }
   - { icon: "🔖", title: "从上次位置继续", body: "即使在使用其他应用时系统关闭了本应用，返回后也会在同一页、保持同样的菜单状态重新打开同一本书。" }
   - { icon: "📑", title: "EPUB 目录", body: "对于带目录的 EPUB，可在阅读菜单的“目录”中打开章节列表，并跳转到该章的第一页。目录带有层级，并突出显示当前所在章节（支持 EPUB3 和 EPUB2 的目录）。" }
+  - { icon: "📥", title: "一次添加多个文件", body: "在“文件”中选择多个文件，即可不打开而直接批量添加到书架（只选一个时与以往一样直接打开）。会并行地几本几本地登记，并支持进度显示和取消。" }
   - { icon: "📁", title: "也能打开文件夹", body: "选择文件夹后，每个文件夹里的图片合为一本，EPUB、ZIP、7z、RAR 则每个文件各算一本，子文件夹也一并处理，全部加入书架。在 Android 上允许“所有文件访问权限”后，可直接选择 Download 等文件夹。" }
   - { icon: "🛡️", title: "注重安全", body: "对解压的大小和文件数量设有上限，可用空间不足时会中途停止。压缩包内含 ../ 之类的路径会被忽略。" }
   - { icon: "🔢", title: "页面跳转与书签", body: "输入页码即可跳转，也可从书签列表跳转。一键添加或取消书签（Android 版）。" }
@@ -60,17 +61,17 @@ download_button: "从 Google 云端硬盘下载"
 download_body: "Android 用的 APK 和 Windows 用的 exe 都通过 Google 云端硬盘提供。没有安装程序，exe 直接运行即可使用。"
 download_note: "APK 使用我们自己生成的密钥签名，因此设备会要求允许安装来自未知来源的应用。exe 没有签名，Windows 的 SmartScreen 可能会给出警告。"
 cta_source: "源代码"
-sha_label: "SHA-256（v0.1.11）"
+sha_label: "SHA-256（v0.1.12）"
 release_label: "更新记录与源代码（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.11-android.apk"
+android_file: "RustHighBookViewer-0.1.12-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "ca00de64a5df0d43818838b21c5a185fb83df0885d0e366a0921d5ef4a721e1c"
-windows_sha: "f41ed4afa8b8cd96208b865b7595ac64209540e63055367e06cb805500fbe4a6"
+android_sha: "d3d6c7129c243ae201f2b497eaa089e0364cb8903cfc4ea43d7acf8d50f4a125"
+windows_sha: "36f2ad0c73d4f55440885dbede79057e26f45d06f841fa1d9fcf13d20d570c9c"
 status_title: "开发状态"
-status_body: "开发中（v0.1.11，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（竖排、横排、图文混排以及目录）、文件夹批量导入、分组、文件夹视图与排序以及五种界面语言可用。源代码已在 GitHub 公开。"
+status_body: "开发中（v0.1.12，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（竖排、横排、图文混排以及目录）、文件夹批量导入与多文件批量添加、分组、文件夹视图与排序以及五种界面语言可用。源代码已在 GitHub 公开。"
 todo_title: "尚未验证或不支持的内容"
 todo:
   - "Android 真机上的运行情况（目前只在模拟器中确认）"
