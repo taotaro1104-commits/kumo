@@ -35,6 +35,7 @@ features_title: "特長"
 features:
   - { icon: "📖", title: "右綴じも左綴じも", body: "綴じ方向を切り替えられ、見開きの並びも合わせて変わります。表紙だけ単独で出し、横長のページは 1 枚で表示します。" }
   - { icon: "🔍", title: "拡大とルーペ", body: "ピンチやダブルタップで拡大してパンできます。Android 版には、指でなぞった所を 2 倍に拡大するルーペもあります。" }
+  - { icon: "🔎", title: "本棚のサムネイルの大きさ", body: "本棚の「大」「中」「小」ボタンで、表紙の大きさを選べます。選んだ大きさは次回も使われます。" }
   - { icon: "🗂️", title: "ページ一覧", body: "全ページのサムネイルから、読みたいページへ移れます（Android 版）。" }
   - { icon: "🌐", title: "5 か国語の画面", body: "画面の言語を、日本語・English・中文・한국어・Español から選べます（Android 版）。端末の言語に合わせることもできます。" }
   - { icon: "🎨", title: "色調整", body: "明るさ・コントラスト・ガンマ、白黒・セピア・反転。本ごとに設定を覚えます（Android 版）。" }
@@ -63,17 +64,17 @@ download_button: "Google ドライブからダウンロード"
 download_body: "Android 用の APK と、Windows 用の exe を、Google ドライブで配布しています。インストーラは無く、exe は実行するだけで使えます。"
 download_note: "APK は自分で作った鍵で署名しています。端末で「提供元不明のアプリ」の許可が必要です。exe は署名しておらず、Windows の SmartScreen が警告を出すことがあります。"
 cta_source: "ソースコード"
-sha_label: "SHA-256（v0.1.15）"
+sha_label: "SHA-256（v0.1.16）"
 release_label: "更新履歴・ソースコード（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.15-android.apk"
+android_file: "RustHighBookViewer-0.1.16-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "2d70735c4257c1d003a326085e495c739411e05ab44332af192c12784e73036e"
-windows_sha: "b09a586411bf1e4f0bdc4b9e25dbb1e0ca2d285717e1b0d888e8de7cede8ce8f"
+android_sha: "d88a2b59e7f3a384138b066040d8a744b740b30f33a6ba4cee14b2a86f9c00af"
+windows_sha: "bec220045a9551312ef13a3434637014accdb0331d72922603dc4753ed86ee69"
 status_title: "開発の状況"
-status_body: "開発中です（v0.1.15・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書き・横書き、画像と文章の混在、目次、記号や異体字を含む）・AVIF・フォルダの一括読み込みと複数ファイルの一括追加、グループ化、フォルダ表示・並び替え、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
+status_body: "開発中です（v0.1.16・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書き・横書き、画像と文章の混在、目次、記号や異体字を含む）・AVIF・フォルダの一括読み込みと複数ファイルの一括追加、グループ化、フォルダ表示・並び替え、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
 todo_title: "まだ確かめていないこと・できないこと"
 todo:
   - "Android の実機での動作（確認はエミュレータのみ）"

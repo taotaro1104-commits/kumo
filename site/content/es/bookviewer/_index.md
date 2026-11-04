@@ -35,6 +35,7 @@ features_title: "Características"
 features:
   - { icon: "📖", title: "De derecha a izquierda o al revés", body: "Cambia el sentido de encuadernación y el orden de la doble página se ajusta. La portada puede ir sola y las páginas apaisadas se muestran de una en una." }
   - { icon: "🔍", title: "Zoom y lupa", body: "Pellizca o toca dos veces para ampliar y desplazarte. La versión de Android tiene además una lupa que amplía 2x lo que recorres con el dedo." }
+  - { icon: "🔎", title: "Tamaño de las miniaturas de la estantería", body: "Elige portadas Grandes, Medianas o Pequeñas con los botones de la parte superior de la estantería. Se recuerda tu elección." }
   - { icon: "🗂️", title: "Cuadrícula de páginas", body: "Salta a cualquier página desde las miniaturas de todo el libro (versión de Android)." }
   - { icon: "🌐", title: "Cinco idiomas de interfaz", body: "Elige el idioma de la app entre japonés, inglés, chino, coreano y español (versión de Android), o sigue el idioma del dispositivo." }
   - { icon: "🎨", title: "Ajuste de color", body: "Brillo, contraste, gamma, blanco y negro, sepia e invertir. Los ajustes se recuerdan por libro (versión de Android)." }
@@ -63,17 +64,17 @@ download_button: "Descargar desde Google Drive"
 download_body: "El APK de Android y el exe de Windows se comparten en Google Drive. No hay instalador; basta con ejecutar el exe."
 download_note: "El APK está firmado con una clave que generamos nosotros, así que el dispositivo te pedirá permitir apps de orígenes desconocidos. El exe no está firmado y Windows SmartScreen puede mostrar una advertencia."
 cta_source: "Código fuente"
-sha_label: "SHA-256 (v0.1.15)"
+sha_label: "SHA-256 (v0.1.16)"
 release_label: "Notas de versión y código (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.15-android.apk"
+android_file: "RustHighBookViewer-0.1.16-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "2d70735c4257c1d003a326085e495c739411e05ab44332af192c12784e73036e"
-windows_sha: "b09a586411bf1e4f0bdc4b9e25dbb1e0ca2d285717e1b0d888e8de7cede8ce8f"
+android_sha: "d88a2b59e7f3a384138b066040d8a744b740b30f33a6ba4cee14b2a86f9c00af"
+windows_sha: "bec220045a9551312ef13a3434637014accdb0331d72922603dc4753ed86ee69"
 status_title: "Estado"
-status_body: "En desarrollo (v0.1.15, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, índice, y símbolos y selectores de variación), AVIF, la importación de carpetas completas y la adición de varios archivos a la vez, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
+status_body: "En desarrollo (v0.1.16, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, índice, y símbolos y selectores de variación), AVIF, la importación de carpetas completas y la adición de varios archivos a la vez, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
 todo_title: "Aún sin verificar o no admitido"
 todo:
   - "Android en un dispositivo real (solo comprobado en emulador)"

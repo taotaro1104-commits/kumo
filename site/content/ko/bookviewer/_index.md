@@ -35,6 +35,7 @@ features_title: "특징"
 features:
   - { icon: "📖", title: "오른쪽 제본도 왼쪽 제본도", body: "제본 방향을 바꿀 수 있고, 펼침 순서도 함께 바뀝니다. 표지는 혼자 보여 주고, 가로로 긴 페이지는 한 장으로 표시합니다." }
   - { icon: "🔍", title: "확대와 돋보기", body: "핀치나 더블 탭으로 확대하고 이동할 수 있습니다. Android 버전에는 손가락으로 훑은 곳을 2배로 키워 보여 주는 돋보기도 있습니다." }
+  - { icon: "🔎", title: "책장 썸네일 크기", body: "책장 위쪽의 “크게”, “보통”, “작게” 버튼으로 표지 크기를 고를 수 있습니다. 고른 크기는 다음에도 유지됩니다." }
   - { icon: "🗂️", title: "페이지 목록", body: "책 전체의 썸네일에서 읽고 싶은 페이지로 바로 이동합니다(Android 버전)." }
   - { icon: "🌐", title: "5개 언어 화면", body: "화면 언어를 일본어·영어·중국어·한국어·스페인어 중에서 고를 수 있습니다(Android 버전). 기기 언어를 따르게 할 수도 있습니다." }
   - { icon: "🎨", title: "색 조정", body: "밝기, 대비, 감마, 흑백, 세피아, 반전. 설정은 책마다 기억합니다(Android 버전)." }
@@ -63,17 +64,17 @@ download_button: "Google 드라이브에서 다운로드"
 download_body: "Android용 APK와 Windows용 exe를 Google 드라이브에서 배포합니다. 설치 프로그램은 없으며, exe는 실행만 하면 됩니다."
 download_note: "APK는 직접 만든 키로 서명했기 때문에 기기에서 '출처를 알 수 없는 앱'을 허용해야 합니다. exe는 서명하지 않아 Windows SmartScreen이 경고를 표시할 수 있습니다."
 cta_source: "소스 코드"
-sha_label: "SHA-256(v0.1.15)"
+sha_label: "SHA-256(v0.1.16)"
 release_label: "변경 내역·소스 코드(GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.15-android.apk"
+android_file: "RustHighBookViewer-0.1.16-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "2d70735c4257c1d003a326085e495c739411e05ab44332af192c12784e73036e"
-windows_sha: "b09a586411bf1e4f0bdc4b9e25dbb1e0ca2d285717e1b0d888e8de7cede8ce8f"
+android_sha: "d88a2b59e7f3a384138b066040d8a744b740b30f33a6ba4cee14b2a86f9c00af"
+windows_sha: "bec220045a9551312ef13a3434637014accdb0331d72922603dc4753ed86ee69"
 status_title: "개발 상황"
-status_body: "개발 중입니다(v0.1.15, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로·가로쓰기, 이미지와 글이 섞인 것, 목차, 기호와 이체자 선택자 포함), AVIF, 폴더 일괄 가져오기와 여러 파일 일괄 추가, 그룹, 폴더 보기와 정렬, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
+status_body: "개발 중입니다(v0.1.16, 프리릴리스). Android는 Android 15 에뮬레이터에서 7z, RAR, EPUB(세로·가로쓰기, 이미지와 글이 섞인 것, 목차, 기호와 이체자 선택자 포함), AVIF, 폴더 일괄 가져오기와 여러 파일 일괄 추가, 그룹, 폴더 보기와 정렬, 5개 언어 화면이 동작함을 확인했습니다. 소스 코드는 GitHub에 공개되어 있습니다."
 todo_title: "아직 확인하지 못한 것·지원하지 않는 것"
 todo:
   - "Android 실제 기기에서의 동작(에뮬레이터에서만 확인)"

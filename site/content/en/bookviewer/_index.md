@@ -35,6 +35,7 @@ features_title: "Features"
 features:
   - { icon: "📖", title: "Right-to-left or left-to-right", body: "Switch the binding direction and the spread order follows. The cover can stand alone, and wide pages are shown by themselves." }
   - { icon: "🔍", title: "Zoom and magnifier", body: "Pinch or double-tap to zoom and pan. The Android version also has a magnifier that enlarges whatever you trace with a finger by 2x." }
+  - { icon: "🔎", title: "Shelf thumbnail size", body: "Choose Large, Medium or Small covers with the buttons at the top of the shelf. Your choice is remembered next time." }
   - { icon: "🗂️", title: "Page grid", body: "Jump to any page from thumbnails of the whole book (Android version)." }
   - { icon: "🌐", title: "Five display languages", body: "Choose the app language from Japanese, English, Chinese, Korean and Spanish (Android version), or follow your device language." }
   - { icon: "🎨", title: "Color adjustment", body: "Brightness, contrast, gamma, black and white, sepia and invert. Settings are remembered for each book (Android version)." }
@@ -63,17 +64,17 @@ download_button: "Download from Google Drive"
 download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
 download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
 cta_source: "Source code"
-sha_label: "SHA-256 (v0.1.15)"
+sha_label: "SHA-256 (v0.1.16)"
 release_label: "Release notes and source (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.15-android.apk"
+android_file: "RustHighBookViewer-0.1.16-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "2d70735c4257c1d003a326085e495c739411e05ab44332af192c12784e73036e"
-windows_sha: "b09a586411bf1e4f0bdc4b9e25dbb1e0ca2d285717e1b0d888e8de7cede8ce8f"
+android_sha: "d88a2b59e7f3a384138b066040d8a744b740b30f33a6ba4cee14b2a86f9c00af"
+windows_sha: "bec220045a9551312ef13a3434637014accdb0331d72922603dc4753ed86ee69"
 status_title: "Status"
-status_body: "Under development (v0.1.15, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, the table of contents, and symbols and variation selectors), AVIF, bulk folder import and adding several files at once, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
+status_body: "Under development (v0.1.16, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, the table of contents, and symbols and variation selectors), AVIF, bulk folder import and adding several files at once, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
 todo_title: "Not yet verified, or not supported"
 todo:
   - "Android on a real device (only checked in an emulator)"
