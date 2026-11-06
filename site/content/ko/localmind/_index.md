@@ -4,7 +4,7 @@ site_name: "LocalMind"
 description: "녹음 받아쓰기, 회의록 작성, 자료 검색, AI 질문을 기기 안에서만 처리하는 Rust 제작 Android 앱입니다. 녹음과 자료는 밖으로 보내지 않습니다."
 tagline: "회의도 자료도, 내 기기 안에서."
 lead: "LocalMind는 녹음 받아쓰기, 회의록 작성, 내 자료 검색, AI에게 질문하기를 스마트폰 안에서만 처리하는 앱입니다. 녹음, 받아쓴 글, 자료는 기기 밖으로 나가지 않습니다."
-pills: ["Android", "오프라인 사용", "Rust", "일본어 지원"]
+pills: ["Android", "오프라인 사용", "Rust", "일본어·영어 화면"]
 nav_all: "앱 목록"
 nav_features: "특징"
 nav_how: "사용 방법"
@@ -17,7 +17,7 @@ stats:
   - { value: "3가지 모델", label: "AI 모델은 크기를 골라 쓰고, 나중에 바꿀 수 있습니다" }
 stats_note: "AI 모델(약 0.5~2.1GB)은 앱에 들어 있지 않습니다. 처음 쓸 때 동의한 뒤에 내려받습니다. 작은 모델은 빠른 대신 회의록과 답변의 정확도가 떨어집니다."
 shots_title: "스크린샷"
-shots_note: "화면은 Android 15 에뮬레이터에서 촬영했으며, 예시 자료와 회의를 가정한 짧은 음성을 사용했습니다. 앱 화면은 현재 일본어입니다."
+shots_note: "화면은 Android 15 에뮬레이터(일본어 화면)에서 촬영했으며, 예시 자료와 회의를 가정한 짧은 음성을 사용했습니다."
 shots:
   - { img: "search.jpg", caption: "자료 검색(근거 표시)" }
   - { img: "groups.jpg", caption: "자료 그룹" }
@@ -33,6 +33,7 @@ features:
   - { icon: "🗂️", title: "자료 그룹", body: "자료에 그룹을 붙여 목록을 전환할 수 있습니다. 검색도 고른 그룹으로 좁힐 수 있고, 그룹 변경이나 그룹 전체 삭제도 됩니다." }
   - { icon: "💬", title: "AI에게 질문", body: "자료를 불러오지 않고도 AI에게 질문할 수 있습니다. 기기 안에서만 답하거나, 선택했을 때만 Wikipedia를 검색해 답합니다. 검색어는 보내기 전에 보여 드리고 확인을 받습니다." }
   - { icon: "🔁", title: "AI 모델 선택과 전환", body: "Qwen2.5의 0.5B·1.5B·3B 중에서 고르거나, URL로 다른 모델(GGUF)을 지정할 수 있습니다. 내려받은 모델은 남아 있어 언제든 전환하거나 삭제할 수 있습니다." }
+  - { icon: "🌍", title: "일본어와 영어 화면", body: "앱 화면은 일본어와 영어를 지원하며 기기 언어에 맞춰 바뀝니다(Android 13 이상은 설정의 앱별 언어로도 고를 수 있습니다). AI는 질문과 같은 언어로 답합니다." }
 privacy_title: "데이터 처리"
 privacy_body: "녹음, 받아쓴 글, 자료는 밖으로 보내지 않습니다. 앱이 통신하는 경우는 아래 세 가지뿐이며, 모두 사용자가 직접 선택했을 때입니다."
 privacy:
@@ -50,7 +51,7 @@ download_note: "APK는 직접 만든 키로 서명했기 때문에, 기기에서
 download_button: "Google 드라이브에서 내려받기"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "991d4122ff8881d79c11bad03668c3f61d3d37d86ab048d1251ccc507928d66a"
+android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
 sha_label: "SHA-256(v0.1)"
 cta_source: "소스 코드(GitHub)"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -63,5 +64,6 @@ todo:
   - "긴 회의(회의록에 쓸 수 있는 받아쓴 글은 5,000자까지입니다)"
   - "PDF 가져오기와 이미지 글자 인식(OCR)은 지원하지 않습니다"
   - "Google Play 배포(앱이 약 700MB여서 크기 제한을 넘습니다)"
+  - "영어 회의의 받아쓰기와 회의록(현재의 받아쓰기와 회의록은 일본어용입니다)"
 footer: "© LocalMind"
 ---

@@ -4,7 +4,7 @@ site_name: "LocalMind"
 description: "一款用 Rust 编写的 Android 应用，在设备本地完成录音转写、会议纪要、资料搜索和 AI 问答。录音和资料都不会发送到设备之外。"
 tagline: "会议和资料，都留在你的设备里。"
 lead: "LocalMind 在手机内部完成录音转写、生成会议纪要、搜索自己的资料以及向 AI 提问。录音、转写文字和资料都不会离开设备。"
-pills: ["Android", "可离线使用", "Rust", "支持日语"]
+pills: ["Android", "可离线使用", "Rust", "日语和英语界面"]
 nav_all: "全部应用"
 nav_features: "特点"
 nav_how: "使用方法"
@@ -17,7 +17,7 @@ stats:
   - { value: "3 种模型", label: "AI 模型可按大小选择，之后还能切换" }
 stats_note: "AI 模型（约 0.5～2.1 GB）不随应用附带。首次使用时，经你同意后下载。较小的模型速度更快，但纪要和回答的准确度会下降。"
 shots_title: "截图"
-shots_note: "截图来自 Android 15 模拟器，使用的是示例资料和一段模拟会议的短音频。目前应用界面为日语。"
+shots_note: "截图来自 Android 15 模拟器（日语界面），使用的是示例资料和一段模拟会议的短音频。"
 shots:
   - { img: "search.jpg", caption: "资料搜索（附依据）" }
   - { img: "groups.jpg", caption: "资料分组" }
@@ -33,6 +33,7 @@ features:
   - { icon: "🗂️", title: "资料分组", body: "可以给资料分组并切换列表。搜索也能限定在所选分组内。可以更换分组，也可以整组一并删除。" }
   - { icon: "💬", title: "向 AI 提问", body: "不加载任何资料也能向 AI 提问。可以只在设备内回答，也可以仅在你选择时先搜索 Wikipedia。搜索词会在发送前展示给你确认。" }
   - { icon: "🔁", title: "选择并切换 AI 模型", body: "可从 Qwen2.5 的 0.5B、1.5B、3B 中选择，也可以用 URL 指定其他模型（GGUF）。下载过的模型会保留，随时可以切换或删除。" }
+  - { icon: "🌍", title: "日语和英语界面", body: "应用界面支持日语和英语，并随设备语言切换（Android 13 及以上还可以在系统设置中按应用选择语言）。AI 会用与提问相同的语言回答。" }
 privacy_title: "数据如何处理"
 privacy_body: "录音、转写文字和资料都不会发送到外部。应用只在以下三种情况下联网，而且都是你自己选择的操作。"
 privacy:
@@ -50,7 +51,7 @@ download_note: "APK 使用我们自己生成的密钥签名，所以设备会要
 download_button: "从 Google 云端硬盘下载"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "991d4122ff8881d79c11bad03668c3f61d3d37d86ab048d1251ccc507928d66a"
+android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
 sha_label: "SHA-256（v0.1）"
 cta_source: "源代码（GitHub）"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -63,5 +64,6 @@ todo:
   - "较长的会议（用于生成纪要的转写文字最多 5,000 字）"
   - "暂不支持导入 PDF 和从图片识别文字（OCR）"
   - "在 Google Play 上发布（应用约 700 MB，超过大小上限）"
+  - "英语会议的转写和纪要（目前的转写和纪要面向日语）"
 footer: "© LocalMind"
 ---

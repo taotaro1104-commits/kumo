@@ -4,7 +4,7 @@ site_name: "LocalMind"
 description: "録音の文字起こしと議事録づくり、資料の検索、AI への質問を、端末の中だけで行う Android アプリ（Rust 製）。録音も資料も、外へは送りません。"
 tagline: "会議も資料も、端末の中で。"
 lead: "LocalMind は、録音の文字起こしと議事録づくり、手元の資料の検索、AI への質問を、スマートフォンの中だけで行うアプリです。録音も文字起こしも資料も、端末の外へは送りません。"
-pills: ["Android", "オフラインで動く", "Rust", "日本語に対応"]
+pills: ["Android", "オフラインで動く", "Rust", "日本語・English の画面"]
 nav_all: "アプリ一覧"
 nav_features: "特長"
 nav_how: "使い方"
@@ -17,7 +17,7 @@ stats:
   - { value: "3 種類のモデル", label: "AI モデルは、大きさを選べて、あとから切り替えられます" }
 stats_note: "AI モデル（約 0.5〜2.1GB）は、アプリに同梱していません。初めて使うときに、同意したうえでダウンロードします。小さなモデルは速いぶん、議事録や回答の精度は下がります。"
 shots_title: "スクリーンショット"
-shots_note: "画面は Android 15 のエミュレータで撮影しました。サンプルの資料と、会議を想定した短い音声を使っています。"
+shots_note: "画面は Android 15 のエミュレータで撮影しました（日本語の画面です）。サンプルの資料と、会議を想定した短い音声を使っています。"
 shots:
   - { img: "search.jpg", caption: "資料の検索（根拠つき）" }
   - { img: "groups.jpg", caption: "資料のグループ分け" }
@@ -33,6 +33,7 @@ features:
   - { icon: "🗂️", title: "資料のグループ分け", body: "資料にグループを付けて、一覧を切り替えられます。検索も、選んだグループだけに絞れます。グループの付け替えや、まとめての削除もできます。" }
   - { icon: "💬", title: "AI への質問", body: "資料を読み込まずに、AI に質問できます。端末の中だけで答えるか、選んだときだけ Wikipedia を検索して答えます。検索する語は、送る前に見せて確認します。" }
   - { icon: "🔁", title: "AI モデルを選べる・切り替えられる", body: "Qwen2.5 の 0.5B・1.5B・3B から選べ、URL で別のモデル（GGUF）を指定することもできます。取得したモデルは残り、いつでも切り替えたり、削除したりできます。" }
+  - { icon: "🌍", title: "日本語と English の画面", body: "画面は日本語と英語に対応し、端末の言語に合わせて切り替わります（Android 13 以降は、設定のアプリごとの言語でも選べます）。AI への質問の答えは、質問と同じ言語で返します。" }
 privacy_title: "データの扱い"
 privacy_body: "録音・文字起こし・資料は、端末の外へ送りません。アプリが通信するのは、次の 3 つのときだけで、どれも利用者が選んだときです。"
 privacy:
@@ -50,7 +51,7 @@ download_note: "APK は自分で作った鍵で署名しています。端末で
 download_button: "Google ドライブからダウンロード"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "991d4122ff8881d79c11bad03668c3f61d3d37d86ab048d1251ccc507928d66a"
+android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
 sha_label: "SHA-256（v0.1）"
 cta_source: "ソースコード（GitHub）"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -63,5 +64,6 @@ todo:
   - "長い会議（議事録に使える文字起こしは、5,000 文字までです）"
   - "PDF の取り込みと、画像からの文字読み取り（OCR）は、未対応です"
   - "Google Play での配布（アプリが約 700MB あり、サイズの上限を超えます）"
+  - "英語の会議の文字起こしと議事録（いまの文字起こしと議事録は、日本語向けです）"
 footer: "© LocalMind"
 ---

@@ -4,7 +4,7 @@ site_name: "LocalMind"
 description: "Una app de Android escrita en Rust que transcribe grabaciones, redacta actas de reuniones, busca en tus documentos y responde preguntas con IA, todo en el propio dispositivo. Tus grabaciones y documentos no se envían fuera."
 tagline: "Reuniones y documentos, en tu dispositivo."
 lead: "LocalMind transcribe grabaciones, redacta actas de reuniones, busca en tus propios documentos y responde a tus preguntas con IA, todo dentro de tu teléfono. Las grabaciones, las transcripciones y los documentos nunca salen del dispositivo."
-pills: ["Android", "Funciona sin conexión", "Rust", "Compatible con japonés"]
+pills: ["Android", "Funciona sin conexión", "Rust", "Pantallas en japonés e inglés"]
 nav_all: "Todas las apps"
 nav_features: "Características"
 nav_how: "Cómo se usa"
@@ -17,7 +17,7 @@ stats:
   - { value: "3 modelos", label: "Elige el modelo de IA por tamaño y cámbialo después" }
 stats_note: "Los modelos de IA (de 0,5 a 2,1 GB aproximadamente) no vienen incluidos en la app. Se descarga uno la primera vez que lo necesitas, con tu consentimiento. Un modelo pequeño es más rápido, pero las actas y las respuestas son menos precisas."
 shots_title: "Capturas de pantalla"
-shots_note: "Las pantallas se capturaron en un emulador de Android 15, con documentos de ejemplo y un breve audio de una reunión simulada. Por ahora la app está en japonés."
+shots_note: "Las pantallas se capturaron en un emulador de Android 15 (pantallas en japonés), con documentos de ejemplo y un breve audio de una reunión simulada."
 shots:
   - { img: "search.jpg", caption: "Búsqueda de documentos, con fuentes" }
   - { img: "groups.jpg", caption: "Grupos de documentos" }
@@ -33,6 +33,7 @@ features:
   - { icon: "🗂️", title: "Grupos de documentos", body: "Reúne los documentos en grupos y cambia la lista entre ellos. Puedes limitar la búsqueda al grupo elegido, mover documentos de un grupo a otro o borrar un grupo entero de una vez." }
   - { icon: "💬", title: "Pregunta a la IA", body: "Haz preguntas a la IA sin cargar ningún documento. Responde solo en el dispositivo o, únicamente si lo eliges, busca antes en Wikipedia. Te mostramos las palabras de búsqueda antes de enviarlas." }
   - { icon: "🔁", title: "Elige y cambia de modelo de IA", body: "Elige entre Qwen2.5 0.5B, 1.5B y 3B, o indica la URL de otro modelo (GGUF). Los modelos descargados se conservan y puedes cambiar entre ellos o borrarlos cuando quieras." }
+  - { icon: "🌍", title: "Pantallas en japonés e inglés", body: "Las pantallas de la app están en japonés e inglés y siguen el idioma del dispositivo (en Android 13 y posteriores también puedes elegirlo por app en los Ajustes). La IA responde en el mismo idioma en que se le pregunta." }
 privacy_title: "Cómo se tratan tus datos"
 privacy_body: "Las grabaciones, las transcripciones y los documentos no se envían fuera. La app usa la red solo en tres casos, y en todos ellos eres tú quien lo decide."
 privacy:
@@ -50,7 +51,7 @@ download_note: "El APK está firmado con una clave que generamos nosotros, así 
 download_button: "Descargar desde Google Drive"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "991d4122ff8881d79c11bad03668c3f61d3d37d86ab048d1251ccc507928d66a"
+android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
 sha_label: "SHA-256 (v0.1)"
 cta_source: "Código fuente (GitHub)"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -63,5 +64,6 @@ todo:
   - "Reuniones largas (la transcripción usada para el acta está limitada a 5.000 caracteres)"
   - "No se admite la importación de PDF ni la lectura de texto en imágenes (OCR)"
   - "Distribución en Google Play (la app ocupa unos 700 MB, por encima del límite de tamaño)"
+  - "Transcripción y actas de reuniones en inglés (por ahora la transcripción y las actas están pensadas para el japonés)"
 footer: "© LocalMind"
 ---

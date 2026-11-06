@@ -4,7 +4,7 @@ site_name: "LocalMind"
 description: "An Android app written in Rust that transcribes recordings, writes meeting minutes, searches your documents and answers questions with AI, all on the device. Your recordings and documents are never sent out."
 tagline: "Meetings and documents, kept on your device."
 lead: "LocalMind transcribes recordings, writes meeting minutes, searches your own documents and answers your questions with AI, all inside your smartphone. Recordings, transcripts and documents never leave the device."
-pills: ["Android", "Works offline", "Rust", "Japanese supported"]
+pills: ["Android", "Works offline", "Rust", "Japanese & English screens"]
 nav_all: "All apps"
 nav_features: "Features"
 nav_how: "How to use"
@@ -17,7 +17,7 @@ stats:
   - { value: "3 model sizes", label: "Pick an AI model by size, and switch later" }
 stats_note: "The AI models (about 0.5 to 2.1 GB) are not bundled with the app. You download one the first time you need it, after you agree. A smaller model is faster, but its minutes and answers are less accurate."
 shots_title: "Screenshots"
-shots_note: "Screens were captured in an Android 15 emulator, using sample documents and a short audio clip of a pretend meeting. The app is in Japanese for now."
+shots_note: "Screens were captured in an Android 15 emulator (Japanese screens), using sample documents and a short audio clip of a pretend meeting."
 shots:
   - { img: "search.jpg", caption: "Document search, with sources" }
   - { img: "groups.jpg", caption: "Document groups" }
@@ -33,6 +33,7 @@ features:
   - { icon: "🗂️", title: "Document groups", body: "Put documents into groups and switch the list between them. You can limit a search to the chosen group, move documents between groups, or delete a whole group at once." }
   - { icon: "💬", title: "Ask the AI", body: "Ask the AI a question without loading any document. It answers on the device alone, or, only when you choose, searches Wikipedia first. The search words are shown to you before they are sent." }
   - { icon: "🔁", title: "Choose and switch AI models", body: "Pick from Qwen2.5 0.5B, 1.5B and 3B, or give a URL for another model (GGUF). Downloaded models stay on the device, and you can switch between them or delete them at any time." }
+  - { icon: "🌍", title: "Japanese and English screens", body: "The app's screens are available in Japanese and English and follow the device language (on Android 13 and later you can also choose it per app in Settings). The AI answers a question in the language it was asked in." }
 privacy_title: "How your data is handled"
 privacy_body: "Recordings, transcripts and documents are never sent out. The app uses the network in only three cases, and each one is something you chose to do."
 privacy:
@@ -50,7 +51,7 @@ download_note: "The APK is signed with a key we generated ourselves, so your dev
 download_button: "Download from Google Drive"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "991d4122ff8881d79c11bad03668c3f61d3d37d86ab048d1251ccc507928d66a"
+android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
 sha_label: "SHA-256 (v0.1)"
 cta_source: "Source code (GitHub)"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -63,5 +64,6 @@ todo:
   - "Long meetings (the transcript used for minutes is limited to 5,000 characters)"
   - "Importing PDFs, and reading text from images (OCR), are not supported"
   - "Distribution on Google Play (the app is about 700 MB, over the size limit)"
+  - "Transcription and minutes of English meetings (transcription and minutes are tuned for Japanese for now)"
 footer: "© LocalMind"
 ---
