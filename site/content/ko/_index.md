@@ -1,6 +1,6 @@
 ---
 title: "Rust로 만든 가벼운 앱"
-description: "메모리를 적게 쓰는 것을 가장 우선해 Rust로 만든 가볍고 단순한 앱: 웹 브라우저, 웹 페이지의 변화를 지켜보는 watchtower-rs, 만화 뷰어 RustHighBookViewer."
+description: "메모리를 적게 쓰는 것을 가장 우선해 Rust로 만든 가볍고 단순한 앱: 웹 브라우저, 웹 페이지의 변화를 지켜보는 watchtower-rs, 만화 뷰어 RustHighBookViewer. 녹음 받아쓰기, 회의록, 자료 검색, AI 질문을 기기 안에서 처리하는 LocalMind도 소개합니다."
 tagline: "가볍고 단순하게. Rust로 만든 앱들."
 lead: "모두 메모리를 적게 쓰는 것을 가장 우선해 Rust로 처음부터 만들었습니다. 쓸수록 무거워지지 않는 도구를 목표로 합니다."
 nav_apps: "앱"
@@ -27,5 +27,12 @@ apps:
     body: "ZIP/CBZ, 7z, RAR, EPUB, 이미지 폴더를 열어 오른쪽에서 왼쪽으로 넘기는 펼침 보기 등으로 읽을 수 있고, 읽던 위치도 기억합니다."
     tags: ["Android", "Windows", "ZIP / 7z / RAR / EPUB"]
     cta: "RustHighBookViewer 소개 보기"
+  - slug: "localmind"
+    icon: "🎙️"
+    name: "LocalMind"
+    tagline: "회의도 자료도, 내 기기 안에서"
+    body: "녹음 받아쓰기, 회의록 작성, 자료 검색, AI 질문을 기기 안에서만 처리하는 Android 앱입니다. 녹음과 자료는 밖으로 보내지 않습니다."
+    tags: ["Android", "오프라인 사용", "회의록 / 검색 / AI 질문"]
+    cta: "LocalMind 소개 보기"
 footer: "© Rust로 만든 가벼운 앱"
 ---

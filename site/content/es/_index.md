@@ -1,6 +1,6 @@
 ---
 title: "Apps ligeras hechas en Rust"
-description: "Apps ligeras y sencillas escritas en Rust con el bajo uso de memoria como primer objetivo: un navegador web, watchtower-rs (un vigilante de cambios en páginas) y RustHighBookViewer (un visor de cómics)."
+description: "Apps ligeras y sencillas escritas en Rust con el bajo uso de memoria como primer objetivo: un navegador web, watchtower-rs (un vigilante de cambios en páginas) y RustHighBookViewer (un visor de cómics). También presenta LocalMind, que transcribe grabaciones, redacta actas, busca documentos y responde preguntas con IA en el dispositivo."
 tagline: "Ligeras y sencillas. Apps hechas en Rust."
 lead: "Todas están escritas desde cero en Rust con el bajo uso de memoria como primer objetivo. Buscamos herramientas que no se vuelvan más pesadas cuanto más se usan."
 nav_apps: "Apps"
@@ -27,5 +27,12 @@ apps:
     body: "Abre ZIP/CBZ, 7z, RAR, EPUB y carpetas de imágenes y léelos con doble página de derecha a izquierda y más. Recuerda por dónde ibas."
     tags: ["Android", "Windows", "ZIP / 7z / RAR / EPUB"]
     cta: "Ver RustHighBookViewer"
+  - slug: "localmind"
+    icon: "🎙️"
+    name: "LocalMind"
+    tagline: "Reuniones y documentos, en tu dispositivo"
+    body: "Una app de Android que transcribe grabaciones, redacta actas, busca en tus documentos y responde preguntas con IA, todo en el propio dispositivo. Nada de lo que grabas o guardas se envía fuera."
+    tags: ["Android", "Funciona sin conexión", "Actas / búsqueda / preguntas a la IA"]
+    cta: "Ver LocalMind"
 footer: "© Apps ligeras hechas en Rust"
 ---

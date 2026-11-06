@@ -1,6 +1,6 @@
 ---
 title: "Light apps written in Rust"
-description: "Light, simple apps written in Rust with low memory use as the first goal: a web browser, watchtower-rs (a page change watcher) and RustHighBookViewer (a comic viewer)."
+description: "Light, simple apps written in Rust with low memory use as the first goal: a web browser, watchtower-rs (a page change watcher) and RustHighBookViewer (a comic viewer). It also introduces LocalMind, which transcribes recordings, writes minutes, searches documents and answers questions with AI on the device."
 tagline: "Light and simple. Apps written in Rust."
 lead: "Each one is written from scratch in Rust with low memory use as its first goal. The aim is tools that do not get heavier the more you use them."
 nav_apps: "Apps"
@@ -27,5 +27,12 @@ apps:
     body: "Open ZIP/CBZ, 7z, RAR, EPUB and image folders and read them with right-to-left spreads and more. It remembers where you stopped."
     tags: ["Android", "Windows", "ZIP / 7z / RAR / EPUB"]
     cta: "See RustHighBookViewer"
+  - slug: "localmind"
+    icon: "🎙️"
+    name: "LocalMind"
+    tagline: "Meetings and documents, kept on your device"
+    body: "An Android app that transcribes recordings, writes minutes, searches your documents and answers questions with AI, all on the device. Nothing you record or store is sent out."
+    tags: ["Android", "Works offline", "Minutes / search / AI questions"]
+    cta: "See LocalMind"
 footer: "© Light apps written in Rust"
 ---
