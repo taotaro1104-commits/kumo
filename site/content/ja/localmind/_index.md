@@ -51,7 +51,7 @@ download_note: "APK は自分で作った鍵で署名しています。端末で
 download_button: "Google ドライブからダウンロード"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
+android_sha: "271af8f42facb18a8b3d7aee237c60caf54254c093196a7b36fcd69e84e2d259"
 sha_label: "SHA-256（v0.1）"
 cta_source: "ソースコード（GitHub）"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -64,6 +64,6 @@ todo:
   - "長い会議（議事録に使える文字起こしは、5,000 文字までです）"
   - "PDF の取り込みと、画像からの文字読み取り（OCR）は、未対応です"
   - "Google Play での配布（アプリが約 700MB あり、サイズの上限を超えます）"
-  - "英語の会議の文字起こしと議事録（いまの文字起こしと議事録は、日本語向けです）"
+  - "英語の会議（会議の言語は録音画面で選べます。英語の議事録は、実際のモデルで確かめましたが、英語の音声を端末で通して試してはいません）"
 footer: "© LocalMind"
 ---

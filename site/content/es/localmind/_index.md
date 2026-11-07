@@ -51,7 +51,7 @@ download_note: "El APK está firmado con una clave que generamos nosotros, así 
 download_button: "Descargar desde Google Drive"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
+android_sha: "271af8f42facb18a8b3d7aee237c60caf54254c093196a7b36fcd69e84e2d259"
 sha_label: "SHA-256 (v0.1)"
 cta_source: "Código fuente (GitHub)"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -64,6 +64,6 @@ todo:
   - "Reuniones largas (la transcripción usada para el acta está limitada a 5.000 caracteres)"
   - "No se admite la importación de PDF ni la lectura de texto en imágenes (OCR)"
   - "Distribución en Google Play (la app ocupa unos 700 MB, por encima del límite de tamaño)"
-  - "Transcripción y actas de reuniones en inglés (por ahora la transcripción y las actas están pensadas para el japonés)"
+  - "Reuniones en inglés (el idioma de la reunión se elige en la pantalla de grabación; las actas en inglés se comprobaron con un modelo real, pero no de principio a fin con voz en inglés en un dispositivo)"
 footer: "© LocalMind"
 ---

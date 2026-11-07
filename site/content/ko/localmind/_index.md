@@ -51,7 +51,7 @@ download_note: "APK는 직접 만든 키로 서명했기 때문에, 기기에서
 download_button: "Google 드라이브에서 내려받기"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
+android_sha: "271af8f42facb18a8b3d7aee237c60caf54254c093196a7b36fcd69e84e2d259"
 sha_label: "SHA-256(v0.1)"
 cta_source: "소스 코드(GitHub)"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -64,6 +64,6 @@ todo:
   - "긴 회의(회의록에 쓸 수 있는 받아쓴 글은 5,000자까지입니다)"
   - "PDF 가져오기와 이미지 글자 인식(OCR)은 지원하지 않습니다"
   - "Google Play 배포(앱이 약 700MB여서 크기 제한을 넘습니다)"
-  - "영어 회의의 받아쓰기와 회의록(현재의 받아쓰기와 회의록은 일본어용입니다)"
+  - "영어 회의(녹음 화면에서 회의 언어를 고를 수 있습니다. 영어 회의록은 실제 모델로 확인했지만, 영어 음성을 기기에서 끝까지 시험하지는 않았습니다)"
 footer: "© LocalMind"
 ---

@@ -51,7 +51,7 @@ download_note: "APK 使用我们自己生成的密钥签名，所以设备会要
 download_button: "从 Google 云端硬盘下载"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
+android_sha: "271af8f42facb18a8b3d7aee237c60caf54254c093196a7b36fcd69e84e2d259"
 sha_label: "SHA-256（v0.1）"
 cta_source: "源代码（GitHub）"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -64,6 +64,6 @@ todo:
   - "较长的会议（用于生成纪要的转写文字最多 5,000 字）"
   - "暂不支持导入 PDF 和从图片识别文字（OCR）"
   - "在 Google Play 上发布（应用约 700 MB，超过大小上限）"
-  - "英语会议的转写和纪要（目前的转写和纪要面向日语）"
+  - "英语会议（可在录音界面选择会议语言；英语纪要已用真实模型确认，但尚未在设备上用英语语音完整测试）"
 footer: "© LocalMind"
 ---

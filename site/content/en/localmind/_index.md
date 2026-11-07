@@ -51,7 +51,7 @@ download_note: "The APK is signed with a key we generated ourselves, so your dev
 download_button: "Download from Google Drive"
 download_url: "https://drive.google.com/drive/folders/1hfZGFiTYGIdArpSbNyXrt-hWH11323Wv?usp=drive_link"
 android_file: "LocalMind-0.1.apk"
-android_sha: "078f7c82afc78e46455492537aa14018be75717d00c0895ee2696f5b1c668224"
+android_sha: "271af8f42facb18a8b3d7aee237c60caf54254c093196a7b36fcd69e84e2d259"
 sha_label: "SHA-256 (v0.1)"
 cta_source: "Source code (GitHub)"
 repo_url: "https://github.com/taotaro1104-commits/localmind"
@@ -64,6 +64,6 @@ todo:
   - "Long meetings (the transcript used for minutes is limited to 5,000 characters)"
   - "Importing PDFs, and reading text from images (OCR), are not supported"
   - "Distribution on Google Play (the app is about 700 MB, over the size limit)"
-  - "Transcription and minutes of English meetings (transcription and minutes are tuned for Japanese for now)"
+  - "English meetings (you choose the meeting language on the recording screen; English minutes were checked with a real model, but not end to end with English speech on a device)"
 footer: "© LocalMind"
 ---
