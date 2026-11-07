@@ -36,6 +36,7 @@ features:
   - { icon: "📖", title: "右开本、左开本都行", body: "可切换装订方向，双页的排列也随之改变。封面可单独显示，横向的页面单页显示。" }
   - { icon: "🔍", title: "缩放与放大镜", body: "双指捏合或双击即可缩放并平移。Android 版还有放大镜，可把手指划过的地方放大 2 倍。" }
   - { icon: "🔎", title: "书架缩略图的大小", body: "用书架上方的“大”“中”“小”按钮选择封面大小，所选大小下次仍会沿用。" }
+  - { icon: "🔤", title: "用喜欢的字体阅读", body: "可以导入 ttf、otf、ttc 字体文件，作为文字 EPUB 的字体使用（最大 64 MB）。在 Android 上从设置画面导入，在 Windows 上从书架的“文字设置”导入。字体中没有的字符会用黑体补上。" }
   - { icon: "🗂️", title: "页面一览", body: "从全书的缩略图中直接跳到想读的页面（Android 版）。" }
   - { icon: "🌐", title: "五种界面语言", body: "界面语言可在日语、英语、中文、韩语和西班牙语中选择（Android 版），也可跟随设备语言。" }
   - { icon: "🎨", title: "调色", body: "亮度、对比度、伽马，以及黑白、复古棕、反色。设置会按每本书分别记住（Android 版）。" }
@@ -64,17 +65,17 @@ download_button: "从 Google 云端硬盘下载"
 download_body: "Android 用的 APK 和 Windows 用的 exe 都通过 Google 云端硬盘提供。没有安装程序，exe 直接运行即可使用。"
 download_note: "APK 使用我们自己生成的密钥签名，因此设备会要求允许安装来自未知来源的应用。exe 没有签名，Windows 的 SmartScreen 可能会给出警告。"
 cta_source: "源代码"
-sha_label: "SHA-256（v0.1.16）"
+sha_label: "SHA-256（v0.1.17）"
 release_label: "更新记录与源代码（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.16-android.apk"
+android_file: "RustHighBookViewer-0.1.17-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "d88a2b59e7f3a384138b066040d8a744b740b30f33a6ba4cee14b2a86f9c00af"
-windows_sha: "bec220045a9551312ef13a3434637014accdb0331d72922603dc4753ed86ee69"
+android_sha: "f3ccddaa32e9a4d78186aa76ce69f5c6709c95fe6baaffb21607ef785cd9b323"
+windows_sha: "8580f0cbf608ff0e233bc90318311bf73ae330beca095b91f86fbe935c9e66a3"
 status_title: "开发状态"
-status_body: "开发中（v0.1.16，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（竖排、横排、图文混排、目录，以及符号和异体字选择符）、AVIF、文件夹批量导入与多文件批量添加、分组、文件夹视图与排序以及五种界面语言可用。源代码已在 GitHub 公开。"
+status_body: "开发中（v0.1.17，预发布版）。在 Android 上，已在 Android 15 模拟器中确认 7z、RAR、EPUB（竖排、横排、图文混排、目录，以及符号和异体字选择符）、AVIF、文件夹批量导入与多文件批量添加、分组、文件夹视图与排序以及五种界面语言可用。源代码已在 GitHub 公开。"
 todo_title: "尚未验证或不支持的内容"
 todo:
   - "Android 真机上的运行情况（目前只在模拟器中确认）"

@@ -36,6 +36,7 @@ features:
   - { icon: "📖", title: "Right-to-left or left-to-right", body: "Switch the binding direction and the spread order follows. The cover can stand alone, and wide pages are shown by themselves." }
   - { icon: "🔍", title: "Zoom and magnifier", body: "Pinch or double-tap to zoom and pan. The Android version also has a magnifier that enlarges whatever you trace with a finger by 2x." }
   - { icon: "🔎", title: "Shelf thumbnail size", body: "Choose Large, Medium or Small covers with the buttons at the top of the shelf. Your choice is remembered next time." }
+  - { icon: "🔤", title: "Read in your own font", body: "Import a ttf, otf or ttc font file and use it as the typeface for text EPUBs (up to 64 MB). Import from the Settings screen on Android, or from Text settings on the Windows shelf. Characters the font lacks are shown in Gothic." }
   - { icon: "🗂️", title: "Page grid", body: "Jump to any page from thumbnails of the whole book (Android version)." }
   - { icon: "🌐", title: "Five display languages", body: "Choose the app language from Japanese, English, Chinese, Korean and Spanish (Android version), or follow your device language." }
   - { icon: "🎨", title: "Color adjustment", body: "Brightness, contrast, gamma, black and white, sepia and invert. Settings are remembered for each book (Android version)." }
@@ -64,17 +65,17 @@ download_button: "Download from Google Drive"
 download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
 download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
 cta_source: "Source code"
-sha_label: "SHA-256 (v0.1.16)"
+sha_label: "SHA-256 (v0.1.17)"
 release_label: "Release notes and source (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.16-android.apk"
+android_file: "RustHighBookViewer-0.1.17-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "d88a2b59e7f3a384138b066040d8a744b740b30f33a6ba4cee14b2a86f9c00af"
-windows_sha: "bec220045a9551312ef13a3434637014accdb0331d72922603dc4753ed86ee69"
+android_sha: "f3ccddaa32e9a4d78186aa76ce69f5c6709c95fe6baaffb21607ef785cd9b323"
+windows_sha: "8580f0cbf608ff0e233bc90318311bf73ae330beca095b91f86fbe935c9e66a3"
 status_title: "Status"
-status_body: "Under development (v0.1.16, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, the table of contents, and symbols and variation selectors), AVIF, bulk folder import and adding several files at once, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
+status_body: "Under development (v0.1.17, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, the table of contents, and symbols and variation selectors), AVIF, bulk folder import and adding several files at once, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
 todo_title: "Not yet verified, or not supported"
 todo:
   - "Android on a real device (only checked in an emulator)"
