@@ -1,6 +1,6 @@
 ---
 title: "Rust로 만든 가벼운 앱"
-description: "메모리를 적게 쓰는 것을 가장 우선해 Rust로 만든 가볍고 단순한 앱: 웹 브라우저, 웹 페이지의 변화를 지켜보는 watchtower-rs, 만화 뷰어 RustHighBookViewer. 녹음 받아쓰기, 회의록, 자료 검색, AI 질문을 기기 안에서 처리하는 LocalMind도 소개합니다."
+description: "메모리를 적게 쓰는 것을 가장 우선해 Rust로 만든 가볍고 단순한 앱: 웹 브라우저, 웹 페이지의 변화를 지켜보는 watchtower-rs, 만화 뷰어 RustHighBookViewer. 녹음 받아쓰기, 회의록, 자료 검색, AI 질문을 기기 안에서 처리하는 LocalMind도 소개합니다. Rust EQ는 16가지 프리셋과 10/31밴드 EQ, 가상 저음, 공간 효과로 기기에 저장된 음악을 조절하는 Android 앱입니다."
 tagline: "가볍고 단순하게. Rust로 만든 앱들."
 lead: "모두 메모리를 적게 쓰는 것을 가장 우선해 Rust로 처음부터 만들었습니다. 쓸수록 무거워지지 않는 도구를 목표로 합니다."
 nav_apps: "앱"
@@ -34,5 +34,12 @@ apps:
     body: "녹음 받아쓰기, 회의록 작성, 자료 검색, AI 질문을 기기 안에서만 처리하는 Android 앱입니다. 녹음과 자료는 밖으로 보내지 않습니다."
     tags: ["Android", "오프라인 사용", "회의록 / 검색 / AI 질문"]
     cta: "LocalMind 소개 보기"
+  - slug: "rusteq"
+    icon_image: "rusteq/icon.svg"
+    name: "Rust EQ"
+    tagline: "소리를 내 취향대로."
+    body: "16가지 프리셋과 10/31밴드 EQ로 기기의 음악을 조절하세요. 보기 쉬운 화면에서 가상 저음과 공간 효과도 경험할 수 있습니다."
+    tags: ["Android 10 이상", "오프라인 재생", "Rust DSP"]
+    cta: "Rust EQ 알아보기"
 footer: "© Rust로 만든 가벼운 앱"
 ---

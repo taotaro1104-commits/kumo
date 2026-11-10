@@ -38,21 +38,22 @@ DirectoryIndex index.html
   RewriteRule ^ - [R=404,L]
 
   # 3) 言語ページの正規の URL は /ja/ のような形（/ja/index.html は 301 で寄せる）
-  #    アプリの紹介ページを増やしたら、ここと下の 4) の (browser|watchtower|bookviewer|localmind) に足す（アプリ名は 2 か所）
-  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/((browser|watchtower|bookviewer|localmind)/)?index\.html[\s?]
+  #    アプリの紹介ページを増やしたら、ここと下の 4) の (browser|watchtower|bookviewer|localmind|rusteq) に足す（アプリ名は 2 か所）
+  RewriteCond %{THE_REQUEST} \s/(ja|en|zh|ko|es)/((browser|watchtower|bookviewer|localmind|rusteq)/)?index\.html[\s?]
   RewriteRule ^ /%1/%2 [L,R=301]
 
   # 4) 許可するパス（どれにも当てはまらなければ 404）。条件は 1 本の正規表現にまとめて、リクエストごとの照合を 1 回で済ませる。
   #    - /                                 トップ（上で言語ページへ転送済み）
   #    - /ja/ /en/ /zh/ /ko/ /es/          言語ページのディレクトリ
   #    - /ja/index.html・404.html・sitemap.xml  言語ページ直下の公開ファイルだけ
-  #    - /ja/browser/ /ja/watchtower/ /ja/bookviewer/ /ja/localmind/ など  アプリごとの紹介ページ（各言語）と、その index.html
+  #    - /ja/browser/ /ja/watchtower/ /ja/bookviewer/ /ja/localmind/ /ja/rusteq/ など  アプリごとの紹介ページ（各言語）と、その index.html
   #    - /style.min.<ハッシュ>.css          ハッシュ付きの CSS
   #    - /bookviewer/・/localmind/ の icon-64.png・icon-192.png と shots/*.jpg（紹介ページの画像。ディレクトリ自体と、深い階層は通さない）
+  #    - /rusteq/icon.svg・og.png・og-v2.png・shots/{sound,space,tools,presets,target-picker-ja,target-picker-en,target-connected-ja,target-connected-en}.png
   #    - /bookviewer/banner(-en).jpg         BookViewer の共有時の OGP 画像
   #    - アイコン・OGP 画像・スクリプト・ads.txt・sitemap.xml・robots.txt
   #    - /.well-known/                     証明書の更新などの標準の置き場
-  RewriteCond %{REQUEST_URI} !^/(?:(?:(?:ja|en|zh|ko|es)(?:/(?:(?:browser|watchtower|bookviewer|localmind)(?:/(?:index\.html)?)?|(?:index|404)\.html|sitemap\.xml)?)?)?|style\.min\.[0-9a-f]{64}\.css|icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|(?:bookviewer|localmind)/icon-(?:64|192)\.png|bookviewer/banner(?:-en)?\.jpg|(?:bookviewer|localmind)/shots/[A-Za-z0-9_-]+\.jpg|analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt|\.well-known/[A-Za-z0-9._/-]+)$
+  RewriteCond %{REQUEST_URI} !^/(?:(?:(?:ja|en|zh|ko|es)(?:/(?:(?:browser|watchtower|bookviewer|localmind|rusteq)(?:/(?:index\.html)?)?|(?:index|404)\.html|sitemap\.xml)?)?)?|style\.min\.[0-9a-f]{64}\.css|icon\.svg|icon-192\.png|favicon\.ico|favicon-32\.png|apple-touch-icon\.png|og\.png|(?:bookviewer|localmind)/icon-(?:64|192)\.png|bookviewer/banner(?:-en)?\.jpg|(?:bookviewer|localmind)/shots/[A-Za-z0-9_-]+\.jpg|rusteq/(?:icon\.svg|og(?:-v2)?\.png|shots/(?:sound|space|tools|presets|target-(?:picker|connected)-(?:ja|en))\.png)|analytics\.js|ads\.js|ads\.txt|sitemap\.xml|robots\.txt|\.well-known/[A-Za-z0-9._/-]+)$
   RewriteRule ^ - [R=404,L]
 </IfModule>
 

@@ -4,3 +4,4 @@
 /dist
 !site/static/*.png
 !android/res/**/*.png
+!site/static/rusteq/**/*.png

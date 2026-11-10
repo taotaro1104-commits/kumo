@@ -1,0 +1,74 @@
+{{ define "main" }}
+{{ $p := .Params }}
+<div class="rusteq-page">
+<header class="top"><div class="top-in">
+  <a class="brand" href="{{ .RelPermalink }}"><img src="{{ "rusteq/icon.svg" | relURL }}" alt="" width="34" height="34"><span>Rust EQ</span></a>
+  <nav aria-label="{{ $p.nav_all }}">
+    <a class="nav-link" href="{{ "" | relLangURL }}">{{ $p.nav_all }}</a>
+    <a class="nav-link" href="#features">{{ $p.nav_features }}</a>
+    <a class="nav-link" href="#screens">{{ $p.nav_shots }}</a>
+    <a class="nav-link" href="#download">{{ $p.nav_get }}</a>
+    {{ partial "langswitch.html" . }}
+  </nav>
+</div></header>
+<div class="rusteq-intro">
+  <section class="hero rusteq-hero" aria-labelledby="rusteq-title">
+    <div class="hero-text">
+      <h1 id="rusteq-title">{{ range $i, $line := split $p.tagline "\n" }}{{ if $i }}<br>{{ end }}{{ $line }}{{ end }}</h1>
+      <p class="lead">{{ $p.lead }}</p>
+      <div class="cta"><a class="btn rusteq-primary" href="{{ $p.download_url }}">{{ $p.download_button }}</a><a class="rusteq-text-link" href="#screens">{{ $p.nav_shots }}</a></div>
+      <ul class="pills">{{ range $p.pills }}<li class="pill">{{ . }}</li>{{ end }}</ul>
+    </div>
+    <figure class="rusteq-phone">
+      <img src="{{ "rusteq/shots/sound.png" | relURL }}" alt="{{ (index $p.shots 0).body }}" width="1080" height="2400" fetchpriority="high">
+      <figcaption>{{ $p.hero_caption }}</figcaption>
+    </figure>
+  </section>
+</div>
+<main>
+  <section id="features" aria-labelledby="features-title">
+    <h2 id="features-title">{{ $p.features_title }}</h2>
+    <ul class="rusteq-features">
+      {{ range $i, $feature := $p.features }}
+      <li><span class="rusteq-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      {{ if eq $i 0 }}<path d="M4 22 10 15 17 18 25 8 28 12"/><path d="M4 27h24"/>
+      {{ else if eq $i 1 }}<path d="M8 5v22M16 5v22M24 5v22M4 12h8m0 9h8m0-11h8"/>
+      {{ else if eq $i 2 }}<path d="M6 17v-2a10 10 0 0 1 20 0v2M6 17H3v9h6v-9H6m20 0h3v9h-6v-9h3"/>
+      {{ else }}<path d="M7 4h16l5 5v19H4V4h3Z"/><path d="M10 4v8h12V4M10 28V18h12v10"/>
+      {{ end }}</svg></span><div><h3>{{ .title }}</h3><p>{{ .body }}</p></div></li>
+      {{ end }}
+    </ul>
+  </section>
+  <section id="external-eq" class="rusteq-external" aria-labelledby="external-title">
+    <div class="rusteq-external-copy"><h2 id="external-title">{{ $p.external_title }}</h2><p>{{ $p.external_lead }}</p>
+      <ol class="steps">{{ range $p.external_steps }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}</ol>
+      <p class="rusteq-external-note">{{ $p.external_note }}</p>
+    </div>
+    <div class="rusteq-external-shots">{{ range $p.external_shots }}<figure>
+      <a href="{{ printf "rusteq/shots/%s" .img | relURL }}"><img src="{{ printf "rusteq/shots/%s" .img | relURL }}" alt="{{ .caption }}" width="1080" height="2400" loading="lazy" decoding="async"></a>
+      <figcaption>{{ .caption }}</figcaption>
+    </figure>{{ end }}</div>
+  </section>
+  <section id="screens" aria-labelledby="screens-title">
+    <h2 id="screens-title">{{ $p.shots_title }}</h2><p class="rusteq-section-copy">{{ $p.shots_note }}</p>
+    <ul class="rusteq-screens">
+      {{ range $p.shots }}<li><figure>
+        <a href="{{ printf "rusteq/shots/%s" .img | relURL }}"><img src="{{ printf "rusteq/shots/%s" .img | relURL }}" alt="{{ .caption }} — {{ .body }}" width="1080" height="2400" loading="lazy" decoding="async"></a>
+        <figcaption><h3>{{ .caption }}</h3><p>{{ .body }}</p></figcaption>
+      </figure></li>{{ end }}
+    </ul>
+  </section>
+  <section id="how" aria-labelledby="how-title"><h2 id="how-title">{{ $p.how_title }}</h2>
+    <ol class="steps">{{ range $p.how }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}</ol>
+  </section>
+  <section id="download" class="rusteq-download" aria-labelledby="download-title">
+    <div><h2 id="download-title">{{ $p.download_title }}</h2><p>{{ $p.download_body }}</p><p class="rusteq-download-note">{{ $p.download_note }}</p></div>
+    <div class="rusteq-download-links"><a class="btn rusteq-primary" href="{{ $p.download_url }}">{{ $p.download_button }}</a><a class="rusteq-text-link" href="{{ $p.repo_url }}">{{ $p.source_button }} (GitHub)</a></div>
+  </section>
+  <section id="details" aria-labelledby="details-title"><h2 id="details-title">{{ $p.details_title }}</h2>
+    <div class="rusteq-details">{{ range $p.details }}<details><summary>{{ .title }}</summary><p>{{ .body }}</p></details>{{ end }}</div>
+  </section>
+</main>
+<footer><img src="{{ "rusteq/icon.svg" | relURL }}" alt="" width="40" height="40"><p>{{ $p.footer }}</p><a href="{{ "" | relLangURL }}">{{ $p.nav_all }}</a></footer>
+</div>
+{{ end }}

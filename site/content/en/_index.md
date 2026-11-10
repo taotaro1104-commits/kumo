@@ -1,6 +1,6 @@
 ---
 title: "Light apps written in Rust"
-description: "Light, simple apps written in Rust with low memory use as the first goal: a web browser, watchtower-rs (a page change watcher) and RustHighBookViewer (a comic viewer). It also introduces LocalMind, which transcribes recordings, writes minutes, searches documents and answers questions with AI on the device."
+description: "Light, simple apps written in Rust with low memory use as the first goal: a web browser, watchtower-rs (a page change watcher) and RustHighBookViewer (a comic viewer). It also introduces LocalMind, which transcribes recordings, writes minutes, searches documents and answers questions with AI on the device. Rust EQ is an Android music player with 16 presets, a 10/31-band equalizer, virtual bass and spatial effects. Shape the sound of music stored on your device."
 tagline: "Light and simple. Apps written in Rust."
 lead: "Each one is written from scratch in Rust with low memory use as its first goal. The aim is tools that do not get heavier the more you use them."
 nav_apps: "Apps"
@@ -34,5 +34,12 @@ apps:
     body: "An Android app that transcribes recordings, writes minutes, searches your documents and answers questions with AI, all on the device. Nothing you record or store is sent out."
     tags: ["Android", "Works offline", "Minutes / search / AI questions"]
     cta: "See LocalMind"
+  - slug: "rusteq"
+    icon_image: "rusteq/icon.svg"
+    name: "Rust EQ"
+    tagline: "Find your kind of sound."
+    body: "Shape local music with 16 presets and a 10/31-band EQ. Explore virtual bass and spatial effects with clear, friendly controls."
+    tags: ["Android 10+", "Offline playback", "Rust DSP"]
+    cta: "Meet Rust EQ"
 footer: "© Light apps written in Rust"
 ---

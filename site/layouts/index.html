@@ -27,7 +27,7 @@
       {{ range $p.apps }}
       <li>
         <a class="app" href="{{ printf "%s/" .slug | relLangURL }}">
-          <span class="ico" aria-hidden="true">{{ .icon }}</span>
+          {{ if .icon_image }}<img class="app-icon" src="{{ .icon_image | relURL }}" alt="" width="48" height="48" loading="lazy">{{ else }}<span class="ico" aria-hidden="true">{{ .icon }}</span>{{ end }}
           <h3>{{ .name }}</h3>
           <p class="app-tag">{{ .tagline }}</p>
           <p>{{ .body }}</p>

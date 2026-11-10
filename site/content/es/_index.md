@@ -1,6 +1,6 @@
 ---
 title: "Apps ligeras hechas en Rust"
-description: "Apps ligeras y sencillas escritas en Rust con el bajo uso de memoria como primer objetivo: un navegador web, watchtower-rs (un vigilante de cambios en páginas) y RustHighBookViewer (un visor de cómics). También presenta LocalMind, que transcribe grabaciones, redacta actas, busca documentos y responde preguntas con IA en el dispositivo."
+description: "Apps ligeras y sencillas escritas en Rust con el bajo uso de memoria como primer objetivo: un navegador web, watchtower-rs (un vigilante de cambios en páginas) y RustHighBookViewer (un visor de cómics). También presenta LocalMind, que transcribe grabaciones, redacta actas, busca documentos y responde preguntas con IA en el dispositivo. Rust EQ es un reproductor de música para Android con 16 preajustes, ecualizador de 10/31 bandas, graves virtuales y efectos espaciales para tu música local."
 tagline: "Ligeras y sencillas. Apps hechas en Rust."
 lead: "Todas están escritas desde cero en Rust con el bajo uso de memoria como primer objetivo. Buscamos herramientas que no se vuelvan más pesadas cuanto más se usan."
 nav_apps: "Apps"
@@ -34,5 +34,12 @@ apps:
     body: "Una app de Android que transcribe grabaciones, redacta actas, busca en tus documentos y responde preguntas con IA, todo en el propio dispositivo. Nada de lo que grabas o guardas se envía fuera."
     tags: ["Android", "Funciona sin conexión", "Actas / búsqueda / preguntas a la IA"]
     cta: "Ver LocalMind"
+  - slug: "rusteq"
+    icon_image: "rusteq/icon.svg"
+    name: "Rust EQ"
+    tagline: "Encuentra el sonido que te gusta."
+    body: "Ajusta tu música local con 16 preajustes y un EQ de 10/31 bandas. Explora los graves virtuales y los efectos espaciales con controles claros."
+    tags: ["Android 10 o posterior", "Sin conexión", "Rust DSP"]
+    cta: "Conoce Rust EQ"
 footer: "© Apps ligeras hechas en Rust"
 ---

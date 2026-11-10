@@ -21,8 +21,10 @@
   <meta property="og:locale" content="{{ replace site.Language.LanguageCode "-" "_" }}">
   {{ $og := .Params.og_image | default "og.png" }}
   <meta property="og:image" content="{{ $og | absURL }}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="{{ if .Params.og_image }}600{{ else }}630{{ end }}">
+  <meta property="og:image:width" content="{{ .Params.og_image_width | default 1200 }}">
+  {{ $ogHeight := 630 }}{{ if .Params.og_image }}{{ $ogHeight = 600 }}{{ end }}
+  <meta property="og:image:height" content="{{ .Params.og_image_height | default $ogHeight }}">
+  {{ with .Params.og_image_alt }}<meta property="og:image:alt" content="{{ . }}">{{ end }}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ .Title }}">
   <meta name="twitter:description" content="{{ .Description }}">

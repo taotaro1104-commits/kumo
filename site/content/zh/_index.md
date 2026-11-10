@@ -1,6 +1,6 @@
 ---
 title: "用 Rust 写的轻量应用"
-description: "以内存占用小为首要目标、用 Rust 编写的轻量简洁应用：网页浏览器、监视网页变化的 watchtower-rs，以及漫画阅读器 RustHighBookViewer。 还介绍 LocalMind：在设备本地完成录音转写、会议纪要、资料搜索和 AI 问答。"
+description: "以内存占用小为首要目标、用 Rust 编写的轻量简洁应用：网页浏览器、监视网页变化的 watchtower-rs，以及漫画阅读器 RustHighBookViewer。 还介绍 LocalMind：在设备本地完成录音转写、会议纪要、资料搜索和 AI 问答。 Rust EQ 是一款 Android 本地音乐播放器，提供16种预设、10／31段均衡器、虚拟低音和空间音效，让你轻松调整喜欢的声音。"
 tagline: "轻巧、简单。用 Rust 写的应用。"
 lead: "每一个都以内存占用小为首要目标，用 Rust 从头写成。目标是越用越不会变重的工具。"
 nav_apps: "应用"
@@ -34,5 +34,12 @@ apps:
     body: "在设备本地完成录音转写、会议纪要、资料搜索和 AI 问答的 Android 应用。录音和资料都不会发送到外部。"
     tags: ["Android", "可离线使用", "纪要 / 搜索 / AI 问答"]
     cta: "查看 LocalMind"
+  - slug: "rusteq"
+    icon_image: "rusteq/icon.svg"
+    name: "Rust EQ"
+    tagline: "找到喜欢的声音。"
+    body: "用16种预设和10／31段均衡器调整本地音乐，透过清晰直观的界面探索虚拟低音与空间音效。"
+    tags: ["Android 10 及以上", "离线播放", "Rust DSP"]
+    cta: "了解 Rust EQ"
 footer: "© 用 Rust 写的轻量应用"
 ---
