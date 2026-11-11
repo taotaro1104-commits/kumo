@@ -5,7 +5,7 @@
   "pills": [
     "Android 10 o posterior",
     "Reproducción sin conexión",
-    "En desarrollo v0.4.2",
+    "En desarrollo v0.4.5",
     "日本語 / English"
   ],
   "nav_all": "Todas las apps",
@@ -74,8 +74,8 @@
     }
   ],
   "download_title": "Prueba Rust EQ",
-  "download_body": "Consigue el APK de Android en la carpeta de distribución de Google Drive.",
-  "download_note": "Android 10 o posterior / arm64-v8a y x86_64. Guarda el APK y sigue las indicaciones del dispositivo para instalarlo. La interfaz está disponible en inglés y japonés y sigue tus preferencias de idioma. Android 13 o posterior permite elegir el idioma por aplicación.",
+  "download_body": "Obtén el APK de Android firmado en la carpeta de distribución de Google Drive. El archivo de 0.4.5 se llama rust-eq-0.4.5-release.apk.",
+  "download_note": "Android 10 o posterior / arm64-v8a y x86_64. Guarda el APK y sigue las indicaciones del dispositivo para instalarlo. La interfaz está disponible en inglés y japonés y sigue tus preferencias de idioma. Android 13 o posterior permite elegir el idioma por aplicación. Comprueba el nombre y la versión del archivo disponible en la carpeta antes de descargarlo.",
   "details_title": "Antes de empezar",
   "details": [
     {
@@ -84,7 +84,11 @@
     },
     {
       "title": "¿Aplica el EQ a otras apps?",
-      "body": "En Tools → EQ for other apps, elige y guarda las apps; después pulsa Connect para una app desconectada. El EQ de sesión de Android solo funciona con apps compatibles que exponen sus sesiones de audio. No procesa todo el sonido del dispositivo. Los graves virtuales, la dinámica, HRTF e IR se aplican a la reproducción dentro de Rust EQ."
+      "body": "Elige y guarda un reproductor, y pulsa Connect. Los que no anuncian sesiones de audio pueden funcionar con Enhanced detection y configuración ADB adicional opcional. Comprueba el estado real de conexión. El EQ del dispositivo admite sesiones compatibles; no fuerza todo el audio a pasar por Rust DSP. Los graves virtuales, dinámica, HRTF e IR son para reproducción local."
+    },
+    {
+      "title": "¿Por qué no aparece la información de la canción?",
+      "body": "Selecciona YouTube Music y permite el acceso a notificaciones en Android. Es un ajuste distinto del permiso de notificaciones habitual y de la configuración DUMP opcional para detectar el EQ. En Android 13 o posterior, revisa Información de la app → menú → Permitir ajustes restringidos si se bloquea. El reproductor debe publicar información multimedia."
     },
     {
       "title": "Tu música y tus ajustes",
@@ -92,7 +96,7 @@
     },
     {
       "title": "Desarrollo y pruebas",
-      "body": "v0.4.2 está en desarrollo. Verificamos 22 pruebas en emulador, la actualización del APK firmado y la restauración de la escucha al iniciar el dispositivo. La calidad, el rendimiento y el ahorro de energía requieren pruebas en cada dispositivo."
+      "body": "v0.4.5 superó 42 pruebas de integración en Android 13, 15 unitarias y 35 de Rust. Verificamos la actualización con la misma firma, los ajustes guardados y la recuperación de metadatos al reiniciar el proceso. El cliente actual de YouTube Music en un dispositivo físico no está verificado."
     }
   ],
   "footer": "Tu música, a tu gusto. Rust EQ",
@@ -139,5 +143,22 @@
       "img": "target-connected-en.png",
       "caption": "Comprueba la conexión y reconecta"
     }
-  ]
+  ],
+  "playback_title": "Mira qué suena en YouTube Music.",
+  "playback_lead": "Consulta el título, artista y estado del reproductor elegido en Sound y Playback details.",
+  "playback_steps": [
+    {
+      "title": "Elige YouTube Music",
+      "body": "Selecciona y guarda YouTube Music en Tools → EQ for other apps. YouTube Music y YouTube son apps distintas."
+    },
+    {
+      "title": "Permite el acceso a notificaciones",
+      "body": "Abre Playback details → Set up playback information access y permite el acceso en los ajustes de Android."
+    },
+    {
+      "title": "Reproduce una canción y vuelve",
+      "body": "Inicia la música en YouTube Music y vuelve a Rust EQ. Pulsa Refresh playback information si hace falta."
+    }
+  ],
+  "playback_note": "La información de la canción y la conexión EQ se muestran por separado. No se analiza el texto de las notificaciones ni se guarda historial. El EQ del teléfono no afecta al audio de un dispositivo de transmisión."
 }

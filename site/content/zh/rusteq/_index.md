@@ -5,7 +5,7 @@
   "pills": [
     "Android 10 及以上",
     "离线播放",
-    "开发中 v0.4.2",
+    "开发中 v0.4.5",
     "日本語 / English"
   ],
   "nav_all": "所有应用",
@@ -74,8 +74,8 @@
     }
   ],
   "download_title": "试试 Rust EQ",
-  "download_body": "Android APK 通过 Google 云端硬盘的分发文件夹提供。",
-  "download_note": "需要 Android 10 及以上，支持 arm64-v8a 和 x86_64。保存 APK 后，按照设备提示安装。界面支持英语和日语，随设备语言偏好切换；Android 13 及以上也可在系统的应用语言设置中选择。",
+  "download_body": "从Google Drive分发文件夹获取Android签名APK。0.4.5的文件名为rust-eq-0.4.5-release.apk。",
+  "download_note": "需要 Android 10 及以上，支持 arm64-v8a 和 x86_64。保存 APK 后，按照设备提示安装。界面支持英语和日语，随设备语言偏好切换；Android 13 及以上也可在系统的应用语言设置中选择。 下载前请核对文件夹内的文件名和版本。",
   "details_title": "开始之前，了解这些",
   "details": [
     {
@@ -84,7 +84,11 @@
     },
     {
       "title": "可以为其他应用使用均衡器吗？",
-      "body": "在“Tools → EQ for other apps”中选择并保存目标应用，未连接时轻点“Connect”。 Android 会话均衡器仅适用于公开音频会话的兼容应用，无法统一处理设备的全部声音。虚拟低音、动态处理、HRTF 和 IR 音效用于 Rust EQ 内部播放。"
+      "body": "选择并保存目标后轻点Connect。不通知音频会话的播放器，可尝试可选的Enhanced detection和额外ADB设置，并查看实际连接状态。设备EQ仅适用于兼容音频会话，无法强制将所有应用的声音送入Rust DSP。虚拟低音、动态处理、HRTF和IR用于应用内播放。"
+    },
+    {
+      "title": "为什么没有显示曲目信息？",
+      "body": "选择YouTube Music并允许Android通知访问。它不同于普通通知权限和EQ扩展检测的可选DUMP设置。Android 13及以上若阻止设置，请检查应用信息 → 菜单 → 允许受限设置。播放器必须公开媒体信息才能显示。"
     },
     {
       "title": "音乐与设置如何处理？",
@@ -92,7 +96,7 @@
     },
     {
       "title": "开发与测试进度",
-      "body": "v0.4.2仍在开发中。已通过22项模拟器测试，并验证签名APK升级和设备启动后的监听恢复。不同实机的音质、性能和省电模式行为仍需验证。"
+      "body": "v0.4.5通过Android 13上的42项联动测试、15项单元测试和35项Rust测试。已验证同签名升级、设置保留和进程结束后的实时曲目信息恢复。尚未在实机上验证当前版本的YouTube Music。"
     }
   ],
   "footer": "让声音更合心意。Rust EQ",
@@ -139,5 +143,22 @@
       "img": "target-connected-en.png",
       "caption": "查看状态并重新连接"
     }
-  ]
+  ],
+  "playback_title": "YouTube Music正在播放什么，一目了然。",
+  "playback_lead": "在Sound和Playback details中查看所选播放器的曲名、歌手和播放状态。",
+  "playback_steps": [
+    {
+      "title": "选择YouTube Music",
+      "body": "在Tools → EQ for other apps中选择并保存YouTube Music。它与YouTube是两个独立应用。"
+    },
+    {
+      "title": "允许通知访问",
+      "body": "打开Playback details → Set up playback information access，在Android设置中允许通知访问。"
+    },
+    {
+      "title": "播放歌曲后返回",
+      "body": "在YouTube Music中播放歌曲，再返回Rust EQ。必要时轻点Refresh playback information。"
+    }
+  ],
+  "playback_note": "曲目信息与EQ连接分别显示。不会分析通知正文或保存收听历史。手机EQ不适用于投屏设备上的音频。"
 }

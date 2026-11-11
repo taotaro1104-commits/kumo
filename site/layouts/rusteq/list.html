@@ -49,6 +49,11 @@
       <figcaption>{{ .caption }}</figcaption>
     </figure>{{ end }}</div>
   </section>
+  <section id="playback-info" aria-labelledby="playback-title">
+    <h2 id="playback-title">{{ $p.playback_title }}</h2><p class="rusteq-section-copy">{{ $p.playback_lead }}</p>
+    <ol class="steps">{{ range $p.playback_steps }}<li><h3>{{ .title }}</h3><p>{{ .body }}</p></li>{{ end }}</ol>
+    <p class="rusteq-external-note">{{ $p.playback_note }}</p>
+  </section>
   <section id="screens" aria-labelledby="screens-title">
     <h2 id="screens-title">{{ $p.shots_title }}</h2><p class="rusteq-section-copy">{{ $p.shots_note }}</p>
     <ul class="rusteq-screens">

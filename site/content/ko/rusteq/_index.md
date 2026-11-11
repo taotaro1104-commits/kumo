@@ -5,7 +5,7 @@
   "pills": [
     "Android 10 이상",
     "오프라인 재생",
-    "개발 중 v0.4.2",
+    "개발 중 v0.4.5",
     "日本語 / English"
   ],
   "nav_all": "모든 앱",
@@ -74,8 +74,8 @@
     }
   ],
   "download_title": "Rust EQ 사용해 보기",
-  "download_body": "Google 드라이브의 배포 폴더에서 Android APK를 받을 수 있습니다.",
-  "download_note": "Android 10 이상 / arm64-v8a, x86_64 지원. APK를 저장한 뒤 기기의 안내에 따라 설치하세요. 일본어와 영어 UI를 지원하며 기기의 언어 설정을 따릅니다. Android 13 이상에서는 앱별 언어 설정에서도 선택할 수 있습니다.",
+  "download_body": "Google Drive 배포 폴더에서 Android 서명 APK를 받을 수 있습니다. 0.4.5 파일명은 rust-eq-0.4.5-release.apk입니다.",
+  "download_note": "Android 10 이상 / arm64-v8a, x86_64 지원. APK를 저장한 뒤 기기의 안내에 따라 설치하세요. 일본어와 영어 UI를 지원하며 기기의 언어 설정을 따릅니다. Android 13 이상에서는 앱별 언어 설정에서도 선택할 수 있습니다. 다운로드 전 폴더의 파일명과 버전을 확인하세요.",
   "details_title": "시작 전에 알아두세요",
   "details": [
     {
@@ -84,7 +84,11 @@
     },
     {
       "title": "다른 앱에도 EQ를 적용할 수 있나요?",
-      "body": "Tools → EQ for other apps에서 앱을 선택해 저장하고, 미연결 대상의 Connect를 누르세요. Android 세션 EQ는 오디오 세션을 공개하는 호환 앱에만 적용됩니다. 기기의 모든 소리를 일괄 처리하지는 않습니다. 가상 저음, 다이내믹스, HRTF, IR 효과는 Rust EQ 내부 재생용입니다."
+      "body": "대상을 선택해 저장하고 Connect를 누르세요. 오디오 세션을 알리지 않는 앱은 선택적 Enhanced detection과 추가 ADB 설정으로 연결될 수 있습니다. 실제 연결 상태를 확인하세요. 기기 EQ는 호환 세션용이며 모든 앱의 출력을 Rust DSP로 강제 전달하지 않습니다. 가상 저음, 다이내믹스, HRTF, IR은 앱 내 재생용입니다."
+    },
+    {
+      "title": "곡 정보가 표시되지 않나요?",
+      "body": "YouTube Music을 선택하고 Android의 알림 접근을 허용하세요. 일반 알림 권한 및 EQ 확장 감지의 선택적 DUMP 설정과는 별개입니다. Android 13 이상에서 차단되면 앱 정보 → 메뉴 → 제한된 설정 허용을 확인하세요. 플레이어가 미디어 정보를 공개해야 표시할 수 있습니다."
     },
     {
       "title": "음악과 설정의 처리",
@@ -92,7 +96,7 @@
     },
     {
       "title": "개발 및 검증 상황",
-      "body": "v0.4.2는 개발 중입니다. 에뮬레이터 테스트 22개, 서명 APK 업데이트, 기기 시작 후 대기 복원을 확인했습니다. 실제 기기별 음질·성능·절전 동작은 추가 검증이 필요합니다."
+      "body": "v0.4.5는 Android 13 연동 테스트 42개, 단위 테스트 15개, Rust 테스트 35개를 통과했습니다. 동일 서명 업데이트, 설정 유지, 프로세스 종료 후 곡 정보 재취득을 확인했습니다. 현재 YouTube Music의 실제 기기 동작은 미검증입니다."
     }
   ],
   "footer": "내 취향의 소리. Rust EQ",
@@ -139,5 +143,22 @@
       "img": "target-connected-en.png",
       "caption": "연결 상태 확인과 재연결"
     }
-  ]
+  ],
+  "playback_title": "YouTube Music의 재생 정보도 한눈에.",
+  "playback_lead": "선택한 플레이어의 곡명, 아티스트, 재생 상태를 Sound와 Playback details에서 확인하세요.",
+  "playback_steps": [
+    {
+      "title": "YouTube Music 선택",
+      "body": "Tools → EQ for other apps에서 YouTube Music을 선택하고 저장하세요. YouTube와는 별도 앱입니다."
+    },
+    {
+      "title": "알림 접근 허용",
+      "body": "Playback details → Set up playback information access를 열고 Android 설정에서 알림 접근을 허용하세요."
+    },
+    {
+      "title": "곡을 재생하고 돌아오기",
+      "body": "YouTube Music에서 재생한 뒤 Rust EQ로 돌아오세요. 필요하면 Refresh playback information을 누르세요."
+    }
+  ],
+  "playback_note": "곡 정보와 EQ 연결 상태는 따로 표시됩니다. 알림 본문을 분석하거나 청취 기록을 저장하지 않습니다. 캐스트 기기의 소리에는 휴대전화 EQ가 적용되지 않습니다."
 }

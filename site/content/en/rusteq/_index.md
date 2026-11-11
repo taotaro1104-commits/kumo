@@ -5,7 +5,7 @@
   "pills": [
     "Android 10+",
     "Offline playback",
-    "In development v0.4.2",
+    "In development v0.4.5",
     "日本語 / English"
   ],
   "nav_all": "All apps",
@@ -74,8 +74,8 @@
     }
   ],
   "download_title": "Try Rust EQ",
-  "download_body": "Get the Android APK from the distribution folder on Google Drive.",
-  "download_note": "Android 10+ / arm64-v8a and x86_64. Save the APK and follow your device’s installation prompts. The interface supports English and Japanese and follows your language preferences. Android 13+ also offers per-app language settings.",
+  "download_body": "Get the signed Android APK from the Google Drive distribution folder. The 0.4.5 filename is rust-eq-0.4.5-release.apk.",
+  "download_note": "Android 10+ / arm64-v8a and x86_64. Save the APK and follow your device’s installation prompts. The interface supports English and Japanese and follows your language preferences. Android 13+ also offers per-app language settings. Check the filename and version available in the folder before downloading.",
   "details_title": "Before you start",
   "details": [
     {
@@ -84,7 +84,11 @@
     },
     {
       "title": "Can it apply EQ to other apps?",
-      "body": "In Tools → EQ for other apps, choose and save your apps, then tap Connect for a disconnected target. Android session EQ works only with compatible apps that expose their audio sessions. It does not process all device audio. Virtual bass, dynamics, HRTF and IR effects are for playback inside Rust EQ."
+      "body": "Select and save a player, then tap Connect. Players that do not announce audio sessions may work with optional Enhanced detection and additional ADB setup. Check the target’s actual connection status. Device EQ supports compatible audio sessions; it does not force all app audio through Rust DSP. Virtual bass, dynamics, HRTF and IR are for local playback."
+    },
+    {
+      "title": "Why is track information missing?",
+      "body": "Select YouTube Music and allow Android notification access. This is separate from ordinary notification permission and the optional DUMP setup for EQ discovery. On Android 13+, check App info → menu → Allow restricted settings if access is blocked. A player must publish media information for it to appear."
     },
     {
       "title": "Your music and settings",
@@ -92,7 +96,7 @@
     },
     {
       "title": "Development and testing",
-      "body": "v0.4.2 is in development. We verified 22 emulator tests, a signed-APK upgrade and listener restoration after device startup. Sound quality, performance and power-saving behavior still need testing on individual devices."
+      "body": "v0.4.5 passed 42 Android 13 integration tests, 15 unit tests and 35 Rust tests. We verified same-key upgrades, saved settings and live metadata recovery after process termination. The current YouTube Music client on physical hardware has not been verified."
     }
   ],
   "footer": "Sound made yours. Rust EQ",
@@ -139,5 +143,22 @@
       "img": "target-connected-en.png",
       "caption": "See the connection and reconnect"
     }
-  ]
+  ],
+  "playback_title": "See what is playing in YouTube Music.",
+  "playback_lead": "Show the selected player’s title, artist and playback state in Sound and Playback details.",
+  "playback_steps": [
+    {
+      "title": "Select YouTube Music",
+      "body": "Choose and save YouTube Music in Tools → EQ for other apps. YouTube Music and YouTube are separate apps."
+    },
+    {
+      "title": "Allow notification access",
+      "body": "Open Playback details → Set up playback information access, then allow notification access in Android settings."
+    },
+    {
+      "title": "Play a track and return",
+      "body": "Start music in YouTube Music, then return to Rust EQ. Tap Refresh playback information if needed."
+    }
+  ],
+  "playback_note": "Track information and EQ connection have separate status indicators. Notification bodies are not analyzed and no listening history is saved. Phone EQ does not apply to audio playing on a cast device."
 }
