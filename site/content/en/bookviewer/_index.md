@@ -50,6 +50,7 @@ features:
   - { icon: "🖼️", title: "AVIF support", body: "AVIF images are readable, in folders and inside archives such as ZIP and CBZ, including ones with transparency and grayscale ones. They cannot be read on 32-bit ARM devices." }
   - { icon: "🔍", title: "Page grid size", body: "In the reader menu’s “Grid”, choose Large, Medium or Small page thumbnails. Your choice is remembered next time." }
   - { icon: "📁", title: "Folders too", body: "Pick a folder and the images in each folder become one book, while every EPUB, ZIP, 7z or RAR file becomes its own book, subfolders included, all added to your shelf at once. On Android, allowing “All files access” lets you pick folders such as Download directly." }
+  - { icon: "🗜️", title: "EPUBs inside archives", body: "An EPUB inside a ZIP, 7z or RAR opens as a book of its own. If the EPUB uses a compression method that is not supported, the app now says so instead of showing \"No images found\"." }
   - { icon: "🛡️", title: "Careful about safety", body: "There are limits on the unpacked size and the number of files, and unpacking stops when free space runs low. Paths such as ../ inside an archive are neutralized." }
   - { icon: "🔢", title: "Go to a page, and bookmarks", body: "Type a page number to jump there, or jump from your bookmark list. Add or remove a bookmark with one tap (Android version)." }
   - { icon: "⚙️", title: "Settings", body: "Choose the defaults for layout, binding direction, fit, volume-key page turning, screen-on and shelf order, and how much memory the image cache may use (Android version)." }
@@ -65,17 +66,17 @@ download_button: "Download from Google Drive"
 download_body: "The Android APK and the Windows exe are shared on Google Drive. There is no installer; just run the exe."
 download_note: "The APK is signed with a key we generated ourselves, so your device will ask you to allow apps from unknown sources. The exe is not signed, and Windows SmartScreen may show a warning."
 cta_source: "Source code"
-sha_label: "SHA-256 (v0.1.17)"
+sha_label: "SHA-256 (v0.1.18)"
 release_label: "Release notes and source (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.17-android.apk"
+android_file: "RustHighBookViewer-0.1.18-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "f3ccddaa32e9a4d78186aa76ce69f5c6709c95fe6baaffb21607ef785cd9b323"
-windows_sha: "8580f0cbf608ff0e233bc90318311bf73ae330beca095b91f86fbe935c9e66a3"
+android_sha: "1d6dc9a3b4e91a8bdc2a204efe67441d3d85f2ec4d0a5275ef3846ca769d35ef"
+windows_sha: "4d92dc9394684efb71a7e20fdd9c5b5aa3a5feb441b0112398df196ca0123c28"
 status_title: "Status"
-status_body: "Under development (v0.1.17, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, the table of contents, and symbols and variation selectors), AVIF, bulk folder import and adding several files at once, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
+status_body: "Under development (v0.1.18, pre-release). On Android we have confirmed in an Android 15 emulator that 7z, RAR, EPUB (vertical and horizontal text, mixed text and images, the table of contents, and symbols and variation selectors), AVIF, bulk folder import and adding several files at once, groups, folder view and sorting, and the five display languages work. The source code is on GitHub."
 todo_title: "Not yet verified, or not supported"
 todo:
   - "Android on a real device (only checked in an emulator)"

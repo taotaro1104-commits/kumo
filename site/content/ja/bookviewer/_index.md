@@ -50,6 +50,7 @@ features:
   - { icon: "🖼️", title: "AVIF に対応", body: "AVIF 画像（フォルダ内・ZIP/CBZ などの書庫内）を読めます。アルファ付きやグレースケールにも対応しています。32 ビット ARM の端末では読めません。" }
   - { icon: "🔍", title: "ページ一覧の大きさ", body: "閲覧メニューの「一覧」で、ページのサムネイルの大きさを「大」「中」「小」から選べます。選んだ大きさは次回も使われます。" }
   - { icon: "📁", title: "フォルダも開ける", body: "フォルダを選ぶと、直下の画像を 1 冊、EPUB や ZIP・7z・RAR は 1 ファイルごとに 1 冊として、サブフォルダも含めてまとめて本棚へ追加します。Android では「すべてのファイルへのアクセス」を許可すると、Download なども直接選べます。" }
+  - { icon: "🗜️", title: "書庫の中の EPUB も開く", body: "ZIP・7z・RAR の中に入っている EPUB を、そのまま 1 冊として開きます。EPUB の中身が対応していない圧縮方式のときは、「画像が見つかりません」ではなく、圧縮方式に対応していないことを伝えるメッセージを出します。" }
   - { icon: "🛡️", title: "安全に配慮", body: "展開するサイズとファイル数に上限があり、空き容量が少ないときは途中で止めます。書庫の中の ../ のようなパスは無効にします。" }
   - { icon: "🔢", title: "ページ指定としおり", body: "ページ番号を入力して移動できます。しおりの一覧から飛ぶことも、ワンタップで付け外しすることもできます（Android 版）。" }
   - { icon: "⚙️", title: "設定画面", body: "表示モード・綴じ方向・フィットの既定、音量キーでのページ送り、画面の点灯、本棚の並び順、画像キャッシュに使うメモリを決められます（Android 版）。" }
@@ -65,17 +66,17 @@ download_button: "Google ドライブからダウンロード"
 download_body: "Android 用の APK と、Windows 用の exe を、Google ドライブで配布しています。インストーラは無く、exe は実行するだけで使えます。"
 download_note: "APK は自分で作った鍵で署名しています。端末で「提供元不明のアプリ」の許可が必要です。exe は署名しておらず、Windows の SmartScreen が警告を出すことがあります。"
 cta_source: "ソースコード"
-sha_label: "SHA-256（v0.1.17）"
+sha_label: "SHA-256（v0.1.18）"
 release_label: "更新履歴・ソースコード（GitHub）"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.17-android.apk"
+android_file: "RustHighBookViewer-0.1.18-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "f3ccddaa32e9a4d78186aa76ce69f5c6709c95fe6baaffb21607ef785cd9b323"
-windows_sha: "8580f0cbf608ff0e233bc90318311bf73ae330beca095b91f86fbe935c9e66a3"
+android_sha: "1d6dc9a3b4e91a8bdc2a204efe67441d3d85f2ec4d0a5275ef3846ca769d35ef"
+windows_sha: "4d92dc9394684efb71a7e20fdd9c5b5aa3a5feb441b0112398df196ca0123c28"
 status_title: "開発の状況"
-status_body: "開発中です（v0.1.17・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書き・横書き、画像と文章の混在、目次、記号や異体字を含む）・AVIF・フォルダの一括読み込みと複数ファイルの一括追加、グループ化、フォルダ表示・並び替え、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
+status_body: "開発中です（v0.1.18・プレリリース）。Android は Android 15 のエミュレータで、7z・RAR・EPUB（縦書き・横書き、画像と文章の混在、目次、記号や異体字を含む）・AVIF・フォルダの一括読み込みと複数ファイルの一括追加、グループ化、フォルダ表示・並び替え、5 か国語の画面を確かめています。ソースコードは GitHub で公開しています。"
 todo_title: "まだ確かめていないこと・できないこと"
 todo:
   - "Android の実機での動作（確認はエミュレータのみ）"

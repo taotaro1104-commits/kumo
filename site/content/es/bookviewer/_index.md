@@ -50,6 +50,7 @@ features:
   - { icon: "🖼️", title: "Compatibilidad con AVIF", body: "Se pueden leer imágenes AVIF, en carpetas y dentro de archivos como ZIP o CBZ, incluidas las que tienen transparencia y las de escala de grises. No se pueden leer en dispositivos ARM de 32 bits." }
   - { icon: "🔍", title: "Tamaño de la cuadrícula de páginas", body: "En la «Cuadrícula» del menú del lector puedes elegir miniaturas Grandes, Medianas o Pequeñas. Se recuerda tu elección." }
   - { icon: "📁", title: "También carpetas", body: "Elige una carpeta: las imágenes de cada carpeta forman un libro y cada archivo EPUB, ZIP, 7z o RAR es otro libro, subcarpetas incluidas, y todo se añade a la estantería de una vez. En Android, al permitir «Acceso a todos los archivos» puedes elegir carpetas como Download directamente." }
+  - { icon: "🗜️", title: "EPUB dentro de archivos comprimidos", body: "Un EPUB dentro de un ZIP, 7z o RAR se abre como un libro. Si el EPUB usa un método de compresión no compatible, la app lo indica en lugar de mostrar «No se encontraron imágenes»." }
   - { icon: "🛡️", title: "Pensado para la seguridad", body: "Hay límites para el tamaño descomprimido y el número de archivos, y la descompresión se detiene si queda poco espacio libre. Las rutas como ../ dentro de un archivo se anulan." }
   - { icon: "🔢", title: "Ir a una página y marcadores", body: "Escribe un número de página para saltar, o salta desde la lista de marcadores. Añade o quita un marcador con un toque (versión de Android)." }
   - { icon: "⚙️", title: "Ajustes", body: "Elige los valores por defecto de la vista, el sentido de encuadernación, el ajuste, el cambio de página con las teclas de volumen, la pantalla encendida y el orden de la estantería, y cuánta memoria puede usar la caché de imágenes (versión de Android)." }
@@ -65,17 +66,17 @@ download_button: "Descargar desde Google Drive"
 download_body: "El APK de Android y el exe de Windows se comparten en Google Drive. No hay instalador; basta con ejecutar el exe."
 download_note: "El APK está firmado con una clave que generamos nosotros, así que el dispositivo te pedirá permitir apps de orígenes desconocidos. El exe no está firmado y Windows SmartScreen puede mostrar una advertencia."
 cta_source: "Código fuente"
-sha_label: "SHA-256 (v0.1.17)"
+sha_label: "SHA-256 (v0.1.18)"
 release_label: "Notas de versión y código (GitHub)"
 download_url: "https://drive.google.com/drive/folders/15qKnVY5FglIUeVdFlwyLt3eVNU_XtltK?usp=sharing"
 repo_url: "https://github.com/taotaro1104-commits/RustHighBookViewer"
 release_url: "https://github.com/taotaro1104-commits/RustHighBookViewer/releases"
-android_file: "RustHighBookViewer-0.1.17-android.apk"
+android_file: "RustHighBookViewer-0.1.18-android.apk"
 windows_file: "RustHighBookViewer-desktop.exe"
-android_sha: "f3ccddaa32e9a4d78186aa76ce69f5c6709c95fe6baaffb21607ef785cd9b323"
-windows_sha: "8580f0cbf608ff0e233bc90318311bf73ae330beca095b91f86fbe935c9e66a3"
+android_sha: "1d6dc9a3b4e91a8bdc2a204efe67441d3d85f2ec4d0a5275ef3846ca769d35ef"
+windows_sha: "4d92dc9394684efb71a7e20fdd9c5b5aa3a5feb441b0112398df196ca0123c28"
 status_title: "Estado"
-status_body: "En desarrollo (v0.1.17, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, índice, y símbolos y selectores de variación), AVIF, la importación de carpetas completas y la adición de varios archivos a la vez, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
+status_body: "En desarrollo (v0.1.18, versión preliminar). En Android hemos comprobado, en un emulador de Android 15, que 7z, RAR, EPUB (texto vertical y horizontal, texto e imágenes mezclados, índice, y símbolos y selectores de variación), AVIF, la importación de carpetas completas y la adición de varios archivos a la vez, los grupos, la vista de carpetas y el orden, y los cinco idiomas de interfaz funcionan. El código fuente está en GitHub."
 todo_title: "Aún sin verificar o no admitido"
 todo:
   - "Android en un dispositivo real (solo comprobado en emulador)"
