@@ -5,7 +5,7 @@
   "pills": [
     "Android 10 o posterior",
     "Reproducción sin conexión",
-    "En desarrollo v0.4.6",
+    "En desarrollo v0.4.7",
     "日本語 / English"
   ],
   "nav_all": "Todas las apps",
@@ -23,7 +23,7 @@
     },
     {
       "title": "De los graves a los agudos",
-      "body": "Ajusta frecuencia, ganancia y Q con el EQ paramétrico de 10/31 bandas. Los graves virtuales llegan hasta el 200 %, y también hay compresor y limitador."
+      "body": "Ajusta frecuencia, ganancia y Q con el EQ paramétrico de 10/31 bandas. Los graves virtuales llegan hasta el 200 %, y también hay compresor, limitador y eco (nivel, retardo y repeticiones)."
     },
     {
       "title": "Explora la amplitud y el espacio",
@@ -74,7 +74,7 @@
     }
   ],
   "download_title": "Prueba Rust EQ",
-  "download_body": "Obtén el APK de Android firmado en la carpeta de distribución de Google Drive. El archivo de 0.4.6 se llama rust-eq-0.4.6-release.apk.",
+  "download_body": "Obtén el APK de Android firmado en la carpeta de distribución de Google Drive. El archivo de 0.4.7 se llama rust-eq-0.4.7-release.apk.",
   "download_note": "Android 10 o posterior / arm64-v8a y x86_64. Guarda el APK y sigue las indicaciones del dispositivo para instalarlo. La interfaz está disponible en inglés y japonés y sigue tus preferencias de idioma. Android 13 o posterior permite elegir el idioma por aplicación. Comprueba el nombre y la versión del archivo disponible en la carpeta antes de descargarlo.",
   "details_title": "Antes de empezar",
   "details": [
@@ -96,7 +96,7 @@
     },
     {
       "title": "Desarrollo y pruebas",
-      "body": "v0.4.6 añade los preajustes de 31 bandas y más graves virtuales; se verificaron las pruebas de Rust y la firma del APK, pero no se han hecho pruebas en dispositivo ni escucha. v0.4.5 superó 42 pruebas de integración en Android 13, 15 unitarias y 35 de Rust. Verificamos la actualización con la misma firma, los ajustes guardados y la recuperación de metadatos al reiniciar el proceso. El cliente actual de YouTube Music en un dispositivo físico no está verificado."
+      "body": "v0.4.7 añade un eco ajustable. Se verificaron las pruebas de Rust, las 44 pruebas de Android en un emulador Android 15 y la firma del APK, pero no se han hecho pruebas en dispositivo físico ni escucha. v0.4.5 superó 42 pruebas de integración en Android 13, 15 unitarias y 35 de Rust. Verificamos la actualización con la misma firma, los ajustes guardados y la recuperación de metadatos al reiniciar el proceso. El cliente actual de YouTube Music en un dispositivo físico no está verificado."
     }
   ],
   "footer": "Tu música, a tu gusto. Rust EQ",
