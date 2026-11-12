@@ -5,7 +5,7 @@
   "pills": [
     "Android 10+",
     "Offline playback",
-    "In development v0.4.5",
+    "In development v0.4.6",
     "日本語 / English"
   ],
   "nav_all": "All apps",
@@ -19,11 +19,11 @@
   "features": [
     {
       "title": "16 presets to suit your mood",
-      "body": "Start with Flat, Vocal, Rich Bass and more. Small curve previews help you compare their sound profiles."
+      "body": "Start with Flat, Vocal, Rich Bass and more. 31-band presets such as Rock and Classical are now included. Small curve previews help you compare their sound profiles."
     },
     {
       "title": "Shape the lows, mids and highs",
-      "body": "Adjust frequency, gain and Q with a 10/31-band parametric EQ. Try virtual bass, a compressor and a limiter, too."
+      "body": "Adjust frequency, gain and Q with a 10/31-band parametric EQ. Boost virtual bass up to 200%, and use a compressor and a limiter, too."
     },
     {
       "title": "Explore width and space",
@@ -74,7 +74,7 @@
     }
   ],
   "download_title": "Try Rust EQ",
-  "download_body": "Get the signed Android APK from the Google Drive distribution folder. The 0.4.5 filename is rust-eq-0.4.5-release.apk.",
+  "download_body": "Get the signed Android APK from the Google Drive distribution folder. The 0.4.6 filename is rust-eq-0.4.6-release.apk.",
   "download_note": "Android 10+ / arm64-v8a and x86_64. Save the APK and follow your device’s installation prompts. The interface supports English and Japanese and follows your language preferences. Android 13+ also offers per-app language settings. Check the filename and version available in the folder before downloading.",
   "details_title": "Before you start",
   "details": [
@@ -96,7 +96,7 @@
     },
     {
       "title": "Development and testing",
-      "body": "v0.4.5 passed 42 Android 13 integration tests, 15 unit tests and 35 Rust tests. We verified same-key upgrades, saved settings and live metadata recovery after process termination. The current YouTube Music client on physical hardware has not been verified."
+      "body": "v0.4.6 adds the 31-band presets and stronger virtual bass; Rust tests and APK signing were verified, but device testing and listening checks have not been done. v0.4.5 passed 42 Android 13 integration tests, 15 unit tests and 35 Rust tests. We verified same-key upgrades, saved settings and live metadata recovery after process termination. The current YouTube Music client on physical hardware has not been verified."
     }
   ],
   "footer": "Sound made yours. Rust EQ",
